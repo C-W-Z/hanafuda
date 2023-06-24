@@ -39,15 +39,16 @@ const cardPlace = {
     moving: 6
 };
 /* Animation Settings */
-const MOVE_TIME = 500; // ms
+const MOVE_TIME = 300; // ms
 
 /* canvas & sources & control */
 let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
 let cards = new Image();
-cards.src = "pat.gif";
+cards.src = "pattern.gif";
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
+let clickCard;
 
 /* game variables */
 let card; // the card objs
@@ -61,6 +62,7 @@ let MAXMONTH = 3; // 預設三月玩法
 let startTime = null;
 let time_func = new Function();
 time_func = null;
+let movingCard;
 
 //#endregion
 
@@ -75,23 +77,26 @@ window.onload = function()
     canvas.style.height = SCREEN_H * scaleRate + 'px';
     context = canvas.getContext('2d');
     // control settings
-    canvas.onclick = updateMouseXY;
+    canvas.onmousedown = click_func;
 
     init_game();
 
+    animate(startTime);
+
     start_game();
-    debug();
-
-    //console.log(card[0]);
-    //time_func = step_move(0, 50, 50, 300, 300);
-    
-    animate();
-    //draw_canvas();
-
+    //debug();
 }
 //#endregion
 
 //#region Control Functions
+
+function click_func(event) {
+    /* must be left click */
+    if (event.button != 0) return;
+    updateMouseXY(event);
+    clickCard = cursorCardID();
+    console.log(clickCard);
+}
 
 // get mouse coorfinates
 function updateMouseXY(event) {
@@ -100,7 +105,21 @@ function updateMouseXY(event) {
 		mouse.x = (event.clientX - rect.left) / scaleRate;
 		mouse.y = (event.clientY - rect.top ) / scaleRate;
 	}
-    console.log(mouse);
+    // console.log(mouse);
+}
+
+// 回傳滑鼠點到的牌的ID，若無則回傳-1
+function cursorCardID() {
+    for (const c of card) {
+        if (c.place == cardPlace.deck ||
+            c.place == cardPlace.cpu_hand ||
+            c.place == cardPlace.moving)
+            continue;
+        if (mouse.x >= c.px && mouse.x <= c.px + CARD_W &&
+            mouse.y >= c.py && mouse.y <= c.py + CARD_H)
+            return c.ID;
+    }
+    return -1;
 }
 
 //#endregion
@@ -119,7 +138,7 @@ function animate(time) {
     
     // 重畫整個畫面
     draw_canvas();
-    card[0].draw();
+    //card[0].draw();
 
     requestAnimationFrame(animate);
 }
@@ -133,7 +152,7 @@ function draw_canvas() {
 	context.fillStyle = 'rgb(255,255,255)';
 	context.textAlign = "center";
 	context.font = "22px sans-serif";
-	context.fillText(player[PLR].money+"文", 45 * R, (SCREEN_H - 30) * R);
+	context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
 
     // draw the deck at center
     draw_card(48, SCREEN_W / 2 - CARD_W / 2, SCREEN_H / 2 - CARD_H / 2, false);
@@ -157,6 +176,12 @@ function draw_canvas() {
     // draw the collect cards of player
 
     // draw the collect cards of cpu
+
+    // draw moving cards
+    for (const c of movingCard) {
+        card[c].draw();
+        //console.log('moving:' + c);
+    }
 }
 
 /* draw card */
@@ -195,6 +220,27 @@ function step_move(cardID, sX, sY, dX, dY) {
     }
 }
 
+function distribute_step(cards) {
+    return function(time) {
+        for (let i = 0; i < HAND_NUM; i++) {
+            let dx = SCREEN_W / 2 + CARD_IMG_W * (i-HAND_NUM/2) + (CARD_IMG_W - CARD_W) / 2;
+            let dy = (CARD_IMG_H - CARD_H) / 2;
+            // to cpu hand
+            step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, dx, dy)(time);
+            // to field
+            let fx;
+            if (i < HAND_NUM / 2)
+                fx = CARD_IMG_W + CARD_IMG_W * Math.floor((i+(FIELD_SPACE-HAND_NUM)/2) / 2) + (CARD_IMG_W - CARD_W) / 2;
+            else
+                fx = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - (i+(FIELD_SPACE-HAND_NUM)/2) + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
+            let fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
+            step_move(cards[1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy)(time);
+            // to player hand
+            step_move(cards[2][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, dx, SCREEN_H - CARD_IMG_H + dy)(time);
+        }
+    }
+};
+
 //#endregion
 
 //#region Game Functions
@@ -206,6 +252,7 @@ function debug() {
     console.log('field:', field);
     console.log('game:', game);
     console.log('cards:', card);
+    console.log('moving:', movingCard);
 }
 
 function init_game() {
@@ -228,6 +275,9 @@ function init_game() {
     // init field
     field = new Field();
 
+    // init moving cards array
+    movingCard = new Array();
+
     // init game data
     game = new Object();
     game.month = 0; // 月份
@@ -247,6 +297,7 @@ function shuffle(deck) {
 function start_game() {
     // 決定親權 (0:player, 1:cpu)
     const first = Math.floor(Math.random() * 2);
+    console.log("親權：" + first);
     // 發牌
     distribute_cards(first);
 
@@ -266,27 +317,47 @@ function start_game() {
 /* 發牌 */
 function distribute_cards(first) {
     // distribute cards
-    const last = (first == PLR) ? CPU : PLR;
+    let new_card = [[], [], []];
     for (let i = 0; i < HAND_NUM; i++) {
-        player[first].hand.push(deck.pop());
-        field.card[i+(FIELD_SPACE-HAND_NUM)/2] = deck.pop();
-        player[last].hand.push(deck.pop());
+        for (let j = 0; j < 3; j++) {
+            new_card[j].push(deck.pop());
+            movingCard.push(new_card[j][i]);
+        }
     }
 
-    // update card info
-    for (let i = 0; i < player[PLR].hand.length; i++) {
-        card[player[PLR].hand[i]].place = cardPlace.player_hand;
-        card[player[PLR].hand[i]].back = false;
-    }
-    for (let i = 0; i < field.card.length; i++) {
-        if (field.card[i] < 0) continue;
-        card[field.card[i]].place = cardPlace.field;
-        card[field.card[i]].back = false;
-    }
-    for (let i = 0; i < player[CPU].hand.length; i++) {
-        card[player[CPU].hand[i]].place = cardPlace.cpu_hand;
-        card[player[CPU].hand[i]].back = true;
-    }
+    // animation
+    time_func = distribute_step(new_card);
+
+    // wait for Animation end
+    setTimeout(() => {
+        
+        while (movingCard.length > 0)
+            movingCard.pop();
+
+        // put to players' hand & field
+        const last = (first == PLR) ? CPU : PLR;
+        for (let i = 0; i < HAND_NUM; i++) {
+            player[first].hand.push(new_card[0][i]);
+            field.card[i+(FIELD_SPACE-HAND_NUM)/2] = new_card[1][i];
+            player[last].hand.push(new_card[2][i]);
+        }
+
+        // update card info
+        for (let i = 0; i < player[PLR].hand.length; i++) {
+            card[player[PLR].hand[i]].place = cardPlace.player_hand;
+            card[player[PLR].hand[i]].back = false;
+        }
+        for (let i = 0; i < field.card.length; i++) {
+            if (field.card[i] < 0) continue;
+            card[field.card[i]].place = cardPlace.field;
+            card[field.card[i]].back = false;
+        }
+        for (let i = 0; i < player[CPU].hand.length; i++) {
+            card[player[CPU].hand[i]].place = cardPlace.cpu_hand;
+            card[player[CPU].hand[i]].back = true;
+        }
+
+    }, MOVE_TIME);
 }
 
 
