@@ -41,6 +41,11 @@ const cardPlace = {
 /* Animation Settings */
 const normalMoveTime = 400; // ms
 const fastMoveTime = 200; // ms
+const gameState = {
+    title: 0,
+    start: 1,
+    deal: 2
+};
 
 /* canvas & sources & control */
 let scaleRate = 1; // the scale rate of canvas
@@ -57,7 +62,6 @@ let deck; // the deck obj(array)
 let player; // the player objs ()
 let field; // the field obj
 let game; // the game data obj
-let MAXMONTH = 3; // 預設三月玩法
 
 /* animation */
 let MOVE_TIME = normalMoveTime; // 牌移動的時間
@@ -84,11 +88,8 @@ window.onload = function()
     canvas.onmousedown = click_func;
 
     init_game();
-
     animate(startTime);
-
-    start_game();
-    //debug();
+    //start_game();
 }
 //#endregion
 
@@ -99,21 +100,29 @@ function click_func(event) {
     if (event.button != 0) return;
     updateMouseXY(event);
     clickCard = cursorCardID();
-    console.log(clickCard);
+    if (clickCard >= 0)
+        console.log('card ID = ', clickCard);
+
+    if (game != null && game.state == gameState.title) {
+        game.state = gameState.start;
+        start_game();
+        debug();
+    }
 }
 
 // get mouse coorfinates
 function updateMouseXY(event) {
-	var rect = event.target.getBoundingClientRect();
-	if (scaleRate > 0) {
-		mouse.x = (event.clientX - rect.left) / scaleRate;
-		mouse.y = (event.clientY - rect.top ) / scaleRate;
-	}
-    // console.log(mouse);
+    var rect = event.target.getBoundingClientRect();
+    if (scaleRate > 0) {
+        mouse.x = (event.clientX - rect.left) / scaleRate;
+        mouse.y = (event.clientY - rect.top ) / scaleRate;
+    }
+    // console.log('mouseXY:', mouse);
 }
 
 // 回傳滑鼠點到的牌的ID，若無則回傳-1
 function cursorCardID() {
+    if (card == null) return -1;
     for (const c of card) {
         if (c.place == cardPlace.deck ||
             c.place == cardPlace.cpu_hand ||
@@ -139,11 +148,25 @@ function animate(time) {
 
     if (time_func != null)
         time_func(time);
-    
+
     // 重畫整個畫面
-    draw_canvas();
+    if (game.state == gameState.title)
+        draw_title();
+    else
+        draw_canvas();
 
     requestAnimationFrame(animate);
+}
+
+function draw_title() {
+    context.textAlign = "center";
+    context.fillStyle = 'rgb(0,0,0)';
+    context.font = 108 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText("花札", SCREEN_W/2 * R, (SCREEN_H/2 - 108/2) * R);
+    context.font = 81 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText("こいこい", SCREEN_W/2 * R, (SCREEN_H/2 + 81/2) * R);
+    context.font = 40.5 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText("クリックして開始", SCREEN_W/2 * R, (SCREEN_H/2 + 108) * R);
 }
 
 /* draw canvas */
@@ -152,10 +175,10 @@ function draw_canvas() {
     // draw the information of this game
 
     // 文
-	context.fillStyle = 'rgb(255,255,255)';
-	context.textAlign = "center";
-	context.font = "22px sans-serif";
-	context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
+    context.fillStyle = 'rgb(255,255,255)';
+    context.textAlign = "center";
+    context.font = 22 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
 
     // draw the deck at center
     draw_card(CARD_BACK_ID, SCREEN_W / 2 - CARD_W / 2, SCREEN_H / 2 - CARD_H / 2);
@@ -298,38 +321,17 @@ function deal_step(cards, i) {
 //#region Game Functions
 
 function debug() {
-    console.log('deck:', deck);
-    console.log('player:', player[PLR]);
-    console.log('cpu:', player[CPU]);
-    console.log('field:', field);
-    console.log('game:', game);
-    console.log('cards:', card);
-    console.log('moving:', movingCard);
+    console.log('========== DEBUG ==========',
+                '\ngame:'   , game,
+                '\ncards:'  , card,
+                '\ndeck:'   , deck,
+                '\nfield:'  , field,
+                '\nplayer:' , player[PLR],
+                '\ncpu:'    , player[CPU],
+                '\nmoving:' , movingCard);
 }
 
 function init_game() {
-    // init all cards
-    card = new Array(CARD_NUM);
-    for (let i = 0; i < CARD_NUM; i++)
-        card[i] = new Card(i);
-
-    // init deck & shuffle
-    deck = new Array(CARD_NUM);
-    for (let i = 0; i < CARD_NUM; i++)
-        deck[i] = i;
-    shuffle(deck);
-
-    /* init player & cpu */
-    player = new Array(2);
-    player[PLR] = new Player(PLR); // player
-    player[CPU] = new Player(CPU); // cpu
-    
-    // init field
-    field = new Field();
-
-    // init moving cards array
-    movingCard = new Array();
-
     // init game data
     game = new Game();
 }
@@ -357,27 +359,38 @@ function shuffle(deck) {
 }
 
 function start_game() {
-    // 決定親權 (0:player, 1:cpu)
-    const first = Math.floor(Math.random() * 2);
-    console.log("親權：" + first);
-    // 發牌
-    deal_cards(first);
+    /* init new game */
+    // init all cards
+    card = new Array(CARD_NUM);
+    for (let i = 0; i < CARD_NUM; i++)
+        card[i] = new Card(i);
+    // init deck
+    deck = new Array(CARD_NUM);
+    for (let i = 0; i < CARD_NUM; i++)
+        deck[i] = i;
+    // init player & cpu
+    player = new Array(2);
+    player[PLR] = new Player(PLR); // player
+    player[CPU] = new Player(CPU); // cpu
+    // init field
+    field = new Field();
+    // init moving cards array
+    movingCard = new Array();
 
-    // 遊戲正式開始
-    while (game.month <= MAXMONTH) {
-        game.month++;
-        // 當前月份開始
-        game.end = true;
-        while (!game.end) {
-            // start round
-            (game.round % 2 == first) ? player_play() : cpu_play();
-            game.round++; // 下一回合
-        }
-    }
+    /* 正式開始 */
+    // 決定親權 (0:player, 1:cpu)
+    game.first = Math.floor(Math.random() * 2);
+    console.log("親権:", (game.first == PLR) ? "Player" : "Computer");
+    // shuffle
+    shuffle(deck);
+    // 發牌
+    deal_cards(game.first);
 }
 
 /* 發牌 */
 function deal_cards() {
+    game.state = gameState.deal;
+
     // distribute cards
     let new_card = [[], [], []]; // 0:field, 1:player, 2:cpu
     for (let j = 0; j < 3; j++) {
@@ -388,7 +401,9 @@ function deal_cards() {
         }
     }
 
+    console.log("deal");
     // animation
+    startTime = performance.now(); // reset startTime
     time_func = deal_step(new_card, 0);
 
     // wait for Animation end
@@ -424,6 +439,24 @@ function after_deal(new_card) {
         for (let i = 0; i < player[CPU].hand.length; i++) {
             card[player[CPU].hand[i]].place = cardPlace.cpu_hand;
             card[player[CPU].hand[i]].back = true;
+        }
+        // game start
+        game.start = true;
+        game_rounding();
+    }
+}
+
+// 回合進行
+function game_rounding(params) {
+    // 遊戲正式開始
+    while (game.month <= game.MAXMONTH) {
+        game.month++;
+        // 當前月份開始
+        game.end = true;
+        while (!game.end) {
+            // start round
+            (game.round % 2 == game.first) ? player_play() : cpu_play();
+            game.round++; // 下一回合
         }
     }
 }
@@ -463,13 +496,13 @@ class Card {
 class Player {
     constructor(ID) {
         this.ID = ID;
-		this.hand = new Array(); // 手牌
+        this.hand = new Array(); // 手牌
         this.noticed = new Array();
         this.money = 0; // 文
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
         this.old_yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-	}
+    }
 
     update_noticed() {
         for (let i = 0; i < this.hand.length; i++)
@@ -610,8 +643,12 @@ class Field {
 }
 
 class Game {
-    constructor() {
+    constructor(maxMonth = 3) {
+        this.start = false; // 遊戲開始了沒
+        this.state = gameState.title; // 整個網頁現在的狀態(畫面)
+        this.MAXMONTH = maxMonth; // 預設三月玩法
         this.month = 0; // 月份
+        this.first = 0; // 誰先手
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.end = true; // 當前月份是否結束
         this.koi = [false, false]; // whether player/cpu is doing koi koi
