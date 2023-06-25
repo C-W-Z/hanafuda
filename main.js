@@ -22,6 +22,7 @@ const FIELD_SPACE = 16; // max num of cards can be place on the field
 const PLR = 0; // player
 const CPU = 1; // computer
 // cardID = 0 ~ 47
+const CARD_BACK_ID = 48; // 牌背
 // 牌的種類（カス・短冊・タネ・五光）
 const card_type = [0,0,1,3, 0,0,1,2, 0,0,1,3, 0,0,1,2, 0,0,1,2, 0,0,1,2, 0,0,1,2, 0,0,2,3, 0,0,1,2, 0,0,1,2, 0,1,2,3, 0,0,0,3];
 // 役(yaku)
@@ -38,7 +39,8 @@ const cardPlace = {
     moving: 6
 };
 /* Animation Settings */
-const MOVE_TIME = 200; // ms
+const normalMoveTime = 400; // ms
+const fastMoveTime = 200; // ms
 
 /* canvas & sources & control */
 let scaleRate = 1; // the scale rate of canvas
@@ -58,6 +60,7 @@ let game; // the game data obj
 let MAXMONTH = 3; // 預設三月玩法
 
 /* animation */
+let MOVE_TIME = normalMoveTime; // 牌移動的時間
 let startTime = null;
 let time_func = new Function();
 time_func = null;
@@ -155,7 +158,7 @@ function draw_canvas() {
 	context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
 
     // draw the deck at center
-    draw_card(48, SCREEN_W / 2 - CARD_W / 2, SCREEN_H / 2 - CARD_H / 2, false);
+    draw_card(CARD_BACK_ID, SCREEN_W / 2 - CARD_W / 2, SCREEN_H / 2 - CARD_H / 2);
 
     // draw the field cards
     field.update_card_info();
@@ -187,18 +190,17 @@ function draw_canvas() {
 
 /* draw card */
 /**
- * @param cardID 要畫哪張牌 (0 ~ 47)
- * @param px card的左上角x座標
- * @param py card的左上角y座標
- * @param noticed 是否有醒目提示
+ * @param {number} cardID 要畫哪張牌 (0 ~ 48) (48是牌背)
+ * @param {number} px card的左上角x座標
+ * @param {number} py card的左上角y座標
+ * @param {boolean} [noticed=false] 是否有醒目提示(預設無)
+ * @param {number} [scaleX=1] 牌的橫向縮放比例(預設1)
  */
-function draw_card(cardID, px, py, noticed)
-{
+function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
     let sx = (cardID % 10) * 72;
     let sy = Math.floor(cardID / 10) * 114;
-    context.drawImage(cards, sx, sy, CARD_IMG_W, CARD_IMG_H, px * R, py * R, CARD_W * R, CARD_H * R);
-    if (noticed)
-    {
+    context.drawImage(cards, sx, sy, CARD_IMG_W, CARD_IMG_H, (px + + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
+    if (noticed) {
         context.strokeStyle = "yellow";
         context.lineWidth = 2;
         context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
@@ -207,27 +209,55 @@ function draw_card(cardID, px, py, noticed)
 
 // 從array中刪除特定元素
 function Remove(arr, val) {
-    for (let i = 0; i < arr.length; i++) {
+    for (let i = 0; i < arr.length; i++)
         if (arr[i] == val)
             arr.splice(i, 1);
-    }
+}
+
+/* easing functions for animation */
+/* ref: https://stackoverflow.com/questions/8316882/what-is-an-easing-function */
+// t: current time,
+// b: beginning value,
+// c: change in value,
+// d: duration
+function linear(time, begin, change, duration) {
+    return change * (time / duration) + begin;
+}
+function easeInOutQuad(t, b, c, d) {
+    if ((t /= d / 2) < 1)
+        return c / 2 * t * t + b;
+    else
+        return -c / 2 * ((--t) * (t - 2) - 1) + b;
+}
+function easeInQuad(t, b, c, d) {
+    return c * (t /= d) * t + b;
+}
+function easeOutQuad (t, b, c, d) {
+    return -c * (t /= d) * (t - 2) + b;
 }
 
 // 一張牌在一幀內的移動
 // 回傳結束了沒
-function step_move(cardID, sX, sY, dX, dY) {
+function step_move(cardID, sX, sY, dX, dY, flip) {
     return function(time) {
         const deltaTime = (time - startTime) / MOVE_TIME;
         if (deltaTime >= 1) {
             card[cardID].px = dX;
             card[cardID].py = dY;
+            card[cardID].scaleX = 1;
             startTime = null;
             time_func = next_func;
             return true;
         } else {
             // moving animation
-            card[cardID].px = sX + (dX - sX) * deltaTime;
-            card[cardID].py = sY + (dY - sY) * deltaTime;
+            card[cardID].px = easeInOutQuad(time-startTime, sX, (dX-sX)*deltaTime, MOVE_TIME);// sX + (dX - sX) * deltaTime;
+            card[cardID].py = easeInOutQuad(time-startTime, sY, (dY-sY)*deltaTime, MOVE_TIME);// sY + (dY - sY) * deltaTime;
+            // flip
+            if (flip == true) {
+                card[cardID].scaleX = Math.abs(0.5 - deltaTime) + 0.5;
+                if (deltaTime >= 0.5)
+                    card[cardID].back = false;
+            }
         }
         return false;
     }
@@ -242,9 +272,9 @@ function deal_step(cards, i) {
             let cx = SCREEN_W / 2 + CARD_IMG_W * (HAND_NUM / 2 - i - 1) + (CARD_IMG_W - CARD_W) / 2;
             let dy = (CARD_IMG_H - CARD_H) / 2;
             // to cpu hand
-            step_move(cards[CPU + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, cx, dy)(time);
+            step_move(cards[CPU + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, cx, dy, false)(time);
             // to player hand
-            step_move(cards[PLR + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - CARD_IMG_H + dy)(time);
+            step_move(cards[PLR + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - CARD_IMG_H + dy, true)(time);
             // 發下2張牌
             next_func = deal_step(cards, i + 1);
         }
@@ -259,7 +289,7 @@ function deal_step(cards, i) {
                 fx = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - (i+(FIELD_SPACE-HAND_NUM)/2) + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
             let fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
             // to field
-            step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy)(time);
+            step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy, true)(time);
         }
         next_func = after_deal(cards);
     }
@@ -418,6 +448,7 @@ class Card {
         this.ID = ID;
         this.px = 0;
         this.py = 0;
+        this.scaleX = 1;
         this.back = true;
         this.noticed = false;
         this.selected = false;
@@ -425,7 +456,7 @@ class Card {
     }
 
     draw() {
-        draw_card((this.back ? 48 : this.ID), this.px, this.py, (this.back ? false : this.noticed));
+        draw_card((this.back ? CARD_BACK_ID : this.ID), this.px, this.py, (this.back ? false : this.noticed), this.scaleX);
     }
 }
 
