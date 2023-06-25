@@ -178,11 +178,11 @@ function draw_title() {
 function draw_gaming() {
 
     /* draw the information of this game */
-    context.lineWidth = 2;
-    context.fillStyle = 'black';
-    context.strokeStyle = 'black';
 
     // 幾月
+    context.lineWidth = 2 * R;
+    context.fillStyle = 'black';
+    context.strokeStyle = 'black';
     context.fillText(NUMBER[game.MAXMONTH], (24 + 2)/2 * R, SCREEN_H/2 * R - (24 * 2) * R + (24 * 0 + 10) * R);
     context.fillText("月", (24 + 2)/2 * R, SCREEN_H/2 * R - (24 * 2) * R + (24 * 1 + 10) * R);
     context.strokeRect(0, SCREEN_H/2 * R - (24 * 2) * R, (24 + 2) * R, (24 * 2) * R);
@@ -192,18 +192,22 @@ function draw_gaming() {
     context.fillText("目", (24 + 2)/2 * R, SCREEN_H/2 * R + (24 * 2 + 10) * R);
     context.strokeRect(0, SCREEN_H/2 * R, (24 + 2) * R, (24 * 3) * R);
 
-    context.fillStyle = 'white';
-    context.strokeStyle = 'white';
-
     // 親
     const circleY = (game.first == CPU) ? 30 : SCREEN_H - 30;
+    context.beginPath();
+    context.arc((SCREEN_W - 30) * R, circleY * R, 15 * R, 0, 2 * Math.PI);
+    context.fillStyle = 'white';
+    context.fill();
+    context.strokeStyle = 'black';
+    context.lineWidth = 3 * R;
+    context.stroke();
+    context.fillStyle = 'black';
     context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText("親", (SCREEN_W - 30) * R, circleY * R);
-    
-    context.beginPath();
-    context.arc((SCREEN_W - 30) * R, circleY * R, 12 * R, 0, 2 * Math.PI);
-    context.stroke();
+
     // 文
+    context.fillStyle = 'white';
+    context.strokeStyle = 'white';
     context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText(player[CPU].money + "文", 45 * R, (30) * R);
     context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
@@ -251,7 +255,7 @@ function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
     context.drawImage(cards, sx, sy, CARD_IMG_W, CARD_IMG_H, (px + + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
     if (noticed) {
         context.strokeStyle = "yellow";
-        context.lineWidth = 2;
+        context.lineWidth = 2 * R;
         context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
     }
 }
