@@ -384,6 +384,7 @@ function deal_cards() {
         for (let i = 0; i < HAND_NUM; i++) {
             new_card[j].push(deck.pop());
             movingCard.push(new_card[j][i]);
+            card[new_card[j][i]].place = cardPlace.moving;
         }
     }
 
@@ -502,31 +503,31 @@ class Player {
 
     /* 結算役 */
     // 回傳是否有新的役
-	check_yaku() {
+    check_yaku() {
         const light   = this.collect[3].length;
         const seed    = this.collect[2].length;
         const tanzaku = this.collect[1].length;
         const dreg    = this.collect[0].length;
-    
+
         // see : yaku_name
         let now_yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    
+
         let rain = 0; // 雨
         let inoshikacho = 0; // 猪鹿蝶
         let akatan = 0; // 赤短
         let aotan = 0; // 青短
         let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 月札
-    
+
         for (const arr of this.collect) {
             for (const c of arr) {
                 if (c == 43) rain++;
                 if (c == 23 || c == 27 || c == 39) inoshikacho++;
                 if (c ==  2 || c ==  6 || c == 10) akatan++;
                 if (c == 22 || c == 34 || c == 38) aotan++;
-                month[c / 4]++;
+                month[Math.floor(c / 4)]++;
             }
         }
-    
+
         if (dreg               >= 10) now_yaku[ 1] += dreg    - 9; // カス
         if (tanzaku            >= 5 ) now_yaku[ 2] += tanzaku - 4; // 短冊
         if (seed               >= 5 ) now_yaku[ 3] += seed    - 4; // タネ
@@ -540,7 +541,7 @@ class Player {
         for (let i = 0; i < month.length; i++)
             if (month[i] == 4)
                 now_yaku[11]++; // 月札
-    
+
         this.score = 0;
         let get_new_yaku = false;
         for (let i = 0; i < YAKU_NUM; i++) {
