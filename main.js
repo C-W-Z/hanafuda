@@ -29,6 +29,8 @@ const card_type = [0,0,1,3, 0,0,1,2, 0,0,1,3, 0,0,1,2, 0,0,1,2, 0,0,1,2, 0,0,1,2
 const yaku_score = [   6  ,  1   , 1   ,  1  ,   5  ,  5  ,   5   ,  5   ,   7   ,   8  ,  10 ,  4  ];
 const yaku_name  = ["親権","カス","短冊","タネ","青短","赤短","猪鹿蝶","三光","雨四光","四光","五光","月札"];
 const tuki_name  = ["松","梅","桜","藤","菖蒲","牡丹","萩","芒","菊","紅葉","雨","桐"];
+// 數字
+const NUMBER = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
 const cardPlace = {
     deck: 0,
     field: 1,
@@ -84,6 +86,9 @@ window.onload = function()
     canvas.style.width = SCREEN_W * scaleRate + 'px';
     canvas.style.height = SCREEN_H * scaleRate + 'px';
     context = canvas.getContext('2d');
+    // animation settings
+    context.textAlign = "center";
+    context.textBaseline = 'middle';
     // control settings
     canvas.onmousedown = click_func;
 
@@ -153,7 +158,7 @@ function animate(time) {
     if (game.state == gameState.title)
         draw_title();
     else
-        draw_canvas();
+        draw_gaming();
 
     requestAnimationFrame(animate);
 }
@@ -169,15 +174,38 @@ function draw_title() {
     context.fillText("クリックして開始", SCREEN_W/2 * R, (SCREEN_H/2 + 108) * R);
 }
 
-/* draw canvas */
-function draw_canvas() {
+/* draw canvas when gaming */
+function draw_gaming() {
 
-    // draw the information of this game
+    /* draw the information of this game */
+    context.lineWidth = 2;
+    context.fillStyle = 'black';
+    context.strokeStyle = 'black';
 
+    // 幾月
+    context.fillText(NUMBER[game.MAXMONTH], (24 + 2)/2 * R, SCREEN_H/2 * R - (24 * 2) * R + (24 * 0 + 10) * R);
+    context.fillText("月", (24 + 2)/2 * R, SCREEN_H/2 * R - (24 * 2) * R + (24 * 1 + 10) * R);
+    context.strokeRect(0, SCREEN_H/2 * R - (24 * 2) * R, (24 + 2) * R, (24 * 2) * R);
+    // 幾戰目
+    context.fillText(NUMBER[game.month], (24 + 2)/2 * R, SCREEN_H/2 * R + (24 * 0 + 10) * R);
+    context.fillText("戦", (24 + 2)/2 * R, SCREEN_H/2 * R + (24 * 1 + 10) * R);
+    context.fillText("目", (24 + 2)/2 * R, SCREEN_H/2 * R + (24 * 2 + 10) * R);
+    context.strokeRect(0, SCREEN_H/2 * R, (24 + 2) * R, (24 * 3) * R);
+
+    context.fillStyle = 'white';
+    context.strokeStyle = 'white';
+
+    // 親
+    const circleY = (game.first == CPU) ? 30 : SCREEN_H - 30;
+    context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText("親", (SCREEN_W - 30) * R, circleY * R);
+    
+    context.beginPath();
+    context.arc((SCREEN_W - 30) * R, circleY * R, 12 * R, 0, 2 * Math.PI);
+    context.stroke();
     // 文
-    context.fillStyle = 'rgb(255,255,255)';
-    context.textAlign = "center";
-    context.font = 22 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText(player[CPU].money + "文", 45 * R, (30) * R);
     context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
 
     // draw the deck at center
@@ -299,16 +327,10 @@ function deal_step(cards, i) {
             next_func = deal_step(cards, i + 1);
         }
 
-
     return function(time) {
         for (let i = 0; i < HAND_NUM; i++) {
-            let fx;
-            let I = i + (FIELD_SPACE - HAND_NUM) / 2;
-            if (i < HAND_NUM / 2)
-                fx = (SCREEN_W-CARD_W-CARD_IMG_W/2)/2 - CARD_IMG_W * Math.floor((FIELD_SPACE/2-I+1)/2) + (CARD_IMG_W-CARD_W)/2;
-            else
-                fx = (SCREEN_W+CARD_W+CARD_IMG_W/2)/2 + CARD_IMG_W * Math.floor((I-FIELD_SPACE/2)/2) + (CARD_IMG_W-CARD_W)/2;
-            const fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
+            const fx = Field.X(i + (FIELD_SPACE - HAND_NUM) / 2);
+            const fy = Field.Y(i);
             // to field
             step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy, true)(time);
         }
@@ -442,7 +464,7 @@ function after_deal(new_card) {
         }
         // game start
         game.start = true;
-        game_rounding();
+        //game_rounding();
     }
 }
 
@@ -450,7 +472,6 @@ function after_deal(new_card) {
 function game_rounding(params) {
     // 遊戲正式開始
     while (game.month <= game.MAXMONTH) {
-        game.month++;
         // 當前月份開始
         game.end = true;
         while (!game.end) {
@@ -458,6 +479,7 @@ function game_rounding(params) {
             (game.round % 2 == game.first) ? player_play() : cpu_play();
             game.round++; // 下一回合
         }
+        game.month++;
     }
 }
 
@@ -629,16 +651,21 @@ class Field {
     update_card_info() {
         this.update_noticed();
         // update px,py
-        for (let i = 0; i < FIELD_SPACE / 2; i++) {
+        for (let i = 0; i < FIELD_SPACE; i++) {
             if (this.card[i] < 0) continue;
-            card[this.card[i]].px = (SCREEN_W-CARD_W-CARD_IMG_W/2)/2 - CARD_IMG_W * Math.floor((FIELD_SPACE/2-i+1)/2) + (CARD_IMG_W-CARD_W)/2;
-            card[this.card[i]].py = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
+            card[this.card[i]].px = Field.X(i);
+            card[this.card[i]].py = Field.Y(i);
         }
-        for (let i = FIELD_SPACE / 2; i < FIELD_SPACE; i++) {
-            if (this.card[i] < 0) continue;
-            card[this.card[i]].px = (SCREEN_W+CARD_W+CARD_IMG_W/2)/2 + CARD_IMG_W * Math.floor((i-FIELD_SPACE/2)/2) + (CARD_IMG_W-CARD_W)/2;
-            card[this.card[i]].py = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
-        }
+    }
+
+    // i: index in field.card[i]
+    static X(i) {
+        if (i < FIELD_SPACE / 2)
+            return (SCREEN_W-CARD_W-CARD_IMG_W/2)/2 - CARD_IMG_W * Math.floor((FIELD_SPACE/2-i+1)/2) + (CARD_IMG_W-CARD_W)/2;
+        return (SCREEN_W+CARD_W+CARD_IMG_W/2)/2 + CARD_IMG_W * Math.floor((i-FIELD_SPACE/2)/2) + (CARD_IMG_W-CARD_W)/2;
+    }
+    static Y(i) {
+        return SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
     }
 }
 
@@ -647,7 +674,7 @@ class Game {
         this.start = false; // 遊戲開始了沒
         this.state = gameState.title; // 整個網頁現在的狀態(畫面)
         this.MAXMONTH = maxMonth; // 預設三月玩法
-        this.month = 0; // 月份
+        this.month = 1; // 月份
         this.first = 0; // 誰先手
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.end = true; // 當前月份是否結束
