@@ -39,7 +39,7 @@ const cardPlace = {
     moving: 6
 };
 /* Animation Settings */
-const MOVE_TIME = 300; // ms
+const MOVE_TIME = 200; // ms
 
 /* canvas & sources & control */
 let scaleRate = 1; // the scale rate of canvas
@@ -62,6 +62,8 @@ let MAXMONTH = 3; // 預設三月玩法
 let startTime = null;
 let time_func = new Function();
 time_func = null;
+let next_func = new Function();
+next_func = null;
 let movingCard;
 
 //#endregion
@@ -138,7 +140,6 @@ function animate(time) {
     
     // 重畫整個畫面
     draw_canvas();
-    //card[0].draw();
 
     requestAnimationFrame(animate);
 }
@@ -179,7 +180,8 @@ function draw_canvas() {
 
     // draw moving cards
     for (const c of movingCard) {
-        card[c].draw();
+        if (card[c].px * card[c].py != 0)
+            card[c].draw();
         //console.log('moving:' + c);
     }
 }
@@ -204,6 +206,16 @@ function draw_card(cardID, px, py, noticed)
     }
 }
 
+// 從array中刪除特定元素
+function Remove(arr, val) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] == val)
+            arr.splice(i, 1);
+    }
+}
+
+// 一張牌在一幀內的移動
+// 回傳結束了沒
 function step_move(cardID, sX, sY, dX, dY) {
     return function(time) {
         const deltaTime = (time - startTime) / MOVE_TIME;
@@ -211,35 +223,48 @@ function step_move(cardID, sX, sY, dX, dY) {
             card[cardID].px = dX;
             card[cardID].py = dY;
             startTime = null;
-            time_func = null;
+            time_func = next_func;
+            return true;
         } else {
             // moving animation
             card[cardID].px = sX + (dX - sX) * deltaTime;
             card[cardID].py = sY + (dY - sY) * deltaTime;
         }
+        return false;
     }
 }
 
-function distribute_step(cards) {
-    return function(time) {
-        for (let i = 0; i < HAND_NUM; i++) {
-            let dx = SCREEN_W / 2 + CARD_IMG_W * (i-HAND_NUM/2) + (CARD_IMG_W - CARD_W) / 2;
+// 一幀的發牌動畫
+function deal_step(cards, i) {
+
+    if (i < HAND_NUM) {
+        return function(time) {
+            let px = SCREEN_W / 2 + CARD_IMG_W * (i - HAND_NUM / 2) + (CARD_IMG_W - CARD_W) / 2;
+            let cx = SCREEN_W / 2 + CARD_IMG_W * (HAND_NUM / 2 - i - 1) + (CARD_IMG_W - CARD_W) / 2;
             let dy = (CARD_IMG_H - CARD_H) / 2;
             // to cpu hand
-            step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, dx, dy)(time);
-            // to field
+            step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, cx, dy)(time);
+            // to player hand
+            step_move(cards[2][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - CARD_IMG_H + dy)(time);
+            // 發下2張牌
+            next_func = deal_step(cards, i + 1);
+        }
+    }
+
+    return function(time) {
+        for (let i = 0; i < HAND_NUM; i++) {
             let fx;
             if (i < HAND_NUM / 2)
                 fx = CARD_IMG_W + CARD_IMG_W * Math.floor((i+(FIELD_SPACE-HAND_NUM)/2) / 2) + (CARD_IMG_W - CARD_W) / 2;
             else
                 fx = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - (i+(FIELD_SPACE-HAND_NUM)/2) + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
             let fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
+            // to field
             step_move(cards[1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy)(time);
-            // to player hand
-            step_move(cards[2][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, dx, SCREEN_H - CARD_IMG_H + dy)(time);
+            next_func = null;
         }
     }
-};
+}
 
 //#endregion
 
@@ -299,7 +324,7 @@ function start_game() {
     const first = Math.floor(Math.random() * 2);
     console.log("親權：" + first);
     // 發牌
-    distribute_cards(first);
+    deal_cards(first);
 
     // 遊戲正式開始
     while (game.month <= MAXMONTH) {
@@ -315,7 +340,7 @@ function start_game() {
 }
 
 /* 發牌 */
-function distribute_cards(first) {
+function deal_cards(first) {
     // distribute cards
     let new_card = [[], [], []];
     for (let i = 0; i < HAND_NUM; i++) {
@@ -326,7 +351,7 @@ function distribute_cards(first) {
     }
 
     // animation
-    time_func = distribute_step(new_card);
+    time_func = deal_step(new_card, 0);
 
     // wait for Animation end
     setTimeout(() => {
@@ -357,7 +382,7 @@ function distribute_cards(first) {
             card[player[CPU].hand[i]].back = true;
         }
 
-    }, MOVE_TIME);
+    }, MOVE_TIME * 10);
 }
 
 
