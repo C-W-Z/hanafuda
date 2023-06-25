@@ -1,6 +1,5 @@
 /**
  * @title 花札Hanafuda
- * @version alpha 1.0
  * @author C-W-Z
  * @contact chenweizhang3021@gmail.com
  */
@@ -235,7 +234,7 @@ function step_move(cardID, sX, sY, dX, dY) {
 }
 
 // 一幀的發牌動畫
-function deal_step(cards, i, first) {
+function deal_step(cards, i) {
 
     if (i < HAND_NUM) {
         return function(time) {
@@ -243,11 +242,11 @@ function deal_step(cards, i, first) {
             let cx = SCREEN_W / 2 + CARD_IMG_W * (HAND_NUM / 2 - i - 1) + (CARD_IMG_W - CARD_W) / 2;
             let dy = (CARD_IMG_H - CARD_H) / 2;
             // to cpu hand
-            step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, cx, dy)(time);
+            step_move(cards[CPU + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, cx, dy)(time);
             // to player hand
-            step_move(cards[2][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - CARD_IMG_H + dy)(time);
+            step_move(cards[PLR + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - CARD_IMG_H + dy)(time);
             // 發下2張牌
-            next_func = deal_step(cards, i + 1, first);
+            next_func = deal_step(cards, i + 1);
         }
     }
 
@@ -260,9 +259,9 @@ function deal_step(cards, i, first) {
                 fx = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - (i+(FIELD_SPACE-HAND_NUM)/2) + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
             let fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
             // to field
-            step_move(cards[1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy)(time);
+            step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy)(time);
         }
-        next_func = after_deal(cards, first);
+        next_func = after_deal(cards);
     }
 }
 
@@ -304,18 +303,28 @@ function init_game() {
     movingCard = new Array();
 
     // init game data
-    game = new Object();
-    game.month = 0; // 月份
-    game.round = 0; // 當前月份現在是第幾回合(start from 0)
-    game.end = true; // 當前月份是否結束
-    game.koi = [false, false]; // whether player/cpu is doing koi koi
+    game = new Game();
 }
 
 /* shuffle deck */
 function shuffle(deck) {
-    for (let i = deck.length - 1; i > 0; i--) {
-        const r = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[r]] = [deck[r], deck[i]];
+    let shuffle_end = false;
+    while (!shuffle_end) {
+        console.log("shuffle");
+        // shuffle
+        for (let i = deck.length - 1; i > 0; i--) {
+            const r = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[r]] = [deck[r], deck[i]];
+        }
+        // 檢查場上(deck[0...7])會不會出現3張以上同月分的牌(會不會有牌永遠留在場上無法被吃掉)
+        let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let flag = true;
+        for (let i = 0; i < HAND_NUM; i++) {
+            month[deck[i] / 4]++;
+            if (month[deck[i]] >= 3)
+                flag = false;
+        }
+        shuffle_end = flag;
     }
 }
 
@@ -340,37 +349,36 @@ function start_game() {
 }
 
 /* 發牌 */
-function deal_cards(first) {
+function deal_cards() {
     // distribute cards
-    let new_card = [[], [], []];
-    for (let i = 0; i < HAND_NUM; i++) {
-        for (let j = 0; j < 3; j++) {
+    let new_card = [[], [], []]; // 0:field, 1:player, 2:cpu
+    for (let j = 0; j < 3; j++) {
+        for (let i = 0; i < HAND_NUM; i++) {
             new_card[j].push(deck.pop());
             movingCard.push(new_card[j][i]);
         }
     }
 
     // animation
-    time_func = deal_step(new_card, 0, first);
+    time_func = deal_step(new_card, 0);
 
     // wait for Animation end
-    //setTimeout(after_deal, MOVE_TIME * 10);
+    // setTimeout(after_deal, MOVE_TIME * 10);
 }
 
-function after_deal(new_card, first) {
+function after_deal(new_card) {
     return function (time) {
         time_func = null;
         next_func = null;
 
         while (movingCard.length > 0)
-        movingCard.pop();
+            movingCard.pop();
 
         // put to players' hand & field
-        const last = (first == PLR) ? CPU : PLR;
         for (let i = 0; i < HAND_NUM; i++) {
-            player[first].hand.push(new_card[0][i]);
-            field.card[i+(FIELD_SPACE-HAND_NUM)/2] = new_card[1][i];
-            player[last].hand.push(new_card[2][i]);
+            field.card[i+(FIELD_SPACE-HAND_NUM)/2] = new_card[0][i];
+            player[PLR].hand.push(new_card[PLR + 1][i]);
+            player[CPU].hand.push(new_card[CPU + 1][i]);
         }
 
         // update card info
@@ -479,14 +487,15 @@ class Player {
         let aotan = 0; // 青短
         let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 月札
     
-        for (const arr of this.collect)
-            for (const e of arr) {
-                if (e == 43) rain++;
-                if (e == 23 || e == 27 || e == 39) inoshikacho++;
-                if (e ==  2 || e ==  6 || e == 10) akatan++;
-                if (e == 22 || e == 34 || e == 38) aotan++;
-                month[e / 4]++;
+        for (const arr of this.collect) {
+            for (const c of arr) {
+                if (c == 43) rain++;
+                if (c == 23 || c == 27 || c == 39) inoshikacho++;
+                if (c ==  2 || c ==  6 || c == 10) akatan++;
+                if (c == 22 || c == 34 || c == 38) aotan++;
+                month[c / 4]++;
             }
+        }
     
         if (dreg               >= 10) now_yaku[ 1] += dreg    - 9; // カス
         if (tanzaku            >= 5 ) now_yaku[ 2] += tanzaku - 4; // 短冊
@@ -566,6 +575,15 @@ class Field {
             card[this.card[i]].px = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - i + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
             card[this.card[i]].py = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
         }
+    }
+}
+
+class Game {
+    constructor() {
+        this.month = 0; // 月份
+        this.round = 0; // 當前月份現在是第幾回合(start from 0)
+        this.end = true; // 當前月份是否結束
+        this.koi = [false, false]; // whether player/cpu is doing koi koi
     }
 }
 
