@@ -181,11 +181,9 @@ function draw_canvas() {
     // draw the collect cards of cpu
 
     // draw moving cards
-    for (const c of movingCard) {
+    for (const c of movingCard)
         if (card[c].px * card[c].py != 0)
             card[c].draw();
-        //console.log('moving:' + c);
-    }
 }
 
 /* draw card */
@@ -265,12 +263,11 @@ function step_move(cardID, sX, sY, dX, dY, flip) {
 
 // 一幀的發牌動畫
 function deal_step(cards, i) {
-
-    if (i < HAND_NUM) {
+    if (i < HAND_NUM)
         return function(time) {
-            let px = SCREEN_W / 2 + CARD_IMG_W * (i - HAND_NUM / 2) + (CARD_IMG_W - CARD_W) / 2;
-            let cx = SCREEN_W / 2 + CARD_IMG_W * (HAND_NUM / 2 - i - 1) + (CARD_IMG_W - CARD_W) / 2;
-            let dy = (CARD_IMG_H - CARD_H) / 2;
+            const px = SCREEN_W / 2 + CARD_IMG_W * (i - HAND_NUM / 2) + (CARD_IMG_W - CARD_W) / 2;
+            const cx = SCREEN_W / 2 + CARD_IMG_W * (HAND_NUM / 2 - i - 1) + (CARD_IMG_W - CARD_W) / 2;
+            const dy = (CARD_IMG_H - CARD_H) / 2;
             // to cpu hand
             step_move(cards[CPU + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, cx, dy, false)(time);
             // to player hand
@@ -278,7 +275,7 @@ function deal_step(cards, i) {
             // 發下2張牌
             next_func = deal_step(cards, i + 1);
         }
-    }
+
 
     return function(time) {
         for (let i = 0; i < HAND_NUM; i++) {
@@ -287,7 +284,7 @@ function deal_step(cards, i) {
                 fx = CARD_IMG_W + CARD_IMG_W * Math.floor((i+(FIELD_SPACE-HAND_NUM)/2) / 2) + (CARD_IMG_W - CARD_W) / 2;
             else
                 fx = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - (i+(FIELD_SPACE-HAND_NUM)/2) + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
-            let fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
+            const fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
             // to field
             step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy, true)(time);
         }
@@ -349,8 +346,8 @@ function shuffle(deck) {
         // 檢查場上(deck[0...7])會不會出現3張以上同月分的牌(會不會有牌永遠留在場上無法被吃掉)
         let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let flag = true;
-        for (let i = 0; i < HAND_NUM; i++) {
-            month[deck[i] / 4]++;
+        for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
+            month[Math.floor(deck[i] / 4)]++;
             if (month[deck[i]] >= 3)
                 flag = false;
         }
@@ -405,11 +402,12 @@ function after_deal(new_card) {
             movingCard.pop();
 
         // put to players' hand & field
-        for (let i = 0; i < HAND_NUM; i++) {
+        for (let i = 0; i < HAND_NUM; i++)
             field.card[i+(FIELD_SPACE-HAND_NUM)/2] = new_card[0][i];
+        for (let i = 0; i < HAND_NUM; i++)
             player[PLR].hand.push(new_card[PLR + 1][i]);
+        for (let i = 0; i < HAND_NUM; i++)
             player[CPU].hand.push(new_card[CPU + 1][i]);
-        }
 
         // update card info
         for (let i = 0; i < player[PLR].hand.length; i++) {
