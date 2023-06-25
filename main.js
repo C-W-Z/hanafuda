@@ -9,7 +9,7 @@
 /* constants */
 const R = window.devicePixelRatio;
 const SCREEN_W = 800;
-const SCREEN_H = 600;
+const SCREEN_H = 800;
 const CARD_IMG_W = 70; // width of card in img
 const CARD_IMG_H = 113; // height of card in img
 const cardScale = 0.9; // the rate of (size of card show on canvas / size of card in img)
@@ -280,10 +280,11 @@ function deal_step(cards, i) {
     return function(time) {
         for (let i = 0; i < HAND_NUM; i++) {
             let fx;
+            let I = i + (FIELD_SPACE - HAND_NUM) / 2;
             if (i < HAND_NUM / 2)
-                fx = CARD_IMG_W + CARD_IMG_W * Math.floor((i+(FIELD_SPACE-HAND_NUM)/2) / 2) + (CARD_IMG_W - CARD_W) / 2;
+                fx = (SCREEN_W-CARD_W-CARD_IMG_W/2)/2 - CARD_IMG_W * Math.floor((FIELD_SPACE/2-I+1)/2) + (CARD_IMG_W-CARD_W)/2;
             else
-                fx = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - (i+(FIELD_SPACE-HAND_NUM)/2) + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
+                fx = (SCREEN_W+CARD_W+CARD_IMG_W/2)/2 + CARD_IMG_W * Math.floor((I-FIELD_SPACE/2)/2) + (CARD_IMG_W-CARD_W)/2;
             const fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
             // to field
             step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy, true)(time);
@@ -596,12 +597,12 @@ class Field {
         // update px,py
         for (let i = 0; i < FIELD_SPACE / 2; i++) {
             if (this.card[i] < 0) continue;
-            card[this.card[i]].px = CARD_IMG_W + CARD_IMG_W * Math.floor(i / 2) + (CARD_IMG_W - CARD_W) / 2;
+            card[this.card[i]].px = (SCREEN_W-CARD_W-CARD_IMG_W/2)/2 - CARD_IMG_W * Math.floor((FIELD_SPACE/2-i+1)/2) + (CARD_IMG_W-CARD_W)/2;
             card[this.card[i]].py = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
         }
         for (let i = FIELD_SPACE / 2; i < FIELD_SPACE; i++) {
             if (this.card[i] < 0) continue;
-            card[this.card[i]].px = SCREEN_W - (CARD_IMG_W + CARD_IMG_W * Math.floor((FIELD_SPACE - i + 1) / 2)) + (CARD_IMG_W - CARD_W) / 2;
+            card[this.card[i]].px = (SCREEN_W+CARD_W+CARD_IMG_W/2)/2 + CARD_IMG_W * Math.floor((i-FIELD_SPACE/2)/2) + (CARD_IMG_W-CARD_W)/2;
             card[this.card[i]].py = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
         }
     }
