@@ -1,6 +1,5 @@
 /**
  * @title 花札Hanafuda
- * @version alpha 1.0
  * @author C-W-Z
  * @contact chenweizhang3021@gmail.com
  */
@@ -46,7 +45,7 @@ let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
 let cards = new Image();
-cards.src = "pat.gif";
+cards.src = "pattern.gif";
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
 
 /* game variables */
