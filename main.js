@@ -41,6 +41,7 @@ const cardPlace = {
     moving: 6
 };
 /* Animation Settings */
+const FONT_SIZE = 24;
 const normalMoveTime = 400; // ms
 const fastMoveTime = 200; // ms
 const gameState = {
@@ -183,14 +184,14 @@ function draw_gaming() {
     context.lineWidth = 2 * R;
     context.fillStyle = 'black';
     context.strokeStyle = 'black';
-    context.fillText(NUMBER[game.MAXMONTH], (24 + 2)/2 * R, SCREEN_H/2 * R - (24 * 2) * R + (24 * 0 + 10) * R);
-    context.fillText("月", (24 + 2)/2 * R, SCREEN_H/2 * R - (24 * 2) * R + (24 * 1 + 10) * R);
-    context.strokeRect(0, SCREEN_H/2 * R - (24 * 2) * R, (24 + 2) * R, (24 * 2) * R);
+    context.fillText(NUMBER[game.MAXMONTH], (FONT_SIZE+2)/2 * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (0+0.5))) * R);
+    context.fillText("月"                 , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (1+0.5))) * R);
+    context.strokeRect(0, (SCREEN_H/2 - FONT_SIZE*2) * R, (FONT_SIZE+2) * R, (FONT_SIZE*2) * R);
     // 幾戰目
-    context.fillText(NUMBER[game.month], (24 + 2)/2 * R, SCREEN_H/2 * R + (24 * 0 + 10) * R);
-    context.fillText("戦", (24 + 2)/2 * R, SCREEN_H/2 * R + (24 * 1 + 10) * R);
-    context.fillText("目", (24 + 2)/2 * R, SCREEN_H/2 * R + (24 * 2 + 10) * R);
-    context.strokeRect(0, SCREEN_H/2 * R, (24 + 2) * R, (24 * 3) * R);
+    context.fillText(NUMBER[game.month], (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (0+0.5))) * R);
+    context.fillText("戦"              , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (1+0.5))) * R);
+    context.fillText("目"              , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (2+0.5))) * R);
+    context.strokeRect(0, SCREEN_H/2 * R, (FONT_SIZE+2) * R, (FONT_SIZE * 3) * R);
 
     // 親
     const circleY = (game.first == CPU) ? 30 : SCREEN_H - 30;
@@ -202,13 +203,13 @@ function draw_gaming() {
     context.lineWidth = 3 * R;
     context.stroke();
     context.fillStyle = 'black';
-    context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText("親", (SCREEN_W - 30) * R, circleY * R);
 
     // 文
     context.fillStyle = 'white';
     context.strokeStyle = 'white';
-    context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText(player[CPU].money + "文", 45 * R, (30) * R);
     context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
 
