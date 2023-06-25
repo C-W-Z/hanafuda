@@ -235,7 +235,7 @@ function step_move(cardID, sX, sY, dX, dY) {
 }
 
 // 一幀的發牌動畫
-function deal_step(cards, i) {
+function deal_step(cards, i, first) {
 
     if (i < HAND_NUM) {
         return function(time) {
@@ -247,7 +247,7 @@ function deal_step(cards, i) {
             // to player hand
             step_move(cards[2][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - CARD_IMG_H + dy)(time);
             // 發下2張牌
-            next_func = deal_step(cards, i + 1);
+            next_func = deal_step(cards, i + 1, first);
         }
     }
 
@@ -261,8 +261,8 @@ function deal_step(cards, i) {
             let fy = SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
             // to field
             step_move(cards[1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy)(time);
-            next_func = null;
         }
+        next_func = after_deal(cards, first);
     }
 }
 
@@ -351,13 +351,19 @@ function deal_cards(first) {
     }
 
     // animation
-    time_func = deal_step(new_card, 0);
+    time_func = deal_step(new_card, 0, first);
 
     // wait for Animation end
-    setTimeout(() => {
-        
+    //setTimeout(after_deal, MOVE_TIME * 10);
+}
+
+function after_deal(new_card, first) {
+    return function (time) {
+        time_func = null;
+        next_func = null;
+
         while (movingCard.length > 0)
-            movingCard.pop();
+        movingCard.pop();
 
         // put to players' hand & field
         const last = (first == PLR) ? CPU : PLR;
@@ -381,8 +387,7 @@ function deal_cards(first) {
             card[player[CPU].hand[i]].place = cardPlace.cpu_hand;
             card[player[CPU].hand[i]].back = true;
         }
-
-    }, MOVE_TIME * 10);
+    }
 }
 
 
