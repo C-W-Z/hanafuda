@@ -47,7 +47,10 @@ const fastMoveTime = 200; // ms
 const gameState = {
     title: 0,
     start: 1,
-    deal: 2
+    deal: 2,
+    player_select_hand: 3,
+    player_select_field: 4,
+    player_play: 5
 };
 
 /* canvas & sources & control */
@@ -105,14 +108,44 @@ function click_func(event) {
     /* must be left click */
     if (event.button != 0) return;
     updateMouseXY(event);
-    clickCard = cursorCardID();
-    if (clickCard >= 0)
-        console.log('card ID = ', clickCard);
+    //clickCard = pointedCardID();
+    //if (clickCard >= 0)
+    //    console.log('card ID = ', clickCard);
 
-    if (game != null && game.state == gameState.title) {
-        game.state = gameState.start;
-        start_game();
-        debug();
+    if (game == null) return;
+    switch (game.state) {
+        case gameState.title:
+            game.state = gameState.start;
+            start_game();
+            debug();
+            break;
+        case gameState.player_select_hand:
+            player[PLR].selected_handID = pointedPlayerHandIndex();
+            if (player[PLR].selected_handID >= 0) {
+                player_select_hand(player[PLR].selected_handID);
+                game.state = gameState.player_select_field;
+            }
+            break;
+        case gameState.player_select_field:
+            player[PLR].selected_fieldID = pointedFieldIndex();
+            if (player[PLR].selected_fieldID >= 0) {
+                // player_play(handID, fieldID);
+                console.log(player[PLR].selected_fieldID);
+            } else {
+                let tmp = pointedPlayerHandIndex();
+                console.log(tmp, player[PLR].selected_handID);
+                if (tmp >= 0) {
+                    player_unselect_hand(player[PLR].selected_handID);
+                    player[PLR].selected_handID = tmp;
+                    player_select_hand(player[PLR].selected_handID);
+                } else {
+                    player_unselect_hand(player[PLR].selected_handID);
+                    game.state = gameState.player_select_hand;
+                }
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -126,8 +159,27 @@ function updateMouseXY(event) {
     // console.log('mouseXY:', mouse);
 }
 
+function pointedFieldIndex() {
+    if (card == null) return -1;
+    for (let i = 0; i < FIELD_SPACE; i++)
+        if (field.card[i] >= 0 &&
+            mouse.x >= card[field.card[i]].px && mouse.x <= card[field.card[i]].px + CARD_W &&
+            mouse.y >= card[field.card[i]].py && mouse.y <= card[field.card[i]].py + CARD_H)
+            return i;
+    return -1;
+}
+
+function pointedPlayerHandIndex() {
+    if (card == null) return -1;
+    for (let i = 0; i < player[PLR].hand.length; i++)
+        if (mouse.x >= card[player[PLR].hand[i]].px && mouse.x <= card[player[PLR].hand[i]].px + CARD_W &&
+            mouse.y >= card[player[PLR].hand[i]].py && mouse.y <= card[player[PLR].hand[i]].py + CARD_H)
+            return i;
+    return -1;
+}
+
 // 回傳滑鼠點到的牌的ID，若無則回傳-1
-function cursorCardID() {
+function pointedCardID() {
     if (card == null) return -1;
     for (const c of card) {
         if (c.place == cardPlace.deck ||
@@ -453,7 +505,7 @@ function after_deal(new_card) {
         for (let i = 0; i < HAND_NUM; i++)
             player[CPU].hand.push(new_card[CPU + 1][i]);
 
-        // update card info
+        // update cards' info
         for (let i = 0; i < player[PLR].hand.length; i++) {
             card[player[PLR].hand[i]].place = cardPlace.player_hand;
             card[player[PLR].hand[i]].back = false;
@@ -467,9 +519,11 @@ function after_deal(new_card) {
             card[player[CPU].hand[i]].place = cardPlace.cpu_hand;
             card[player[CPU].hand[i]].back = true;
         }
+
         // game start
         game.start = true;
         //game_rounding();
+        game.state = gameState.player_select_hand;
     }
 }
 
@@ -499,6 +553,39 @@ function cpu_play() {
     
 }
 
+function player_select_hand(handID) {
+    card[player[PLR].hand[handID]].selected = true;
+}
+function player_unselect_hand(handID) {
+    card[player[PLR].hand[handID]].selected = false;
+}
+
+
+function after_play(playerID, handCardID, fieldCardID) {
+    // 保證月份相同
+    // 手牌已經移除打出的牌，場上也移除對應的牌，都移到movingCard了
+    
+    // 移除movingCard
+    while (movingCard.length > 0)
+            movingCard.pop();
+
+    // put to player's collect
+    player[playerID].collect[card_type[handCardID]].push(handCardID);
+    player[playerID].collect[card_type[fieldCardID]].push(fieldCardID);
+
+    // update cards' info
+    card[handCardID].place = (playerID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
+    card[fieldCardID].place = (playerID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
+    
+    // before play(先寫在這裡之後再搬過去)
+    card[handCardID].back = false;
+    card[fieldCardID].back = false;
+    card[handCardID].noticed = false;
+    card[fieldCardID].noticed = false;
+    card[handCardID].selected = false;
+    card[fieldCardID].selected = false;
+}
+
 //#endregion
 
 //#region Classes
@@ -516,7 +603,11 @@ class Card {
     }
 
     draw() {
-        draw_card((this.back ? CARD_BACK_ID : this.ID), this.px, this.py, (this.back ? false : this.noticed), this.scaleX);
+        draw_card((this.back ? CARD_BACK_ID : this.ID),
+                   this.px,
+                  (this.selected ? this.py - 20 : this.py),
+                  (this.back ? false : this.noticed),
+                   this.scaleX);
     }
 }
 
@@ -529,6 +620,8 @@ class Player {
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
         this.old_yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.selected_handID = 0;
+        this.selected_fieldID = 0;
     }
 
     update_noticed() {
@@ -559,6 +652,15 @@ class Player {
         }
         // update collected card px, py
         
+    }
+
+    pointedCollectIndex() {
+        for (let i = 0; i < 4; i++)
+            for (const c of this.collect[i])
+                if (mouse.x >= card[c].px && mouse.x <= card[c].px + CARD_W &&
+                    mouse.y >= card[c].py && mouse.y <= card[c].py + CARD_H)
+                    return i;
+        return -1;
     }
 
     /* 結算役 */
