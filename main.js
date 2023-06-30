@@ -8,8 +8,8 @@
 
 /* constants */
 const R = window.devicePixelRatio;
-const SCREEN_W = 800;
-const SCREEN_H = 800;
+const SCREEN_W = 1200;
+const SCREEN_H = 675;
 const CARD_IMG_W = 70; // width of card in img
 const CARD_IMG_H = 113; // height of card in img
 const cardScale = 0.9; // the rate of (size of card show on canvas / size of card in img)
@@ -128,12 +128,15 @@ function click_func(event) {
             break;
         case gameState.player_select_field:
             player[PLR].selected_fieldID = pointedFieldIndex();
-            if (player[PLR].selected_fieldID >= 0) {
+            if (player[PLR].selected_fieldID >= 0 &&
+               (player[PLR].needToThrow && field.card[player[PLR].selected_fieldID] == -1) ||
+                Math.floor(player[PLR].hand[player[PLR].selected_handID]/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
+                // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
                 // player_play(handID, fieldID);
                 console.log(player[PLR].selected_fieldID);
             } else {
                 let tmp = pointedPlayerHandIndex();
-                console.log(tmp, player[PLR].selected_handID);
+                //console.log(tmp, player[PLR].selected_handID);
                 if (tmp >= 0) {
                     player_unselect_hand(player[PLR].selected_handID);
                     player[PLR].selected_handID = tmp;
@@ -162,9 +165,8 @@ function updateMouseXY(event) {
 function pointedFieldIndex() {
     if (card == null) return -1;
     for (let i = 0; i < FIELD_SPACE; i++)
-        if (field.card[i] >= 0 &&
-            mouse.x >= card[field.card[i]].px && mouse.x <= card[field.card[i]].px + CARD_W &&
-            mouse.y >= card[field.card[i]].py && mouse.y <= card[field.card[i]].py + CARD_H)
+        if (mouse.x >= Field.X(i) && mouse.x <= Field.X(i) + CARD_W &&
+            mouse.y >= Field.Y(i) && mouse.y <= Field.Y(i) + CARD_H)
             return i;
     return -1;
 }
@@ -430,7 +432,7 @@ function shuffle(deck) {
         let flag = true;
         for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
             month[Math.floor(deck[i] / 4)]++;
-            if (month[deck[i]] >= 3)
+            if (month[Math.floor(deck[i] / 4)] >= 3)
                 flag = false;
         }
         shuffle_end = flag;
@@ -499,26 +501,11 @@ function after_deal(new_card) {
 
         // put to players' hand & field
         for (let i = 0; i < HAND_NUM; i++)
-            field.card[i+(FIELD_SPACE-HAND_NUM)/2] = new_card[0][i];
+            field.insertCard(i+(FIELD_SPACE-HAND_NUM)/2, new_card[0][i]);
         for (let i = 0; i < HAND_NUM; i++)
-            player[PLR].hand.push(new_card[PLR + 1][i]);
+            player[PLR].addHand(new_card[PLR + 1][i]);
         for (let i = 0; i < HAND_NUM; i++)
-            player[CPU].hand.push(new_card[CPU + 1][i]);
-
-        // update cards' info
-        for (let i = 0; i < player[PLR].hand.length; i++) {
-            card[player[PLR].hand[i]].place = cardPlace.player_hand;
-            card[player[PLR].hand[i]].back = false;
-        }
-        for (let i = 0; i < field.card.length; i++) {
-            if (field.card[i] < 0) continue;
-            card[field.card[i]].place = cardPlace.field;
-            card[field.card[i]].back = false;
-        }
-        for (let i = 0; i < player[CPU].hand.length; i++) {
-            card[player[CPU].hand[i]].place = cardPlace.cpu_hand;
-            card[player[CPU].hand[i]].back = true;
-        }
+            player[CPU].addHand(new_card[CPU + 1][i]);
 
         // game start
         game.start = true;
@@ -544,8 +531,25 @@ function game_rounding(params) {
 
 
 /* 玩家出牌 */
-function player_play() {
-    
+function player_play(handID, fieldID) {
+    // 從手牌和場上移除handID和fieldID的2張牌
+    player[PLR].removeHand(handID);
+    field.removeCard(fieldID);
+
+    // wait for animation
+
+    if (player[PLR].needToThrow) {
+        // 棄牌
+        field.insertCard(fieldID, player[PLR].hand[handID]);
+    } else {
+        // 配對牌
+        player[PLR].addCollect(player[PLR].hand[handID]);
+        player[PLR].addCollect(field.card[fieldID]);
+    }
+
+    // 抽牌
+
+    // 是否配對牌
 }
 
 /* AI出牌 */
@@ -555,9 +559,11 @@ function cpu_play() {
 
 function player_select_hand(handID) {
     card[player[PLR].hand[handID]].selected = true;
+    field.update_noticed(Math.floor(player[PLR].hand[handID] / 4));
 }
 function player_unselect_hand(handID) {
     card[player[PLR].hand[handID]].selected = false;
+    field.update_noticed(-1);
 }
 
 
@@ -570,20 +576,8 @@ function after_play(playerID, handCardID, fieldCardID) {
             movingCard.pop();
 
     // put to player's collect
-    player[playerID].collect[card_type[handCardID]].push(handCardID);
-    player[playerID].collect[card_type[fieldCardID]].push(fieldCardID);
-
-    // update cards' info
-    card[handCardID].place = (playerID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
-    card[fieldCardID].place = (playerID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
-    
-    // before play(先寫在這裡之後再搬過去)
-    card[handCardID].back = false;
-    card[fieldCardID].back = false;
-    card[handCardID].noticed = false;
-    card[fieldCardID].noticed = false;
-    card[handCardID].selected = false;
-    card[fieldCardID].selected = false;
+    player[playerID].addCollect(handCardID);
+    player[playerID].addCollect(fieldCardID);
 }
 
 //#endregion
@@ -622,15 +616,44 @@ class Player {
         this.old_yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         this.selected_handID = 0;
         this.selected_fieldID = 0;
+        this.needToThrow = false;
+    }
+
+    addHand(cardID) {
+        card[cardID].back = (this.ID == CPU);
+        card[cardID].noticed = false;
+        card[cardID].selected = false;
+        card[cardID].place = (this.ID == PLR) ? cardPlace.player_hand : cardPlace.cpu_hand;
+        this.hand.push(cardID);
+    }
+
+    removeHand(handID) {
+        card[this.hand[handID]].back = false;
+        card[this.hand[handID]].noticed = false;
+        card[this.hand[handID]].selected = false;
+        card[this.hand[handID]].place = cardPlace.moving;
+        for (let i = handID; i < this.hand.length - 1; i++)
+            this.hand[i] = this.hand[i + 1];
+        this.hand.pop();
+    }
+
+    addCollect(cardID) {
+        card[cardID].back = false;
+        card[cardID].noticed = false;
+        card[cardID].selected = false;
+        card[cardID].place = (this.ID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
+        this.collect[card_type[cardID]].push(cardID);
     }
 
     update_noticed() {
+        this.needToThrow = true;
         for (let i = 0; i < this.hand.length; i++)
             for (const c of field.card) {
                 if (c < 0) continue;
                 if (Math.floor(c / 4) == Math.floor(this.hand[i] / 4)) {
                     this.noticed[i] = true;
                     card[this.hand[i]].noticed = true;
+                    this.needToThrow = false;
                     break;
                 }
                 this.noticed[i] = false;
@@ -740,15 +763,31 @@ class Field {
         }
     }
 
-    update_noticed() {
+    insertCard(fieldID, cardID) {
+        card[cardID].back = false;
+        card[cardID].noticed = false;
+        card[cardID].selected = false;
+        card[cardID].place = cardPlace.field;
+        this.card[fieldID] = cardID;
+    }
+
+    removeCard(fieldID) {
+        card[this.card[fieldID]].back = false;
+        card[this.card[fieldID]].noticed = false;
+        card[this.card[fieldID]].selected = false;
+        card[this.card[fieldID]].place = cardPlace.moving;
+        this.card[fieldID] = -1;
+        this.update_noticed(-1);
+    }
+
+    update_noticed(month) {
         for (let i = 0; i < FIELD_SPACE; i++) {
             if (this.card[i] < 0) continue;
-            for (const c of player[PLR].hand) {
-                if (Math.floor(c / 4) == Math.floor(this.card[i] / 4)){
-                    this.noticed[i] = true;
-                    card[this.card[i]].noticed = true;
-                    break;
-                }
+            if (Math.floor(this.card[i] / 4) == month){
+                this.noticed[i] = true;
+                card[this.card[i]].noticed = true;
+                break;
+            } else {
                 this.noticed[i] = false;
                 card[this.card[i]].noticed = false;
             }
@@ -756,7 +795,7 @@ class Field {
     }
 
     update_card_info() {
-        this.update_noticed();
+        // this.update_noticed();
         // update px,py
         for (let i = 0; i < FIELD_SPACE; i++) {
             if (this.card[i] < 0) continue;
