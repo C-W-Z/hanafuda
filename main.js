@@ -139,8 +139,7 @@ function click_func(event) {
                 //console.log(tmp, player[PLR].selected_handID);
                 if (tmp >= 0) {
                     player_unselect_hand(player[PLR].selected_handID);
-                    player[PLR].selected_handID = tmp;
-                    player_select_hand(player[PLR].selected_handID);
+                    player_select_hand(tmp);
                 } else {
                     player_unselect_hand(player[PLR].selected_handID);
                     game.state = gameState.player_select_hand;
@@ -231,6 +230,9 @@ function draw_title() {
 
 /* draw canvas when gaming */
 function draw_gaming() {
+    // draw field background
+    //context.fillStyle = 'darkred';
+    //context.fillRect((Field.X(0) - (CARD_IMG_W - CARD_W) / 2) * R, (Field.Y(0) - (CARD_IMG_H - CARD_H) / 2) * R, (CARD_IMG_W + Field.X(FIELD_SPACE-1) - Field.X(0)) * R, (CARD_IMG_H + Field.Y(FIELD_SPACE-1) - Field.Y(0)) * R);
 
     /* draw the information of this game */
 
@@ -272,9 +274,12 @@ function draw_gaming() {
 
     // draw the field cards
     field.update_card_info();
-    for (const c of field.card)
-        if (c >= 0)
-            card[c].draw();
+    for (let i = 0; i < FIELD_SPACE; i++) {
+        if (field.card[i] >= 0)
+            card[field.card[i]].draw();
+        else if (player[PLR].selected_handID >= 0 && player[PLR].noticed[player[PLR].selected_handID] == false)
+            draw_noticed(Field.X(i), Field.Y(i));
+    }
 
     // draw the hand cards of cpu
     player[CPU].update_card_info();
@@ -313,6 +318,14 @@ function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
         context.lineWidth = 2 * R;
         context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
     }
+}
+
+function draw_noticed(px, py) {
+    context.strokeStyle = "darkred";
+    context.lineWidth = 2 * R;
+    context.setLineDash([5]);
+    context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
+    context.setLineDash([]);
 }
 
 // 從array中刪除特定元素
@@ -560,10 +573,12 @@ function cpu_play() {
 function player_select_hand(handID) {
     card[player[PLR].hand[handID]].selected = true;
     field.update_noticed(Math.floor(player[PLR].hand[handID] / 4));
+    player[PLR].selected_handID = handID;
 }
 function player_unselect_hand(handID) {
     card[player[PLR].hand[handID]].selected = false;
     field.update_noticed(-1);
+    player[PLR].selected_handID = -1;
 }
 
 
@@ -614,7 +629,7 @@ class Player {
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
         this.old_yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        this.selected_handID = 0;
+        this.selected_handID = -1;
         this.selected_fieldID = 0;
         this.needToThrow = false;
     }
@@ -756,10 +771,10 @@ class Player {
 class Field {
     constructor() {
         this.card = new Array(FIELD_SPACE);
-        this.noticed = new Array(FIELD_SPACE);
+        //this.noticed = new Array(FIELD_SPACE);
         for (let i = 0; i < FIELD_SPACE; i++) {
             this.card[i] = -1;
-            this.noticed[i] = false;
+            //this.noticed[i] = false;
         }
     }
 
@@ -784,11 +799,10 @@ class Field {
         for (let i = 0; i < FIELD_SPACE; i++) {
             if (this.card[i] < 0) continue;
             if (Math.floor(this.card[i] / 4) == month){
-                this.noticed[i] = true;
+                //this.noticed[i] = true;
                 card[this.card[i]].noticed = true;
-                break;
             } else {
-                this.noticed[i] = false;
+                //this.noticed[i] = false;
                 card[this.card[i]].noticed = false;
             }
         }
