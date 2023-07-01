@@ -132,7 +132,7 @@ function click_func(event) {
                (player[PLR].needToThrow && field.card[player[PLR].selected_fieldID] == -1) ||
                 Math.floor(player[PLR].hand[player[PLR].selected_handID]/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
                 // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
-                // player_play(handID, fieldID);
+                player_play(player[PLR].selected_handID, player[PLR].selected_fieldID);
                 console.log(player[PLR].selected_fieldID);
             } else {
                 let tmp = pointedPlayerHandIndex();
@@ -217,6 +217,13 @@ function animate(time) {
     requestAnimationFrame(animate);
 }
 
+function endAnimation() {
+    time_func = null;
+    next_func = null;
+    while (movingCard.length > 0)
+        movingCard.pop();
+}
+
 function draw_title() {
     context.textAlign = "center";
     context.fillStyle = 'rgb(0,0,0)';
@@ -233,6 +240,44 @@ function draw_gaming() {
     // draw field background
     //context.fillStyle = 'darkred';
     //context.fillRect((Field.X(0) - (CARD_IMG_W - CARD_W) / 2) * R, (Field.Y(0) - (CARD_IMG_H - CARD_H) / 2) * R, (CARD_IMG_W + Field.X(FIELD_SPACE-1) - Field.X(0)) * R, (CARD_IMG_H + Field.Y(FIELD_SPACE-1) - Field.Y(0)) * R);
+
+    // draw the deck at center
+    draw_card(CARD_BACK_ID, SCREEN_W / 2 - CARD_W / 2, SCREEN_H / 2 - CARD_H / 2);
+
+    // draw the field cards
+    field.update_card_info();
+    for (let i = 0; i < FIELD_SPACE; i++) {
+        if (field.card[i] >= 0)
+            card[field.card[i]].draw();
+        else if (player[PLR].selected_handID >= 0 && player[PLR].noticed[player[PLR].selected_handID] == false)
+            draw_noticed(Field.X(i), Field.Y(i));
+    }
+
+    player[CPU].update_card_info();
+    player[PLR].update_card_info();
+
+    // draw the collect cards of player
+    for (const arr of player[PLR].collect)
+        for (const c of arr)
+            card[c].draw();
+
+    // draw the collect cards of cpu
+    for (const arr of player[CPU].collect)
+        for (const c of arr)
+            card[c].draw();
+
+    // draw the hand cards of cpu
+    for (const c of player[CPU].hand)
+        card[c].draw();
+
+    // draw the hand cards of player
+    for (const c of player[PLR].hand)
+        card[c].draw();
+
+    // draw moving cards
+    for (const c of movingCard)
+        if (card[c].px * card[c].py != 0)
+            card[c].draw();
 
     /* draw the information of this game */
 
@@ -268,37 +313,6 @@ function draw_gaming() {
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText(player[CPU].money + "文", 45 * R, (30) * R);
     context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
-
-    // draw the deck at center
-    draw_card(CARD_BACK_ID, SCREEN_W / 2 - CARD_W / 2, SCREEN_H / 2 - CARD_H / 2);
-
-    // draw the field cards
-    field.update_card_info();
-    for (let i = 0; i < FIELD_SPACE; i++) {
-        if (field.card[i] >= 0)
-            card[field.card[i]].draw();
-        else if (player[PLR].selected_handID >= 0 && player[PLR].noticed[player[PLR].selected_handID] == false)
-            draw_noticed(Field.X(i), Field.Y(i));
-    }
-
-    // draw the hand cards of cpu
-    player[CPU].update_card_info();
-    for (const c of player[CPU].hand)
-        card[c].draw();
-
-    // draw the hand cards of player
-    player[PLR].update_card_info();
-    for (const c of player[PLR].hand)
-        card[c].draw();
-
-    // draw the collect cards of player
-
-    // draw the collect cards of cpu
-
-    // draw moving cards
-    for (const c of movingCard)
-        if (card[c].px * card[c].py != 0)
-            card[c].draw();
 }
 
 /* draw card */
@@ -359,7 +373,7 @@ function easeOutQuad (t, b, c, d) {
 
 // 一張牌在一幀內的移動
 // 回傳結束了沒
-function step_move(cardID, sX, sY, dX, dY, flip) {
+function step_move(cardID, sX, sY, dX, dY, flip = false) {
     return function(time) {
         const deltaTime = (time - startTime) / MOVE_TIME;
         if (deltaTime >= 1) {
@@ -506,11 +520,7 @@ function deal_cards() {
 
 function after_deal(new_card) {
     return function (time) {
-        time_func = null;
-        next_func = null;
-
-        while (movingCard.length > 0)
-            movingCard.pop();
+        endAnimation();
 
         // put to players' hand & field
         for (let i = 0; i < HAND_NUM; i++)
@@ -545,24 +555,51 @@ function game_rounding(params) {
 
 /* 玩家出牌 */
 function player_play(handID, fieldID) {
+    game.state = gameState.player_play;
+
+    let handCardID = player[PLR].hand[handID];
+    let toThrow = !player[PLR].noticed[handID];
     // 從手牌和場上移除handID和fieldID的2張牌
     player[PLR].removeHand(handID);
-    field.removeCard(fieldID);
 
-    // wait for animation
-
-    if (player[PLR].needToThrow) {
+    console.log("player play");
+    // animation
+    startTime = performance.now(); // reset startTime
+    if (toThrow) {
         // 棄牌
-        field.insertCard(fieldID, player[PLR].hand[handID]);
+        movingCard.push(handCardID);
+        time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID));
+        next_func = after_play(PLR, handCardID, field.card[fieldID]);
     } else {
-        // 配對牌
-        player[PLR].addCollect(player[PLR].hand[handID]);
-        player[PLR].addCollect(field.card[fieldID]);
+        movingCard.push(handCardID);
+        time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID) + 10);
+        next_func = player_collect_animation(handCardID, fieldID, toThrow);
     }
+}
 
-    // 抽牌
+function player_collect_animation(handCardID, fieldID, toThrow) {
+    return function (time) {
+        //endAnimation();
+        console.log("f", field.card[fieldID]);
+        let fieldCardID = field.card[fieldID];
+        field.removeCard(fieldID);
+        // next animation
+        movingCard.push(fieldCardID);
+        startTime = performance.now(); // reset startTime
+        // this is temp -> next is move to cards to collect
+        time_func = after_play(PLR, handCardID, fieldCardID);
+    }
+}
 
-    // 是否配對牌
+function after_play(playerID, handCardID, fieldCardID) {
+    // 保證月份相同
+    // 手牌已經移除打出的牌，場上也移除對應的牌，都移到movingCard了
+    
+    endAnimation();
+
+    // put to player's collect
+    player[playerID].addCollect(handCardID);
+    player[playerID].addCollect(fieldCardID);
 }
 
 /* AI出牌 */
@@ -579,20 +616,6 @@ function player_unselect_hand(handID) {
     card[player[PLR].hand[handID]].selected = false;
     field.update_noticed(-1);
     player[PLR].selected_handID = -1;
-}
-
-
-function after_play(playerID, handCardID, fieldCardID) {
-    // 保證月份相同
-    // 手牌已經移除打出的牌，場上也移除對應的牌，都移到movingCard了
-    
-    // 移除movingCard
-    while (movingCard.length > 0)
-            movingCard.pop();
-
-    // put to player's collect
-    player[playerID].addCollect(handCardID);
-    player[playerID].addCollect(fieldCardID);
 }
 
 //#endregion
@@ -674,6 +697,12 @@ class Player {
                 this.noticed[i] = false;
                 card[this.hand[i]].noticed = false;
             }
+        for (const arr of this.collect) {
+            for (const c of arr) {
+                card[c].noticed = false;
+                card[c].back = false;
+            }
+        }
     }
 
     update_card_info() {
@@ -689,7 +718,25 @@ class Player {
             card[this.hand[i]].back = (this.ID == CPU);
         }
         // update collected card px, py
-        
+        for (let i = 0; i < this.collect.length; i++) {
+            for (let j = 0; j < this.collect[i].length; j++) {
+                if (i < this.collect.length / 2)
+                    card[this.collect[i][j]].px = SCREEN_W - CARD_IMG_W - CARD_IMG_W * (2 * j / this.collect[i].length) + (CARD_IMG_W - CARD_W) / 2;
+                else
+                    card[this.collect[i][j]].px = CARD_IMG_W * (2 * j / this.collect[i].length) + (CARD_IMG_W - CARD_W) / 2;
+                if (this.ID == PLR) {
+                    if (i % 2 == 0)
+                        card[this.collect[i][j]].py = SCREEN_H - CARD_IMG_H + (CARD_IMG_H - CARD_H) / 2;
+                    else
+                        card[this.collect[i][j]].py = SCREEN_H - 2 * CARD_IMG_H + (CARD_IMG_H - CARD_H) / 2;
+                } else { // ID == CPU
+                    if (i % 2 == 0)
+                        card[this.collect[i][j]].py = CARD_IMG_H + (CARD_IMG_H - CARD_H) / 2;
+                    else
+                        card[this.collect[i][j]].py = (CARD_IMG_H - CARD_H) / 2;
+                }
+            }
+        }
     }
 
     pointedCollectIndex() {
