@@ -23,6 +23,7 @@ const PLR = 0; // player
 const CPU = 1; // computer
 // cardID = 0 ~ 47
 const CARD_BACK_ID = 48; // 牌背
+const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
 // 牌的種類（カス・短冊・タネ・五光）
 const card_type = [0,0,1,3, 0,0,1,2, 0,0,1,3, 0,0,1,2, 0,0,1,2, 0,0,1,2, 0,0,1,2, 0,0,2,3, 0,0,1,2, 0,0,1,2, 0,1,2,3, 0,0,0,3];
 // 役(yaku)
@@ -205,6 +206,7 @@ function animate(time) {
     // 清除整個canvas畫面
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
+    console.log(time_func != null);
     if (time_func != null)
         time_func(time);
 
@@ -242,7 +244,7 @@ function draw_gaming() {
     //context.fillRect((Field.X(0) - (CARD_IMG_W - CARD_W) / 2) * R, (Field.Y(0) - (CARD_IMG_H - CARD_H) / 2) * R, (CARD_IMG_W + Field.X(FIELD_SPACE-1) - Field.X(0)) * R, (CARD_IMG_H + Field.Y(FIELD_SPACE-1) - Field.Y(0)) * R);
 
     // draw the deck at center
-    draw_card(CARD_BACK_ID, SCREEN_W / 2 - CARD_W / 2, SCREEN_H / 2 - CARD_H / 2);
+    draw_card(CARD_BACK_ID, DECK_P.x, DECK_P.y);
 
     // draw the field cards
     field.update_card_info();
@@ -256,28 +258,20 @@ function draw_gaming() {
     player[CPU].update_card_info();
     player[PLR].update_card_info();
 
-    // draw the collect cards of player
-    for (const arr of player[PLR].collect)
-        for (const c of arr)
+    for (let i = 0; i < 2; i++) {
+        // draw the collect cards of players
+        for (const arr of player[i].collect)
+            for (const c of arr)
+                card[c].draw();
+        // draw the hand cards of players
+        for (const c of player[i].hand)
             card[c].draw();
-
-    // draw the collect cards of cpu
-    for (const arr of player[CPU].collect)
-        for (const c of arr)
-            card[c].draw();
-
-    // draw the hand cards of cpu
-    for (const c of player[CPU].hand)
-        card[c].draw();
-
-    // draw the hand cards of player
-    for (const c of player[PLR].hand)
-        card[c].draw();
+    }
 
     // draw moving cards
     for (const c of movingCard)
-        if (card[c].px * card[c].py != 0)
-            card[c].draw();
+        //if (card[c].px != DECK_P.x && card[c].py != DECK_P.y)
+        card[c].draw();
 
     /* draw the information of this game */
 
@@ -375,6 +369,7 @@ function easeOutQuad (t, b, c, d) {
 // 回傳結束了沒
 function step_move(cardID, sX, sY, dX, dY, flip = false) {
     return function(time) {
+        //console.log("step move");
         const deltaTime = (time - startTime) / MOVE_TIME;
         if (deltaTime >= 1) {
             card[cardID].px = dX;
@@ -565,13 +560,12 @@ function player_play(handID, fieldID) {
     console.log("player play");
     // animation
     startTime = performance.now(); // reset startTime
+    movingCard.push(handCardID);
     if (toThrow) {
         // 棄牌
-        movingCard.push(handCardID);
         time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID));
-        next_func = after_play(PLR, handCardID, field.card[fieldID]);
+        next_func = after_play(PLR, handCardID);
     } else {
-        movingCard.push(handCardID);
         time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID) + 10);
         next_func = player_collect_animation(handCardID, fieldID, toThrow);
     }
@@ -584,22 +578,98 @@ function player_collect_animation(handCardID, fieldID, toThrow) {
         let fieldCardID = field.card[fieldID];
         field.removeCard(fieldID);
         // next animation
-        movingCard.push(fieldCardID);
-        startTime = performance.now(); // reset startTime
+        // startTime = performance.now(); // reset startTime
         // this is temp -> next is move to cards to collect
-        time_func = after_play(PLR, handCardID, fieldCardID);
+        // time_func =
+        after_play(PLR, handCardID, fieldCardID);
     }
 }
 
-function after_play(playerID, handCardID, fieldCardID) {
+function after_play(playerID, handCardID, fieldCardID = -1) {
     // 保證月份相同
     // 手牌已經移除打出的牌，場上也移除對應的牌，都移到movingCard了
     
     endAnimation();
 
-    // put to player's collect
-    player[playerID].addCollect(handCardID);
-    player[playerID].addCollect(fieldCardID);
+    if (fieldCardID >= 0) {
+        // put to player's collect
+        player[playerID].addCollect(handCardID);
+        player[playerID].addCollect(fieldCardID);
+    }
+
+    // draw card from deck
+    draw_new_card();
+}
+
+function draw_new_card() {
+    // draw card
+    let new_card = deck.pop();
+    console.log("draw ", new_card);
+
+    // find the pair card
+    let fieldID, fieldCardID;
+    let pairFieldID = [];
+    // find if there are pair cards
+    for (let i = 0; i < FIELD_SPACE; i++)
+        if (Math.floor(field.card[i] / 4) == Math.floor(new_card / 4))
+            pairFieldID.push(i);
+
+    if (pairFieldID.length == 0)
+    {
+        // find space on field
+        for (let i = 0; i < FIELD_SPACE; i++) {
+            if (field.card[i] == -1) {
+                fieldID = i;
+                break;
+            }
+        }
+    }
+    else if (pairFieldID.length >= 2)
+    {
+        // wait for player choose
+        console.log("choose a card");
+        fieldID = 0;
+    }
+    else // only one card can pair
+    {
+        fieldID = pairFieldID[0];
+    }
+    console.log(fieldID);
+
+    if (pairFieldID.length > 0)
+    {
+        // remove the card from field
+        console.log("remove from field");
+        fieldCardID = field.card[fieldID];
+        field.removeCard(fieldID);
+        console.log("pair:", card[fieldCardID]);
+    }
+
+    // animation
+    card[new_card].place = cardPlace.moving;
+    movingCard.push(new_card);
+    console.log(card[new_card]);
+    startTime = performance.now(); // reset startTime
+    time_func = step_move(new_card, DECK_P.x, DECK_P.y, Field.X(fieldID), Field.Y(fieldID), true);
+    console.log(time_func);
+    next_func = after_draw_new_card(PLR, new_card, fieldID, (pairFieldID.length > 0) ? fieldCardID : -1);
+}
+
+function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
+    return function (time) {
+        endAnimation();
+
+        if (fieldCardID != -1) {
+            console.log("put to collect");
+            // put to player's collect
+            player[playerID].addCollect(new_cardID);
+            player[playerID].addCollect(fieldCardID);
+        } else {
+            console.log("put to field");
+            // put to field
+            field.insertCard(fieldID, new_cardID);
+        }
+    }
 }
 
 /* AI出牌 */
@@ -625,8 +695,8 @@ function player_unselect_hand(handID) {
 class Card {
     constructor(ID) {
         this.ID = ID;
-        this.px = 0;
-        this.py = 0;
+        this.px = DECK_P.x;
+        this.py = DECK_P.y;
         this.scaleX = 1;
         this.back = true;
         this.noticed = false;
@@ -838,6 +908,7 @@ class Field {
         card[this.card[fieldID]].noticed = false;
         card[this.card[fieldID]].selected = false;
         card[this.card[fieldID]].place = cardPlace.moving;
+        movingCard.push(this.card[fieldID]);
         this.card[fieldID] = -1;
         this.update_noticed(-1);
     }
