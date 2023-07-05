@@ -51,9 +51,10 @@ const gameState = {
     deal: 2,
     player_select_hand: 3,
     player_select_field: 4,
-    player_play: 5,
+    player_play_card: 5,
     player_choose_card: 6, // when draw a card with two cards on field can be paired
-    player_end_round: 7
+    player_end_round: 7,
+    cpu_play: 8
 };
 
 /* canvas & sources & control */
@@ -135,7 +136,7 @@ function click_func(event) {
                (player[PLR].needToThrow && field.card[player[PLR].selected_fieldID] == -1) ||
                 Math.floor(player[PLR].hand[player[PLR].selected_handID]/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
                 // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
-                player_play(player[PLR].selected_handID, player[PLR].selected_fieldID);
+                player_play_card(player[PLR].selected_handID, player[PLR].selected_fieldID);
                 console.log(player[PLR].selected_fieldID);
             } else {
                 let tmp = pointedPlayerHandIndex();
@@ -153,7 +154,7 @@ function click_func(event) {
             player[PLR].selected_fieldID = pointedFieldIndex();
             if (Math.floor(player[PLR].draw_cardID/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
                 field.update_noticed(-1);
-                draw_card_animation(player[PLR].draw_cardID, player[PLR].selected_fieldID, field.card[player[PLR].selected_fieldID]);
+                draw_card_animation(PLR, player[PLR].draw_cardID, player[PLR].selected_fieldID, field.card[player[PLR].selected_fieldID]);
             }
             break;
         default:
@@ -535,31 +536,21 @@ function after_deal(new_card) {
             player[CPU].addHand(new_card[CPU + 1][i]);
 
         // game start
+        game.round = 0;
         game.start = true;
         //game_rounding();
-        game.state = gameState.player_select_hand;
+        (game.round % 2 == game.first) ? player_play() : cpu_play();
     }
 }
 
-// 回合進行
-function game_rounding(params) {
-    // 遊戲正式開始
-    while (game.month <= game.MAXMONTH) {
-        // 當前月份開始
-        game.end = true;
-        while (!game.end) {
-            // start round
-            (game.round % 2 == game.first) ? player_play() : cpu_play();
-            game.round++; // 下一回合
-        }
-        game.month++;
-    }
+/* 玩家的回合 */
+function player_play() {
+    game.state = gameState.player_select_hand;
 }
-
 
 /* 玩家出牌 */
-function player_play(handID, fieldID) {
-    game.state = gameState.player_play;
+function player_play_card(handID, fieldID) {
+    game.state = gameState.player_play_card;
 
     let handCardID = player[PLR].hand[handID];
     let toThrow = !player[PLR].noticed[handID];
@@ -607,15 +598,15 @@ function after_play(playerID, handCardID, fieldCardID = -1) {
         }
 
         // draw card from deck
-        draw_new_card();
+        draw_new_card(playerID);
     }
 }
 
-function draw_new_card() {
+function draw_new_card(playerID) {
     // draw card
     let new_card = deck.pop();
     console.log("draw ", new_card);
-    player[PLR].draw_cardID = new_card;
+    player[playerID].draw_cardID = new_card;
 
     // show the new card
     card[new_card].back = false;
@@ -640,23 +631,27 @@ function draw_new_card() {
                 break;
             }
         }
-        draw_card_animation(new_card, fieldID, -1);
+        draw_card_animation(playerID, new_card, fieldID, -1);
     }
     else if (pairFieldID.length >= 2)
     {
-        // wait for player choose
-        console.log("choose a card");
-        game.state = gameState.player_choose_card;
-        field.update_noticed(Math.floor(new_card/4));
+        if (playerID == PLR) {
+            // wait for player choose
+            console.log("choose a card");
+            game.state = gameState.player_choose_card;
+            field.update_noticed(Math.floor(new_card/4));
+        } else /* CPU */ {
+            //fieldID = ;
+        }
     }
     else // only one card can pair
     {
         fieldID = pairFieldID[0];
-        draw_card_animation(new_card, fieldID, field.card[fieldID]);
+        draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
     }
 }
 
-function draw_card_animation(new_card, fieldID, fieldCardID) {
+function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
     game.state = gameState.player_end_round;
 
     if (fieldCardID >= 0) {
@@ -669,7 +664,7 @@ function draw_card_animation(new_card, fieldID, fieldCardID) {
     startTime = performance.now(); // reset startTime
     time_func = step_move(new_card, DECK_P.x, DECK_P.y, Field.X(fieldID), Field.Y(fieldID));
     // 這裡還要加上collect的動畫
-    next_func = after_draw_new_card(PLR, new_card, fieldID, fieldCardID);
+    next_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
 }
 
 function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
@@ -686,11 +681,49 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
             // put to field
             field.insertCard(fieldID, new_cardID);
         }
+
+        // round end
+        // check yaku and check win or next round
+        check_win(playerID);
     }
 }
 
-/* AI出牌 */
+function check_win(playerID) {
+    let win = player[playerID].check_yaku();
+    if (player[playerID].hand.length == 0) {
+        // end this month
+    } else if (win) {
+        // ask koi koi or not
+    } else {
+        // next round
+        game.round++;
+        (game.round % 2 == game.first) ? player_play() : cpu_play();
+    }
+}
+
+function koikoi() {
+    
+}
+
+/* AI的回合 */
 function cpu_play() {
+    game.state = gameState.cpu_play;
+
+    // 找出所有可以出的牌與對應的場牌
+    // 找到價值最高的
+    let pair = {h: -1, f: -1};
+    for (let i = 0; i < player[CPU].hand.length; i++)
+        for (let j = 0; j < FIELD_SPACE; j++) {
+            if (field.card[j] < 0) continue;
+            if (Math.floor(player[CPU].hand[i]/4) == Math.floor(field.card[j]/4))
+            {
+                if (pair.h < 0 || pair.f < 0) 
+                    pair.h = i, pair.f = j;
+                else if (card_type[player[CPU].hand[i]] + card_type[field.card[j]] > card_type[player[CPU].hand[pair.h]] + card_type[field.card[pair.f]])
+                    pair.h = i, pair.f = j;
+            }
+        }
+    console.log("cpu play: ", pair, ":", player[CPU].hand[pair.h], ", ", field.card[pair.f]);
     
 }
 
@@ -804,7 +837,7 @@ class Player {
             else // ID == CPU
                 card[this.hand[i]].py = (CARD_IMG_H - CARD_H) / 2;
             // update hand card showing or not
-            card[this.hand[i]].back = (this.ID == CPU);
+            card[this.hand[i]].back = (!game.op && this.ID == CPU);
         }
         // update collected card px, py
         for (let i = 0; i < this.collect.length; i++) {
@@ -976,6 +1009,9 @@ class Game {
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.end = true; // 當前月份是否結束
         this.koi = [false, false]; // whether player/cpu is doing koi koi
+
+
+        this.op = false; // look cpu's hand cards
     }
 }
 
