@@ -135,8 +135,8 @@ function click_func(event) {
             if (player[PLR].selected_fieldID >= 0 &&
                (player[PLR].needToThrow && field.card[player[PLR].selected_fieldID] == -1) ||
                 Math.floor(player[PLR].hand[player[PLR].selected_handID]/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
-                // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
-                player_play_card(player[PLR].selected_handID, player[PLR].selected_fieldID);
+                // 出牌：分為(手牌與場牌)有可以配對的與無可配對的2種情況
+                player_play_card(PLR, player[PLR].selected_handID, player[PLR].selected_fieldID);
                 console.log(player[PLR].selected_fieldID);
             } else {
                 let tmp = pointedPlayerHandIndex();
@@ -549,29 +549,30 @@ function player_play() {
 }
 
 /* 玩家出牌 */
-function player_play_card(handID, fieldID) {
-    game.state = gameState.player_play_card;
+function player_play_card(playerID, handID, fieldID) {
+    if (playerID == PLR)
+        game.state = gameState.player_play_card;
 
-    let handCardID = player[PLR].hand[handID];
-    let toThrow = !player[PLR].noticed[handID];
+    let handCardID = player[playerID].hand[handID];
     // 從手牌和場上移除handID和fieldID的2張牌
-    player[PLR].removeHand(handID);
+    player[playerID].removeHand(handID);
 
-    console.log("player play");
+    if (playerID == PLR)
+        console.log("player play");
     // animation
     startTime = performance.now(); // reset startTime
     movingCard.push(handCardID);
-    if (toThrow) {
+    if (!player[playerID].noticed[handID] || field.card[fieldID] < 0) {
         // 棄牌
         time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID));
-        next_func = after_play(PLR, handCardID);
+        next_func = after_play(playerID, handCardID, -1, fieldID);
     } else {
         time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID) + 10);
-        next_func = player_collect_animation(handCardID, fieldID, toThrow);
+        next_func = player_collect_animation(playerID, handCardID, fieldID);
     }
 }
 
-function player_collect_animation(handCardID, fieldID, toThrow) {
+function player_collect_animation(playerID, handCardID, fieldID) {
     return function (time) {
         //endAnimation();
         console.log("f", field.card[fieldID]);
@@ -580,11 +581,11 @@ function player_collect_animation(handCardID, fieldID, toThrow) {
         // next animation
         // startTime = performance.now(); // reset startTime
         // this is temp -> next is move to cards to collect
-        time_func = after_play(PLR, handCardID, fieldCardID);
+        time_func = after_play(playerID, handCardID, fieldCardID);
     }
 }
 
-function after_play(playerID, handCardID, fieldCardID = -1) {
+function after_play(playerID, handCardID, fieldCardID, fieldID = -1) {
     return function (time) {
         // 保證月份相同
         // 手牌已經移除打出的牌，場上也移除對應的牌，都移到movingCard了
@@ -595,6 +596,9 @@ function after_play(playerID, handCardID, fieldCardID = -1) {
             // put to player's collect
             player[playerID].addCollect(handCardID);
             player[playerID].addCollect(fieldCardID);
+        } else {
+            // put to field
+            field.insertCard(fieldID, handCardID);
         }
 
         // draw card from deck
@@ -641,7 +645,9 @@ function draw_new_card(playerID) {
             game.state = gameState.player_choose_card;
             field.update_noticed(Math.floor(new_card/4));
         } else /* CPU */ {
-            //fieldID = ;
+            // 未完成
+            fieldID = pairFieldID[0];
+            draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
         }
     }
     else // only one card can pair
@@ -652,7 +658,8 @@ function draw_new_card(playerID) {
 }
 
 function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
-    game.state = gameState.player_end_round;
+    if (playerID == PLR)
+        game.state = gameState.player_end_round;
 
     if (fieldCardID >= 0) {
         // remove the card from field
@@ -692,8 +699,10 @@ function check_win(playerID) {
     let win = player[playerID].check_yaku();
     if (player[playerID].hand.length == 0) {
         // end this month
+        console.log("end");
     } else if (win) {
         // ask koi koi or not
+        console.log(playerID==PLR?"player":"cpu","win");
     } else {
         // next round
         game.round++;
@@ -709,22 +718,48 @@ function koikoi() {
 function cpu_play() {
     game.state = gameState.cpu_play;
 
+    console.log(player[CPU]);
+    console.log(field);
+
     // 找出所有可以出的牌與對應的場牌
     // 找到價值最高的
-    let pair = {h: -1, f: -1};
+    player[CPU].selected_handID = -1;
+    player[CPU].selected_fieldID = -1;
     for (let i = 0; i < player[CPU].hand.length; i++)
         for (let j = 0; j < FIELD_SPACE; j++) {
             if (field.card[j] < 0) continue;
             if (Math.floor(player[CPU].hand[i]/4) == Math.floor(field.card[j]/4))
             {
-                if (pair.h < 0 || pair.f < 0) 
-                    pair.h = i, pair.f = j;
-                else if (card_type[player[CPU].hand[i]] + card_type[field.card[j]] > card_type[player[CPU].hand[pair.h]] + card_type[field.card[pair.f]])
-                    pair.h = i, pair.f = j;
+                if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) 
+                {
+                    player[CPU].selected_handID = i;
+                    player[CPU].selected_fieldID = j;
+                }
+                else if (card_type[player[CPU].hand[i]] + card_type[field.card[j]] > 
+                    card_type[player[CPU].hand[player[CPU].selected_handID]] + card_type[field.card[player[CPU].selected_fieldID]])
+                {
+                    player[CPU].selected_handID = i;
+                    player[CPU].selected_fieldID = j;
+                }
             }
         }
-    console.log("cpu play: ", pair, ":", player[CPU].hand[pair.h], ", ", field.card[pair.f]);
+
+    // 如果沒找到可配對的 -> 棄牌
+    if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) {
+        player[CPU].selected_handID = 0;
+        for (let i = 1; i < player[CPU].hand.length; i++)
+            if (card_type[player[CPU].hand[i]] > card_type[player[CPU].hand[player[CPU].selected_handID]])
+                player[CPU].selected_handID = i;
+        for (let j = 0; j < FIELD_SPACE; j++)
+            if (field.card[j] == -1) {
+                player[CPU].selected_fieldID = j;
+                break;
+            }
+    }
+
+    //console.log("cpu play: ", player[CPU].hand[player[CPU].selected_handID], ", ", field.card[player[CPU].selected_fieldID]);
     
+    player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
 }
 
 function player_select_hand(handID) {
