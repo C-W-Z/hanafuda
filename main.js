@@ -84,7 +84,7 @@ let movingCard;
 
 //#endregion
 
-//#region Main
+/* Main Function */
 window.onload = function()
 {
     /* get canvas */
@@ -104,7 +104,6 @@ window.onload = function()
     animate(startTime);
     //start_game();
 }
-//#endregion
 
 //#region Control Functions
 
@@ -135,22 +134,25 @@ function click_func(event) {
             if (player[PLR].selected_fieldID >= 0 &&
                (player[PLR].needToThrow && field.card[player[PLR].selected_fieldID] == -1) ||
                 Math.floor(player[PLR].hand[player[PLR].selected_handID]/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
-                // 出牌：分為(手牌與場牌)有可以配對的與無可配對的2種情況
+                // 玩家出牌
                 player_play_card(PLR, player[PLR].selected_handID, player[PLR].selected_fieldID);
-                console.log(player[PLR].selected_fieldID);
+                //console.log(player[PLR].selected_fieldID);
             } else {
                 let tmp = pointedPlayerHandIndex();
                 //console.log(tmp, player[PLR].selected_handID);
                 if (tmp >= 0) {
+                    // 選擇另一張手牌
                     player_unselect_hand(player[PLR].selected_handID);
                     player_select_hand(tmp);
                 } else {
+                    // 取消選擇
                     player_unselect_hand(player[PLR].selected_handID);
                     game.state = gameState.player_select_hand;
                 }
             }
             break;
         case gameState.player_choose_card:
+            // 抽牌後選擇場牌(有2張同月份牌時)
             player[PLR].selected_fieldID = pointedFieldIndex();
             if (Math.floor(player[PLR].draw_cardID/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
                 field.update_noticed(-1);
@@ -207,7 +209,7 @@ function pointedCardID() {
 
 //#endregion
 
-//#region Graph Functions
+//#region Game & Graph Functions
 
 function animate(time) {
     if (!startTime) // it's the first frame
@@ -216,7 +218,7 @@ function animate(time) {
     // 清除整個canvas畫面
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
-    console.log(time_func != null);
+    //console.log(time_func != null);
     if (time_func != null)
         time_func(time);
 
@@ -330,14 +332,14 @@ function draw_gaming() {
 function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
     let sx = (cardID % 10) * 72;
     let sy = Math.floor(cardID / 10) * 114;
-    context.drawImage(cards, sx, sy, CARD_IMG_W, CARD_IMG_H, (px + + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
+    context.drawImage(cards, sx, sy, CARD_IMG_W, CARD_IMG_H, (px + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
     if (noticed) {
         context.strokeStyle = "yellow";
         context.lineWidth = 2 * R;
         context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
     }
 }
-
+// draw card outline on field
 function draw_noticed(px, py) {
     context.strokeStyle = "darkred";
     context.lineWidth = 2 * R;
@@ -346,21 +348,17 @@ function draw_noticed(px, py) {
     context.setLineDash([]);
 }
 
-// 從array中刪除特定元素
-function Remove(arr, val) {
-    for (let i = 0; i < arr.length; i++)
-        if (arr[i] == val)
-            arr.splice(i, 1);
-}
-
-/* easing functions for animation */
-/* ref: https://stackoverflow.com/questions/8316882/what-is-an-easing-function */
-// t: current time,
-// b: beginning value,
-// c: change in value,
-// d: duration
-function linear(time, begin, change, duration) {
-    return change * (time / duration) + begin;
+/**
+ * @abstract easing functions for animation
+ * @reference https://stackoverflow.com/questions/8316882/what-is-an-easing-function
+ * @param {number} t current time,
+ * @param {number} b beginning value,
+ * @param {number} c change in value,
+ * @param {number} d duration
+ * @returns 
+ */
+function linear(t, b, c, d) {
+    return c * (t / d) + b;
 }
 function easeInOutQuad(t, b, c, d) {
     if ((t /= d / 2) < 1)
@@ -429,10 +427,6 @@ function deal_step(cards, i) {
     }
 }
 
-//#endregion
-
-//#region Game Functions
-
 function debug() {
     console.log('========== DEBUG ==========',
                 '\ngame:'   , game,
@@ -471,8 +465,8 @@ function shuffle(deck) {
     }
 }
 
+/* init new game */
 function start_game() {
-    /* init new game */
     // init all cards
     card = new Array(CARD_NUM);
     for (let i = 0; i < CARD_NUM; i++)
@@ -562,6 +556,7 @@ function player_play_card(playerID, handID, fieldID) {
     // animation
     startTime = performance.now(); // reset startTime
     movingCard.push(handCardID);
+    // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
     if (!player[playerID].noticed[handID] || field.card[fieldID] < 0) {
         // 棄牌
         time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID));
@@ -575,7 +570,7 @@ function player_play_card(playerID, handID, fieldID) {
 function player_collect_animation(playerID, handCardID, fieldID) {
     return function (time) {
         //endAnimation();
-        console.log("f", field.card[fieldID]);
+        //console.log("f", field.card[fieldID]);
         let fieldCardID = field.card[fieldID];
         field.removeCard(fieldID);
         // next animation
@@ -616,7 +611,7 @@ function draw_new_card(playerID) {
     card[new_card].back = false;
     card[new_card].place = cardPlace.moving;
     movingCard.push(new_card);
-    console.log(card[new_card]);
+    //console.log(card[new_card]);
 
     // find the pair card
     let fieldID, fieldCardID;
@@ -663,9 +658,9 @@ function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
 
     if (fieldCardID >= 0) {
         // remove the card from field
-        console.log("remove from field");
+        //console.log("remove from field");
         field.removeCard(fieldID);
-        console.log("pair:", card[fieldCardID]);
+        console.log("pair:", fieldCardID);
     }
     // animation
     startTime = performance.now(); // reset startTime
@@ -718,8 +713,9 @@ function koikoi() {
 function cpu_play() {
     game.state = gameState.cpu_play;
 
-    console.log(player[CPU]);
-    console.log(field);
+    //console.log(player[CPU]);
+    //console.log(field);
+    console.log("cpu_play");
 
     // 找出所有可以出的牌與對應的場牌
     // 找到價值最高的
@@ -959,16 +955,6 @@ class Player {
         }
 
         return get_new_yaku;
-
-        /*
-        if (get_new_yaku) {
-            // decide koikoi or end
-            // if koikoi koikoi();
-            // else end = true;
-        } else {
-            // next round
-        }
-        */
     }
 }
 
@@ -1044,7 +1030,6 @@ class Game {
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.end = true; // 當前月份是否結束
         this.koi = [false, false]; // whether player/cpu is doing koi koi
-
 
         this.op = false; // look cpu's hand cards
     }
