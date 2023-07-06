@@ -53,7 +53,9 @@ const gameState = {
     player_play_card: 5,
     player_choose_card: 6, // when draw a card with two cards on field can be paired
     player_end_round: 7,
-    cpu_play: 8
+    player_decide_koi: 8,
+    cpu_play: 9,
+    koikoi_animation: 10
 };
 
 /* canvas & sources & control */
@@ -80,6 +82,12 @@ time_func = null;
 let next_func = new Function();
 next_func = null;
 let movingCard;
+
+/* UI */
+// when ask player for koikoi
+let koi_panel;
+let end_button;
+let koi_button;
 
 //#endregion
 
@@ -157,6 +165,10 @@ function click_func(event) {
                 field.update_noticed(-1);
                 draw_card_animation(PLR, player[PLR].draw_cardID, player[PLR].selected_fieldID, field.card[player[PLR].selected_fieldID]);
             }
+            break;
+        case gameState.player_decide_koi:
+            end_button.check_press();
+            koi_button.check_press();
             break;
         default:
             break;
@@ -318,6 +330,11 @@ function draw_gaming() {
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText(player[CPU].money + "文", 45 * R, (30) * R);
     context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
+
+    // draw UI
+
+    if (game.state == gameState.player_decide_koi)
+        draw_decide_koi();
 }
 
 /* draw card */
@@ -438,8 +455,14 @@ function debug() {
 }
 
 function init_game() {
-    // init game data
+    /* init game data */
     game = new Game();
+    /* init UI in game */
+    // the size of panel of decide koi
+    const w = 400, h = 200;
+    koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10, "", 0, null, "");
+    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, null);
+    koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, koikoi(PLR));
 }
 
 /* shuffle deck */
@@ -485,6 +508,7 @@ function start_game() {
 
     /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
+    game.koi = -1;
     game.first = Math.floor(Math.random() * 2);
     console.log("親権:", (game.first == PLR) ? "Player" : "Computer");
     // shuffle
@@ -693,14 +717,16 @@ function check_win(playerID) {
     let win = player[playerID].check_yaku();
     if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
     {
-        // if (game.koi[CPU]) cpu win
-        // else if (game.koi[PLR]) player win
+        // if (game.koi == CPU) cpu win
+        // else if (game.koi == PLR) player win
         // else 親權
         // end this month
         console.log("end");
     } else if (win) {
         // ask koi koi or not
         console.log(playerID==PLR?"player":"cpu","win");
+        if (playerID == PLR)
+            game.state = gameState.player_decide_koi;
     } else {
         // next round
         game.round++;
@@ -708,29 +734,33 @@ function check_win(playerID) {
     }
 }
 
-function decide_koikoi(playerID) {
-    return function (time) {
-        let w = 400, h = 200;
-        // draw rect
-        context.beginPath();
-        context.fillStyle = 'black';
-        context.roundRect((SCREEN_W/2 - w/2) * R, (SCREEN_H/2 - h/2) * R, w * R, h * R, 20);
-        context.fill();
+function draw_decide_koi() {
+    // the size of panel of decide koi
+    const w = 400, h = 200;
+    // draw panel
+    koi_panel.draw();
 
-        // draw texts and buttons
-        context.lineWidth = 3 * R;
-        context.strokeStyle = 'lightgray';
-        //context.beginPath();
-        context.roundRect((SCREEN_W/2 - w/2 + w/8 - w/24) * R, (SCREEN_H/2 + h/8) * R, (w/3) * R, (h/4) * R, 10);
-        context.roundRect((SCREEN_W/2 + w/2 - w/8 + w/24 - w/3) * R, (SCREEN_H/2 + h/8) * R, (w/3) * R, (h/4) * R, 10);
-        context.stroke();
-        context.fillStyle = 'white';
-        context.font = 32 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-        context.fillText("こいこいしますか？", (SCREEN_W/2) * R, (SCREEN_H/2 - h/4) * R);
-        context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-        context.fillText("現在の獲得文数："+ player[PLR].score +"文", (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
-        context.fillText("あがり", (SCREEN_W/2 - w/2 + w/4) * R, (SCREEN_H/2 + h/4) * R);
-        context.fillText("こいこい", (SCREEN_W/2 + w/2 - w/4) * R, (SCREEN_H/2 + h/4) * R);
+    // draw texts
+    context.fillStyle = 'white';
+    context.font = 32 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText("こいこいしますか？", (SCREEN_W/2) * R, (SCREEN_H/2 - h/4) * R);
+    context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText("現在の獲得文数："+ player[PLR].score +"文", (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
+
+    // draw buttons
+    end_button.draw();
+    koi_button.draw();
+}
+
+function koikoi(playerID) {
+    return function() {
+        console.log(playerID==PLR?"player":"cpu","koi koi");
+
+        game.state = gameState.koikoi_animation;
+        game.koi = playerID;
+        // next round
+        game.round++;
+        (game.round % 2 == game.first) ? player_play() : cpu_play();
     }
 }
 
@@ -1054,7 +1084,7 @@ class Game {
         this.first = 0; // 誰先手
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.end = true; // 當前月份是否結束
-        this.koi = [false, false]; // whether player/cpu is doing koi koi
+        this.koi = -1; // whether player/cpu is doing koi koi
 
         this.op = false; // look cpu's hand cards
     }
@@ -1070,29 +1100,39 @@ class Button {
      * @param {string} text 按鈕上的文字
      * @param {number} fontsize 字體大小
      * @param {Function} func 按下按鈕後會執行的函式
+     * @param {string} bordercolor 邊界顏色
+     * @param {string} fillcolor 按鈕顏色
+     * @param {string} textcolor 文字顏色
      */
-    constructor(px, py, width, height, radius, text, fontsize = 24, func = null) {
+    constructor(px, py, width, height, radius, text, fontsize = 24, func = null, bordercolor = 'lightgray', fillcolor = 'black', textcolor = 'white') {
         this.x = px;
         this.y = py;
         this.w = width;
         this.h = height;
         this.r = radius;
         this.text = text;
-        this.fontsize = size;
+        this.fontsize = fontsize;
         this.press_func = func;
+        this.borderColor = bordercolor;
+        this.fillColor = fillcolor;
+        this.textColor = textcolor;
     }
 
     draw() {
-        context.lineWidth = 3 * R;
-        context.strokeStyle = 'lightgray';
-        context.fillStyle = 'black';
+        context.fillStyle = this.fillColor;
         context.beginPath();
         context.roundRect(this.x * R, this.y * R, this.w * R, this.h * R, this.r * R);
-        context.stroke();
         context.fill();
-        context.fillStyle = 'white';
-        context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-        context.fillText(this.text, this.x + this.w/2, this.y + this.h/2, this.w);
+        if (this.fontsize > 0) {
+            context.fillStyle = this.textColor;
+            context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+            context.fillText(this.text, (this.x + this.w/2) * R, (this.y + this.h/2) * R, (this.w) * R);
+        }
+        if (this.borderColor != "") {
+            context.lineWidth = 3 * R;
+            context.strokeStyle = this.borderColor;
+            context.stroke();
+        }
     }
 
     /**
@@ -1103,6 +1143,13 @@ class Button {
     include(mouse) {
         return (mouse.x > this.x && mouse.x < this.x + this.w &&
                 mouse.y > this.y && mouse.y < this.y + this.h)
+    }
+
+    // 在click_func裡呼叫這個函式
+    // 檢查是否被按下並執行
+    check_press() {
+        if (this.include(mouse))
+            this.press_func();
     }
 }
 
