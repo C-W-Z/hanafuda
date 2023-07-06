@@ -12,9 +12,8 @@ const SCREEN_W = 1200;
 const SCREEN_H = 675;
 const CARD_IMG_W = 70; // width of card in img
 const CARD_IMG_H = 113; // height of card in img
-const cardScale = 0.9; // the rate of (size of card show on canvas / size of card in img)
-const CARD_W = CARD_IMG_W * cardScale;
-const CARD_H = CARD_IMG_H * cardScale;
+const CARD_W = 64;
+const CARD_H = CARD_W * 1.65;
 const CARD_NUM = 48; // num of total cards
 const YAKU_NUM = 12;
 const HAND_NUM = 8; // num of cards be distributed to a player when game starts
@@ -692,7 +691,11 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
 
 function check_win(playerID) {
     let win = player[playerID].check_yaku();
-    if (player[playerID].hand.length == 0) {
+    if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
+    {
+        // if (game.koi[CPU]) cpu win
+        // else if (game.koi[PLR]) player win
+        // else 親權
         // end this month
         console.log("end");
     } else if (win) {
@@ -705,8 +708,30 @@ function check_win(playerID) {
     }
 }
 
-function koikoi() {
-    
+function decide_koikoi(playerID) {
+    return function (time) {
+        let w = 400, h = 200;
+        // draw rect
+        context.beginPath();
+        context.fillStyle = 'black';
+        context.roundRect((SCREEN_W/2 - w/2) * R, (SCREEN_H/2 - h/2) * R, w * R, h * R, 20);
+        context.fill();
+
+        // draw texts and buttons
+        context.lineWidth = 3 * R;
+        context.strokeStyle = 'lightgray';
+        //context.beginPath();
+        context.roundRect((SCREEN_W/2 - w/2 + w/8 - w/24) * R, (SCREEN_H/2 + h/8) * R, (w/3) * R, (h/4) * R, 10);
+        context.roundRect((SCREEN_W/2 + w/2 - w/8 + w/24 - w/3) * R, (SCREEN_H/2 + h/8) * R, (w/3) * R, (h/4) * R, 10);
+        context.stroke();
+        context.fillStyle = 'white';
+        context.font = 32 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+        context.fillText("こいこいしますか？", (SCREEN_W/2) * R, (SCREEN_H/2 - h/4) * R);
+        context.font = 24 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+        context.fillText("現在の獲得文数："+ player[PLR].score +"文", (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
+        context.fillText("あがり", (SCREEN_W/2 - w/2 + w/4) * R, (SCREEN_H/2 + h/4) * R);
+        context.fillText("こいこい", (SCREEN_W/2 + w/2 - w/4) * R, (SCREEN_H/2 + h/4) * R);
+    }
 }
 
 /* AI的回合 */
@@ -1032,6 +1057,52 @@ class Game {
         this.koi = [false, false]; // whether player/cpu is doing koi koi
 
         this.op = false; // look cpu's hand cards
+    }
+}
+
+class Button {
+    /**
+     * @param {number} px 按鈕左上角x座標
+     * @param {number} py 按鈕左上角y座標
+     * @param {number} width 按鈕寬度
+     * @param {number} height 按鈕高度
+     * @param {number} radius 按鈕四角的圓半徑
+     * @param {string} text 按鈕上的文字
+     * @param {number} fontsize 字體大小
+     * @param {Function} func 按下按鈕後會執行的函式
+     */
+    constructor(px, py, width, height, radius, text, fontsize = 24, func = null) {
+        this.x = px;
+        this.y = py;
+        this.w = width;
+        this.h = height;
+        this.r = radius;
+        this.text = text;
+        this.fontsize = size;
+        this.press_func = func;
+    }
+
+    draw() {
+        context.lineWidth = 3 * R;
+        context.strokeStyle = 'lightgray';
+        context.fillStyle = 'black';
+        context.beginPath();
+        context.roundRect(this.x * R, this.y * R, this.w * R, this.h * R, this.r * R);
+        context.stroke();
+        context.fill();
+        context.fillStyle = 'white';
+        context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+        context.fillText(this.text, this.x + this.w/2, this.y + this.h/2, this.w);
+    }
+
+    /**
+     * @abstract 檢查滑鼠座標是否在此按鈕內
+     * @param {{x,y}} mouse 滑鼠座標
+     * @returns {bool} true or false
+     */
+    include(mouse) {
+        return (mouse.x > this.x && mouse.x < this.x + this.w &&
+                mouse.y > this.y && mouse.y < this.y + this.h)
     }
 }
 
