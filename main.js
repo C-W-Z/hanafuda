@@ -2,6 +2,7 @@
  * @title 花札Hanafuda
  * @author C-W-Z
  * @contact chenweizhang3021@gmail.com
+ * @language 繁體中文, 日本語
  */
 
 //#region Global Variables
