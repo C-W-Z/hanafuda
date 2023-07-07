@@ -55,7 +55,8 @@ const gameState = {
     player_end_round: 7,
     player_decide_koi: 8,
     cpu_play: 9,
-    koikoi_animation: 10
+    koikoi_animation: 10,
+    month_end: 11
 };
 
 /* canvas & sources & control */
@@ -89,6 +90,8 @@ let koi_panel;
 let end_button;
 let koi_button;
 let koikoi_banner;
+// when game end -> show yaku and score
+let yaku_panel;
 
 //#endregion
 
@@ -110,7 +113,6 @@ window.onload = function()
 
     init_game();
     animate(startTime);
-    //start_game();
 }
 
 //#region Control Functions
@@ -128,7 +130,6 @@ function click_func(event) {
         case gameState.title:
             game.state = gameState.start;
             start_game();
-            debug();
             break;
         case gameState.player_select_hand:
             player[PLR].selected_handID = pointedPlayerHandIndex();
@@ -298,7 +299,7 @@ function draw_gaming() {
         card[movingCard[i]].draw();
 
     /* draw the information of this game */
-
+    /*
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     // 幾月
     context.lineWidth = 2 * R;
@@ -312,6 +313,7 @@ function draw_gaming() {
     context.fillText("戦"              , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (1+0.5))) * R);
     context.fillText("目"              , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (2+0.5))) * R);
     context.strokeRect(0, SCREEN_H/2 * R, (FONT_SIZE+2) * R, (FONT_SIZE * 3) * R);
+    */
 
     // 親
     const circleY = (game.first == CPU) ? 30 : SCREEN_H - 30;
@@ -327,11 +329,13 @@ function draw_gaming() {
     context.fillText("親", (SCREEN_W - 30) * R, circleY * R);
 
     // 文
+    /*
     context.fillStyle = 'white';
     context.strokeStyle = 'white';
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText(player[CPU].money + "文", 45 * R, (30) * R);
-    context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
+    context.fillText(`${player[PLR].money}文`, 45 * R, (30) * R);
+    context.fillText(`${player[PLR].money}文`, 45 * R, (SCREEN_H - 30) * R);
+    */
 
     /* draw UI */
     switch (game.state) {
@@ -340,6 +344,9 @@ function draw_gaming() {
             break;
         case gameState.koikoi_animation:
             draw_koikoi();
+            break;
+        case gameState.month_end:
+            draw_show_yaku();
             break;
         default:
             break;
@@ -469,11 +476,15 @@ function init_game() {
     /* init UI in game */
     // the size of panel of decide koi
     let w = 400, h = 200;
-    koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10, "", 0, null, "");
-    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, null);
-    koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, koikoi(PLR));
+    koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
+    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, player_win(PLR), 'lightgray');
+    koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, koikoi(PLR), 'lightgray');
+    // the size of banner of koi koi
     w = SCREEN_W + 20, h = 100;
     koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 48, null);
+    // the size of the panel of showing yaku and score
+    w = 400, h = 400;
+    yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
 }
 
 /* shuffle deck */
@@ -520,6 +531,7 @@ function start_game() {
     /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
     game.koi = -1;
+    game.winner = -1;
     game.first = Math.floor(Math.random() * 2);
     console.log("親権:", (game.first == PLR) ? "Player" : "Computer");
     // shuffle
@@ -618,7 +630,7 @@ function after_play(playerID, handCardID, fieldCardID, fieldID = -1) {
     return function (time) {
         // 保證月份相同
         // 手牌已經移除打出的牌，場上也移除對應的牌，都移到movingCard了
-        
+
         endAnimation();
 
         if (fieldCardID >= 0) {
@@ -728,22 +740,31 @@ function check_win(playerID) {
     const win = player[playerID].check_yaku();
     if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
     {
-        if (win) {
-            console.log(playerID==PLR?"player":"cpu","win");
-        }
-        
-        // if (game.koi == CPU) cpu win
-        // else if (game.koi == PLR) player win
-        // else 親權
         // end this month
-        console.log("end");
+        if (win) {
+            player_win(playerID)();
+            console.log(playerID==PLR?"player":"cpu","win");
+        } else if (game.koi != -1) {
+            player_win(game.koi)();
+            console.log(game.koi==PLR?"player":"cpu","win");
+        } else {
+            // 親權
+            player[game.first].old_yaku[0] = 1;
+            player[game.first].score += yaku_score[0];
+            player_win(game.first)();
+            console.log(game.first==PLR?"player":"cpu","win");
+        }
     } else if (win) {
         // ask koi koi or not
-        console.log(playerID==PLR?"player":"cpu","win");
+        console.log(playerID==PLR?"player":"cpu","get new yaku");
         if (playerID == PLR)
             game.state = gameState.player_decide_koi;
-        else
-            koikoi(CPU)();
+        else {
+            if (Math.floor(Math.random() * 2))
+                koikoi(CPU)();
+            else
+                player_win(CPU)();
+        }
     } else {
         // next round
         game.round++;
@@ -751,18 +772,25 @@ function check_win(playerID) {
     }
 }
 
+function player_win(playerID) {
+    return function () {
+        game.winner = playerID;
+        game.state = gameState.month_end;
+    }
+}
+
 function draw_decide_koi() {
-    // the size of panel of decide koi
-    const w = 400, h = 200;
     // draw panel
     koi_panel.draw();
 
+    // the size of panel of decide koi
+    const w = koi_panel.w, h = koi_panel.h;
     // draw texts
     context.fillStyle = 'white';
     context.font = 32 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText("こいこいしますか？", (SCREEN_W/2) * R, (SCREEN_H/2 - h/4) * R);
     context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText("現在の獲得文数："+ player[PLR].score +"文", (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
+    context.fillText(`現在の獲得文数：${player[PLR].score}文`, (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
 
     // draw buttons
     end_button.draw();
@@ -819,8 +847,10 @@ function koi_step() {
         } else {
             // emerge
             const alpha = easeOutQuad(time-startTime, 0, 4*deltaTime, duration*0.4);
-            koikoi_banner.fillColor = `rgba(255,215,0,${alpha})`;
-            koikoi_banner.borderColor = `rgba(255,255,255,${alpha})`;
+            //koikoi_banner.fillColor = `rgba(255,215,0,${alpha})`;
+            //koikoi_banner.borderColor = `rgba(255,255,255,${alpha})`;
+            koikoi_banner.fillColor = 'gold';
+            koikoi_banner.borderColor = 'white';
             koikoi_banner.textColor = `rgba(255,0,0,${alpha})`;
             if (deltaTime <= 1/open_speed) {
                 const width = easeInOutQuad(time-startTime, 0, open_speed*(deltaTime), duration/open_speed) * 100;
@@ -829,6 +859,29 @@ function koi_step() {
             }
         }
     }
+}
+
+function draw_show_yaku() {
+    yaku_panel.draw();
+    const w = yaku_panel.w, h = yaku_panel.h;
+    // draw who win
+    context.fillStyle = 'white';
+    context.font = 32 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    let text = (game.winner == PLR) ? 'YOU WIN' : 'YOU LOSE';
+    let title_h = 100;
+    context.fillText(text, (SCREEN_W/2) * R, (SCREEN_H/2-h/2 + title_h/2) * R);
+    // draw yaku
+    context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    let count = 0;
+    for (let i = 0; i < YAKU_NUM; i++)
+        if (player[game.winner].old_yaku[i] > 0) {
+            count++;
+            context.fillText(yaku_name[i], (SCREEN_W/2 - w/4) * R, (SCREEN_H/2-h/2 + title_h + count * 24) * R);
+            context.fillText(`${player[game.winner].old_yaku[i] * yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (SCREEN_H/2-h/2 + title_h + count * 24) * R);
+        }
+    // draw total score
+    context.fillText('合計', (SCREEN_W/2 - w/4) * R, (SCREEN_H/2+h/2 - title_h/2) * R);
+    context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (SCREEN_H/2+h/2 - title_h/2) * R);
 }
 
 /* AI的回合 */
@@ -1152,11 +1205,11 @@ class Game {
         this.month = 1; // 月份
         this.first = 0; // 誰先手
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
-        this.end = true; // 當前月份是否結束
         this.koi = -1; // whether player/cpu is doing koi koi
+        this.winner = -1; // 贏家
 
         // yaku
-        this.month_yaku = false; // 月札
+        this.month_yaku = false; // 啟用月札
 
         this.op = false; // look cpu's hand cards
     }
@@ -1176,7 +1229,7 @@ class Button {
      * @param {string} fillcolor 按鈕顏色
      * @param {string} textcolor 文字顏色
      */
-    constructor(px, py, width, height, radius, text, fontsize = FONT_SIZE, func = null, bordercolor = 'lightgray', fillcolor = 'black', textcolor = 'white') {
+    constructor(px, py, width, height, radius, text = '', fontsize = FONT_SIZE, func = null, bordercolor = '', fillcolor = 'black', textcolor = 'white') {
         this.x = px;
         this.y = py;
         this.w = width;
@@ -1195,7 +1248,7 @@ class Button {
         context.beginPath();
         context.roundRect(this.x * R, this.y * R, this.w * R, this.h * R, this.r * R);
         context.fill();
-        if (this.fontsize > 0) {
+        if (this.fontsize > 0 || text == '') {
             context.fillStyle = this.textColor;
             context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
             context.fillText(this.text, (this.x + this.w/2) * R, (this.y + this.h/2) * R, (this.w) * R);
