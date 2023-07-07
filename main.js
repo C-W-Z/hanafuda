@@ -88,6 +88,7 @@ let movingCard;
 let koi_panel;
 let end_button;
 let koi_button;
+let koikoi_banner;
 
 //#endregion
 
@@ -292,12 +293,13 @@ function draw_gaming() {
     }
 
     // draw moving cards
-    for (let i = movingCard.length - 1; i >= 0; i--)
+    for (let i = 0; i < movingCard.length; i++)
         //if (card[c].px != DECK_P.x && card[c].py != DECK_P.y)
         card[movingCard[i]].draw();
 
     /* draw the information of this game */
 
+    context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     // 幾月
     context.lineWidth = 2 * R;
     context.fillStyle = 'black';
@@ -331,10 +333,17 @@ function draw_gaming() {
     context.fillText(player[CPU].money + "文", 45 * R, (30) * R);
     context.fillText(player[PLR].money + "文", 45 * R, (SCREEN_H - 30) * R);
 
-    // draw UI
-
-    if (game.state == gameState.player_decide_koi)
-        draw_decide_koi();
+    /* draw UI */
+    switch (game.state) {
+        case gameState.player_decide_koi:
+            draw_decide_koi();
+            break;
+        case gameState.koikoi_animation:
+            draw_koikoi();
+            break;
+        default:
+            break;
+    }
 }
 
 /* draw card */
@@ -350,7 +359,7 @@ function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
     let sy = Math.floor(cardID / 10) * 114;
     context.drawImage(cards, sx, sy, CARD_IMG_W, CARD_IMG_H, (px + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
     if (noticed) {
-        context.strokeStyle = "yellow";
+        context.strokeStyle = "gold";
         context.lineWidth = 2 * R;
         context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
     }
@@ -459,10 +468,12 @@ function init_game() {
     game = new Game();
     /* init UI in game */
     // the size of panel of decide koi
-    const w = 400, h = 200;
+    let w = 400, h = 200;
     koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10, "", 0, null, "");
     end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, null);
     koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, koikoi(PLR));
+    w = SCREEN_W + 20, h = 100;
+    koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 48, null);
 }
 
 /* shuffle deck */
@@ -580,7 +591,7 @@ function player_play_card(playerID, handID, fieldID) {
     startTime = performance.now(); // reset startTime
     movingCard.push(handCardID);
     // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
-    if (!player[playerID].noticed[handID] || field.card[fieldID] < 0) {
+    if (field.card[fieldID] == -1) {
         // 棄牌
         time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID));
         next_func = after_play(playerID, handCardID, -1, fieldID);
@@ -714,9 +725,13 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
 }
 
 function check_win(playerID) {
-    let win = player[playerID].check_yaku();
+    const win = player[playerID].check_yaku();
     if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
     {
+        if (win) {
+            console.log(playerID==PLR?"player":"cpu","win");
+        }
+        
         // if (game.koi == CPU) cpu win
         // else if (game.koi == PLR) player win
         // else 親權
@@ -727,6 +742,8 @@ function check_win(playerID) {
         console.log(playerID==PLR?"player":"cpu","win");
         if (playerID == PLR)
             game.state = gameState.player_decide_koi;
+        else
+            koikoi(CPU)();
     } else {
         // next round
         game.round++;
@@ -758,9 +775,59 @@ function koikoi(playerID) {
 
         game.state = gameState.koikoi_animation;
         game.koi = playerID;
-        // next round
-        game.round++;
-        (game.round % 2 == game.first) ? player_play() : cpu_play();
+
+        // animation
+        startTime = performance.now();
+        time_func = koi_step();
+        next_func = function (time) {
+            endAnimation();
+            // next round
+            game.round++;
+            (game.round % 2 == game.first) ? player_play() : cpu_play();
+        }
+    }
+}
+
+function draw_koikoi() {
+    koikoi_banner.draw();
+}
+
+// show koikoi UI
+function koi_step() {
+    return function (time) {
+        const duration = (7 * MOVE_TIME);
+        const deltaTime = (time - startTime) / duration;
+        const open_speed = 6;
+        if (deltaTime >= 1) {
+            // end
+            koikoi_banner.fillColor = 'rgba(0,0,0,0)';
+            koikoi_banner.borderColor = 'rgba(0,0,0,0)';
+            koikoi_banner.textColor = 'rgba(0,0,0,0)';
+            startTime = null;
+            time_func = next_func;
+        } else if (deltaTime > 0.6) {
+            // fade
+            const alpha = easeInQuad(time-startTime, 1, -2*(deltaTime-0.6), duration*0.4);
+            koikoi_banner.fillColor = `rgba(255,215,0,${alpha})`;
+            koikoi_banner.borderColor = `rgba(255,255,255,${alpha})`;
+            koikoi_banner.textColor = `rgba(255,0,0,${alpha})`;
+        } else if (deltaTime > 0.4) {
+            // show 0.2*duration ms
+            koikoi_banner.fillColor = 'gold';
+            koikoi_banner.borderColor = 'white';
+            koikoi_banner.textColor = 'red';
+        } else {
+            // emerge
+            const alpha = easeOutQuad(time-startTime, 0, 4*deltaTime, duration*0.4);
+            koikoi_banner.fillColor = `rgba(255,215,0,${alpha})`;
+            koikoi_banner.borderColor = `rgba(255,255,255,${alpha})`;
+            koikoi_banner.textColor = `rgba(255,0,0,${alpha})`;
+            if (deltaTime <= 1/open_speed) {
+                const width = easeInOutQuad(time-startTime, 0, open_speed*(deltaTime), duration/open_speed) * 100;
+                koikoi_banner.y = SCREEN_H/2 - width/2;
+                koikoi_banner.h = width;
+            }
+        }
     }
 }
 
@@ -770,7 +837,7 @@ function cpu_play() {
 
     //console.log(player[CPU]);
     //console.log(field);
-    console.log("cpu_play");
+    //console.log("cpu_play");
 
     // 找出所有可以出的牌與對應的場牌
     // 找到價值最高的
@@ -808,7 +875,7 @@ function cpu_play() {
             }
     }
 
-    //console.log("cpu play: ", player[CPU].hand[player[CPU].selected_handID], ", ", field.card[player[CPU].selected_fieldID]);
+    console.log("cpu play: ", player[CPU].hand[player[CPU].selected_handID], ", ", field.card[player[CPU].selected_fieldID]);
     
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
 }
@@ -993,9 +1060,11 @@ class Player {
         if (light == 4 && rain == 1 ) now_yaku[ 8] += 1; // 雨四光
         if (light == 4 && rain == 0 ) now_yaku[ 9] += 1; // 四光
         if (light              == 5 ) now_yaku[10] += 1; // 五光
-        for (let i = 0; i < month.length; i++)
-            if (month[i] == 4)
+        if (game.month_yaku) {
+            for (let i = 0; i < month.length; i++)
+                if (month[i] == 4)
                 now_yaku[11]++; // 月札
+        }
 
         this.score = 0;
         let get_new_yaku = false;
@@ -1036,7 +1105,7 @@ class Field {
         card[this.card[fieldID]].noticed = false;
         card[this.card[fieldID]].selected = false;
         card[this.card[fieldID]].place = cardPlace.moving;
-        movingCard.push(this.card[fieldID]);
+        movingCard.unshift(this.card[fieldID]); // push_front
         this.card[fieldID] = -1;
         this.update_noticed(-1);
     }
@@ -1086,6 +1155,9 @@ class Game {
         this.end = true; // 當前月份是否結束
         this.koi = -1; // whether player/cpu is doing koi koi
 
+        // yaku
+        this.month_yaku = false; // 月札
+
         this.op = false; // look cpu's hand cards
     }
 }
@@ -1104,7 +1176,7 @@ class Button {
      * @param {string} fillcolor 按鈕顏色
      * @param {string} textcolor 文字顏色
      */
-    constructor(px, py, width, height, radius, text, fontsize = 24, func = null, bordercolor = 'lightgray', fillcolor = 'black', textcolor = 'white') {
+    constructor(px, py, width, height, radius, text, fontsize = FONT_SIZE, func = null, bordercolor = 'lightgray', fillcolor = 'black', textcolor = 'white') {
         this.x = px;
         this.y = py;
         this.w = width;
@@ -1148,7 +1220,7 @@ class Button {
     // 在click_func裡呼叫這個函式
     // 檢查是否被按下並執行
     check_press() {
-        if (this.include(mouse))
+        if (this.include(mouse) && this.press_func != null)
             this.press_func();
     }
 }
