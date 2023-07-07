@@ -1,3 +1,11 @@
+/* import Yuji Syuku font */
+@import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap');
+
+html {
+    font-family: 'Yuji Syuku', 'Microsoft YaHei', sans-serif;
+    font-size: 22px;
+}
+
 body {
 	background:#1e1e1e;
     width: 100vw;
