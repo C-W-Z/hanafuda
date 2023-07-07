@@ -12,10 +12,11 @@
 const R = window.devicePixelRatio;
 const SCREEN_W = 1200;
 const SCREEN_H = 675;
-const CARD_IMG_W = 70; // width of card in img
-const CARD_IMG_H = 113; // height of card in img
-const CARD_W = 64;
-const CARD_H = CARD_W * 1.65;
+const CARD_IMG_W = 976; // width of card in img
+const CARD_IMG_H = 1600; // height of card in img
+const CARD_W = 80;
+const CARD_H = CARD_W * 1600/976;
+const CARD_GAP = 5;
 const CARD_NUM = 48; // num of total cards
 const YAKU_NUM = 12;
 const HAND_NUM = 8; // num of cards be distributed to a player when game starts
@@ -26,7 +27,7 @@ const CPU = 1; // computer
 const CARD_BACK_ID = 48; // 牌背
 const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
 // 牌的種類（カス・短冊・タネ・五光）
-const card_type = [0,0,1,3, 0,0,1,2, 0,0,1,3, 0,0,1,2, 0,0,1,2, 0,0,1,2, 0,0,1,2, 0,0,2,3, 0,0,1,2, 0,0,1,2, 0,1,2,3, 0,0,0,3];
+const card_type = [3,1,0,0, 2,1,0,0, 3,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 3,2,0,0, 2,1,0,0, 2,1,0,0, 3,2,1,0, 3,0,0,0];
 // 役(yaku)
 const yaku_score = [   6  ,  1   , 1   ,  1  ,   5  ,  5  ,   5   ,  5   ,   7   ,   8  ,  10 ,  4  ];
 const yaku_name  = ["親権","カス","短冊","タネ","青短","赤短","猪鹿蝶","三光","雨四光","四光","五光","月札"];
@@ -65,8 +66,7 @@ const gameState = {
 let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
-let cards = new Image();
-cards.src = "pattern.gif";
+let cardImg = new Array();
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
 let clickCard;
 
@@ -370,9 +370,7 @@ function draw_gaming() {
  * @param {number} [scaleX=1] 牌的橫向縮放比例(預設1)
  */
 function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
-    let sx = (cardID % 10) * 72;
-    let sy = Math.floor(cardID / 10) * 114;
-    context.drawImage(cards, sx, sy, CARD_IMG_W, CARD_IMG_H, (px + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
+    context.drawImage(cardImg[cardID], (px + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
     if (noticed) {
         context.strokeStyle = "gold";
         context.lineWidth = 2 * R;
@@ -445,13 +443,13 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
 function deal_step(cards, i) {
     if (i < HAND_NUM)
         return function(time) {
-            const px = SCREEN_W / 2 + CARD_IMG_W * (i - HAND_NUM / 2) + (CARD_IMG_W - CARD_W) / 2;
-            const cx = SCREEN_W / 2 + CARD_IMG_W * (HAND_NUM / 2 - i - 1) + (CARD_IMG_W - CARD_W) / 2;
-            const dy = (CARD_IMG_H - CARD_H) / 2;
+            const px = SCREEN_W / 2 + (CARD_W+CARD_GAP*2) * (i - HAND_NUM / 2) + CARD_GAP;
+            const cx = SCREEN_W / 2 + (CARD_W+CARD_GAP*2) * (HAND_NUM / 2 - i - 1) + CARD_GAP;
+            const dy = CARD_GAP;
             // to cpu hand
             step_move(cards[CPU + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, cx, dy, false)(time);
             // to player hand
-            step_move(cards[PLR + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - CARD_IMG_H + dy, true)(time);
+            step_move(cards[PLR + 1][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, px, SCREEN_H - (CARD_H+CARD_GAP*2) + dy, true)(time);
             // 發下2張牌
             next_func = deal_step(cards, i + 1);
         }
@@ -479,6 +477,12 @@ function debug() {
 }
 
 function init_game() {
+    /* card images */
+    for (let i = 0; i < CARD_NUM+1; i++) {
+        cardImg[i] = new Image();
+        cardImg[i].src = `img/${i}.png`;
+    }
+
     /* init game data */
     game = new Game();
     /* init UI in game */
@@ -771,7 +775,7 @@ function check_win(playerID) {
         if (playerID == PLR)
             game.state = gameState.player_decide_koi;
         else {
-            if (Math.floor(Math.random() * 2))
+            if (player[CPU].hand.length > 0 && Math.floor(Math.random() * 2))
                 koikoi(CPU)();
             else
                 player_win(CPU)();
@@ -1057,11 +1061,11 @@ class Player {
         this.update_noticed();
         for (let i = 0; i < this.hand.length; i++) {
             // update hand card px, py
-            card[this.hand[i]].px = SCREEN_W / 2 + CARD_IMG_W * (i - this.hand.length / 2) + (CARD_IMG_W - CARD_W) / 2;
+            card[this.hand[i]].px = SCREEN_W / 2 + (CARD_W+CARD_GAP*2) * (i - this.hand.length / 2) + CARD_GAP;
             if (this.ID == PLR)
-                card[this.hand[i]].py = SCREEN_H - CARD_IMG_H + (CARD_IMG_H - CARD_H) / 2;
+                card[this.hand[i]].py = SCREEN_H - (CARD_H+CARD_GAP*2) + CARD_GAP;
             else // ID == CPU
-                card[this.hand[i]].py = (CARD_IMG_H - CARD_H) / 2;
+                card[this.hand[i]].py = CARD_GAP;
             // update hand card showing or not
             card[this.hand[i]].back = (!game.op && this.ID == CPU);
         }
@@ -1069,19 +1073,19 @@ class Player {
         for (let i = 0; i < this.collect.length; i++) {
             for (let j = 0; j < this.collect[i].length; j++) {
                 if (i < this.collect.length / 2)
-                    card[this.collect[i][j]].px = SCREEN_W - CARD_IMG_W - CARD_IMG_W * (2 * j / this.collect[i].length) + (CARD_IMG_W - CARD_W) / 2;
+                    card[this.collect[i][j]].px = SCREEN_W - (CARD_W+CARD_GAP*2) - (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
                 else
-                    card[this.collect[i][j]].px = CARD_IMG_W * (2 * j / this.collect[i].length) + (CARD_IMG_W - CARD_W) / 2;
+                    card[this.collect[i][j]].px = (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
                 if (this.ID == PLR) {
                     if (i % 2 == 0)
-                        card[this.collect[i][j]].py = SCREEN_H - CARD_IMG_H + (CARD_IMG_H - CARD_H) / 2;
+                        card[this.collect[i][j]].py = SCREEN_H - (CARD_H+CARD_GAP*2) + CARD_GAP;
                     else
-                        card[this.collect[i][j]].py = SCREEN_H - 2 * CARD_IMG_H + (CARD_IMG_H - CARD_H) / 2;
+                        card[this.collect[i][j]].py = SCREEN_H - 2 * (CARD_H+CARD_GAP*2) + CARD_GAP;
                 } else { // ID == CPU
                     if (i % 2 == 0)
-                        card[this.collect[i][j]].py = CARD_IMG_H + (CARD_IMG_H - CARD_H) / 2;
+                        card[this.collect[i][j]].py = (CARD_H+CARD_GAP*2) + CARD_GAP;
                     else
-                        card[this.collect[i][j]].py = (CARD_IMG_H - CARD_H) / 2;
+                        card[this.collect[i][j]].py = CARD_GAP;
                 }
             }
         }
@@ -1115,10 +1119,10 @@ class Player {
 
         for (const arr of this.collect) {
             for (const c of arr) {
-                if (c == 43) rain++;
-                if (c == 23 || c == 27 || c == 39) inoshikacho++;
-                if (c ==  2 || c ==  6 || c == 10) akatan++;
-                if (c == 22 || c == 34 || c == 38) aotan++;
+                if (c == 40) rain++;
+                if (c == 20 || c == 24 || c == 26) inoshikacho++;
+                if (c ==  1 || c ==  5 || c == 9) akatan++;
+                if (c == 21 || c == 33 || c == 37) aotan++;
                 month[Math.floor(c / 4)]++;
             }
         }
@@ -1209,11 +1213,11 @@ class Field {
     // i: index in field.card[i]
     static X(i) {
         if (i < FIELD_SPACE / 2)
-            return (SCREEN_W-CARD_W-CARD_IMG_W/2)/2 - CARD_IMG_W * Math.floor((FIELD_SPACE/2-i+1)/2) + (CARD_IMG_W-CARD_W)/2;
-        return (SCREEN_W+CARD_W+CARD_IMG_W/2)/2 + CARD_IMG_W * Math.floor((i-FIELD_SPACE/2)/2) + (CARD_IMG_W-CARD_W)/2;
+            return SCREEN_W/2 -CARD_W+CARD_GAP - (CARD_W+CARD_GAP*2) * Math.floor((FIELD_SPACE/2-i+1)/2) + CARD_GAP;
+        return SCREEN_W/2 +CARD_W+CARD_GAP + (CARD_W+CARD_GAP*2) * Math.floor((i-FIELD_SPACE/2)/2) + CARD_GAP;
     }
     static Y(i) {
-        return SCREEN_H / 2 - CARD_IMG_H + CARD_IMG_H * (i % 2) + (CARD_IMG_H - CARD_H) / 2;
+        return SCREEN_H / 2 - (CARD_H+CARD_GAP*2) + (CARD_H+CARD_GAP*2) * (i % 2) + CARD_GAP;
     }
 }
 
