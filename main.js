@@ -104,6 +104,8 @@ window.onload = function()
     canvas = document.getElementById('canvas');
     canvas.width = SCREEN_W * R;
     canvas.height = SCREEN_H * R;
+    // auto adaptive size by height
+    scaleRate = self.innerHeight / SCREEN_H;
     canvas.style.width = SCREEN_W * scaleRate + 'px';
     canvas.style.height = SCREEN_H * scaleRate + 'px';
     context = canvas.getContext('2d');
