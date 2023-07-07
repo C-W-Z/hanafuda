@@ -94,6 +94,7 @@ let koi_button;
 let koikoi_banner;
 // when game end -> show yaku and score
 let yaku_panel;
+let restart_button;
 
 //#endregion
 
@@ -175,6 +176,9 @@ function click_func(event) {
         case gameState.player_decide_koi:
             end_button.check_press();
             koi_button.check_press();
+            break;
+        case gameState.month_end:
+            restart_button.check_press();
             break;
         default:
             break;
@@ -488,7 +492,10 @@ function init_game() {
     koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 48, null);
     // the size of the panel of showing yaku and score
     w = 400, h = 400;
-    yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
+    yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
+    // the size of restart button
+    w = 400, h = 50;
+    restart_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '再びプレー', 24, start_game);
 }
 
 /* shuffle deck */
@@ -753,7 +760,7 @@ function check_win(playerID) {
             console.log(game.koi==PLR?"player":"cpu","win");
         } else {
             // 親權
-            player[game.first].old_yaku[0] = 1;
+            player[game.first].yaku[0] = 1;
             player[game.first].score += yaku_score[0];
             player_win(game.first)();
             console.log(game.first==PLR?"player":"cpu","win");
@@ -867,25 +874,34 @@ function koi_step() {
 
 function draw_show_yaku() {
     yaku_panel.draw();
-    const w = yaku_panel.w, h = yaku_panel.h;
+    const w = yaku_panel.w, h = yaku_panel.h, py = yaku_panel.y;
     // draw who win
     context.fillStyle = 'white';
-    context.font = 32 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    let text = (game.winner == PLR) ? 'YOU WIN' : 'YOU LOSE';
-    let title_h = 100;
-    context.fillText(text, (SCREEN_W/2) * R, (SCREEN_H/2-h/2 + title_h/2) * R);
+    const fontsize = 32;
+    context.font = fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    const text = (game.winner == PLR) ? 'YOU WIN' : 'YOU LOSE';
+    const title_h = 100;
+    context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
     // draw yaku
     context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     let count = 0;
     for (let i = 0; i < YAKU_NUM; i++)
-        if (player[game.winner].old_yaku[i] > 0) {
+        if (player[game.winner].yaku[i] > 0) {
             count++;
-            context.fillText(yaku_name[i], (SCREEN_W/2 - w/4) * R, (SCREEN_H/2-h/2 + title_h + count * 24) * R);
-            context.fillText(`${player[game.winner].old_yaku[i] * yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (SCREEN_H/2-h/2 + title_h + count * 24) * R);
+            if (count < 10) {
+                context.fillText(yaku_name[i], (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
+                context.fillText(`${player[game.winner].yaku[i] * yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
+            } else if (count == 10) {
+                context.fillText('···', (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
+                context.fillText('···', (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
+            }
         }
     // draw total score
-    context.fillText('合計', (SCREEN_W/2 - w/4) * R, (SCREEN_H/2+h/2 - title_h/2) * R);
-    context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (SCREEN_H/2+h/2 - title_h/2) * R);
+    context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
+    context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+
+    // draw restart button
+    restart_button.draw();
 }
 
 /* AI的回合 */
@@ -981,7 +997,7 @@ class Player {
         this.money = 0; // 文
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
-        this.old_yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         this.selected_handID = -1;
         this.selected_fieldID = 0;
         this.needToThrow = false;
@@ -1127,10 +1143,10 @@ class Player {
         let get_new_yaku = false;
         for (let i = 0; i < YAKU_NUM; i++) {
             // check is there new yaku
-            if (now_yaku[i] > this.old_yaku[i])
+            if (now_yaku[i] > this.yaku[i])
                 get_new_yaku = true;
             // copy now yaku to old yaku
-            this.old_yaku[i] = now_yaku[i];
+            this.yaku[i] = now_yaku[i];
             // calculate new score
             this.score += yaku_score[i] * now_yaku[i];
         }
