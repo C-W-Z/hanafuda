@@ -521,7 +521,63 @@ function init_game() {
     yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
     // the size of restart button
     w = 400, h = 50;
-    restart_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '再びプレー', 24, start_game);
+    restart_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '再びプレー', 24, start_month);
+}
+
+/* init new game */
+function start_game() {
+    // init all cards
+    card = new Array(CARD_NUM);
+    for (let i = 0; i < CARD_NUM; i++)
+        card[i] = new Card(i);
+
+    // init field
+    field = new Field();
+
+    // init player & cpu
+    player = new Array(2);
+    player[PLR] = new Player(PLR); // player
+    player[CPU] = new Player(CPU); // cpu
+
+    // init moving cards array
+    movingCard = new Array();
+
+    /* 正式開始 */
+    // 決定親權 (0:player, 1:cpu)
+    game.first = Math.floor(Math.random() * 2);
+    start_month();
+}
+
+function start_month() {
+    /* init month */
+    // init deck
+    deck = new Array(CARD_NUM);
+    for (let i = 0; i < CARD_NUM; i++)
+        deck[i] = i;
+
+    // reset cards
+    for (let i = 0; i < CARD_NUM; i++)
+        card[i].reset_month();
+    
+    // reset field
+    field.reset_month();;
+
+    // reset players
+    player[PLR].reset_month();
+    player[CPU].reset_month();
+
+    // reset game info
+    game.reset_month();
+    game.first = Number(!game.first);
+    console.log("親権:", (game.first == PLR) ? "Player" : "Computer");
+
+    // reset animation
+    endAnimation();
+
+    // shuffle
+    shuffle(deck);
+    // 發牌
+    deal_cards(game.first);
 }
 
 /* shuffle deck */
@@ -544,37 +600,6 @@ function shuffle(deck) {
         }
         shuffle_end = flag;
     }
-}
-
-/* init new game */
-function start_game() {
-    // init all cards
-    card = new Array(CARD_NUM);
-    for (let i = 0; i < CARD_NUM; i++)
-        card[i] = new Card(i);
-    // init deck
-    deck = new Array(CARD_NUM);
-    for (let i = 0; i < CARD_NUM; i++)
-        deck[i] = i;
-    // init player & cpu
-    player = new Array(2);
-    player[PLR] = new Player(PLR); // player
-    player[CPU] = new Player(CPU); // cpu
-    // init field
-    field = new Field();
-    // init moving cards array
-    movingCard = new Array();
-
-    /* 正式開始 */
-    // 決定親權 (0:player, 1:cpu)
-    game.koi = -1;
-    game.winner = -1;
-    game.first = Math.floor(Math.random() * 2);
-    console.log("親権:", (game.first == PLR) ? "Player" : "Computer");
-    // shuffle
-    shuffle(deck);
-    // 發牌
-    deal_cards(game.first);
 }
 
 /* 發牌 */
@@ -614,7 +639,6 @@ function after_deal(new_card) {
 
         // game start
         game.round = 0;
-        game.start = true;
         //game_rounding();
         (game.round % 2 == game.first) ? player_play() : cpu_play();
     }
@@ -813,6 +837,7 @@ function player_win(playerID) {
     return function () {
         game.winner = playerID;
         game.state = gameState.month_end;
+        player[playerID].money += player[playerID].score * (game.koi_bouns ? player[playerID].koi_time+1 : 1);
     }
 }
 
@@ -1007,6 +1032,10 @@ function player_unselect_hand(handID) {
 class Card {
     constructor(ID) {
         this.ID = ID;
+        this.reset_month()
+    }
+
+    reset_month() {
         this.px = DECK_P.x;
         this.py = DECK_P.y;
         this.scaleX = 1;
@@ -1028,9 +1057,13 @@ class Card {
 class Player {
     constructor(ID) {
         this.ID = ID;
+        this.money = 0; // 文
+        this.reset_month();
+    }
+
+    reset_month() {
         this.hand = new Array(); // 手牌
         this.noticed = new Array();
-        this.money = 0; // 文
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
         this.yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -1195,11 +1228,12 @@ class Player {
 class Field {
     constructor() {
         this.card = new Array(FIELD_SPACE);
-        //this.noticed = new Array(FIELD_SPACE);
-        for (let i = 0; i < FIELD_SPACE; i++) {
+        this.reset_month();
+    }
+
+    reset_month() {
+        for (let i = 0; i < FIELD_SPACE; i++)
             this.card[i] = -1;
-            //this.noticed[i] = false;
-        }
     }
 
     insertCard(fieldID, cardID) {
@@ -1256,7 +1290,6 @@ class Field {
 
 class Game {
     constructor(maxMonth = 3) {
-        this.start = false; // 遊戲開始了沒
         this.state = gameState.title; // 整個網頁現在的狀態(畫面)
         this.MAXMONTH = maxMonth; // 預設三月玩法
         this.month = 1; // 月份
@@ -1270,6 +1303,13 @@ class Game {
         this.koi_bouns = true; // koikoi bonus (score * koikoi time)
 
         this.op = false; // look cpu's hand cards
+    }
+
+    reset_month() {
+        this.state = gameState.start; // 整個網頁現在的狀態(畫面)
+        this.round = 0; // 當前月份現在是第幾回合(start from 0)
+        this.koi = -1; // whether player/cpu is doing koi koi
+        this.winner = -1; // 贏家
     }
 }
 
