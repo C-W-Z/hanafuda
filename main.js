@@ -13,13 +13,13 @@ const SCREEN_W = 1200;
 const SCREEN_H = 675;
 const CARD_IMG_W = 976; // width of card in img
 const CARD_IMG_H = 1600; // height of card in img
-const CARD_W = 80;
+const CARD_W = 75;
 const CARD_H = CARD_W * 1600/976;
 const CARD_GAP = 5;
 const CARD_NUM = 48; // num of total cards
 const YAKU_NUM = 12;
 const HAND_NUM = 8; // num of cards be distributed to a player when game starts
-const FIELD_SPACE = 16; // max num of cards can be place on the field
+const FIELD_SPACE = 12; // max num of cards can be place on the field
 const PLR = 0; // player
 const CPU = 1; // computer
 // cardID = 0 ~ 47
@@ -840,6 +840,7 @@ function koikoi(playerID) {
 
         game.state = gameState.koikoi_animation;
         game.koi = playerID;
+        player[playerID].koi_time++;
 
         // animation
         startTime = performance.now();
@@ -911,20 +912,29 @@ function draw_show_yaku() {
     // draw yaku
     context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     let count = 0;
+    const max_show = (game.koi_bouns) ? 8 : 9;
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[game.winner].yaku[i] > 0) {
             count++;
-            if (count < 10) {
+            if (count <= max_show) {
                 context.fillText(yaku_name[i], (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
                 context.fillText(`${player[game.winner].yaku[i] * yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
-            } else if (count == 10) {
+            } else if (count == max_show+1) {
                 context.fillText('···', (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
                 context.fillText('···', (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
             }
         }
-    // draw total score
-    context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
-    context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+    if (game.koi_bouns) {
+        // draw koi koi time
+        context.fillText(`こいこい${player[game.winner].koi_time}次`, (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        context.fillText(`x${player[game.winner].koi_time+1}`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        // draw total score
+        context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
+        context.fillText(`${player[game.winner].score * (player[game.winner].koi_time+1)}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+    } else {
+        context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
+        context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+    }
 
     // draw restart button
     restart_button.draw();
@@ -1028,6 +1038,7 @@ class Player {
         this.selected_fieldID = 0;
         this.needToThrow = false;
         this.draw_cardID = -1;
+        this.koi_time = 0;
     }
 
     addHand(cardID) {
@@ -1254,8 +1265,9 @@ class Game {
         this.koi = -1; // whether player/cpu is doing koi koi
         this.winner = -1; // 贏家
 
-        // yaku
+        // rules
         this.month_yaku = false; // 啟用月札
+        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
 
         this.op = false; // look cpu's hand cards
     }
