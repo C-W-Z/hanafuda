@@ -14,12 +14,12 @@
 
 ## Rules
 
-採用[Hanafuda]（https://en.wikipedia.org/wiki/Hanafuda）中的[Koi-Koi]（https://en.wikipedia.org/wiki/Koi-Koi）玩法，也是最常見的花札玩法。
+採用[Hanafuda](https://en.wikipedia.org/wiki/Hanafuda)中的[Koi-Koi](https://en.wikipedia.org/wiki/Koi-Koi)玩法，也是最常見的花札玩法。
 <br/>
 
 ### How to play
 
-參考：[花札#規則解說]（https://zh.wikipedia.org/wiki/花札#規則解說）
+參考：[花札](https://zh.wikipedia.org/wiki/花札)
 
 #### 進行流程
 
@@ -38,6 +38,23 @@
 1. 其中一方喊停（喊停權力如上述）。喊停的一方則可以計算手上所有吃進牌的役，另一方則不能計算役（即沒有分數）。所以什麼時候喊停也是一個重要的策略。
 2. 雙方牌都已出完，但兩方都沒能湊成任何役。在這種狀況下，莊家獲得6文（分），即「親權」。
 3. 某方最後一張吃進的牌恰好湊成役(此時該方手牌為空)，牌局會強制結束，且該方獲得計算役的權力，另一方不能計算役。
+
+### Card List
+
+| 月份<br>Month | 植物（花）<br>Pattern(Suit) | 光<br>Light | 種<br>タネ<br>Seed | 短冊<br>Ribbon | 粕（滓）<br>カス<br>Dross |
+| --- | --- | --- | --- | --- | --- |
+| 1月<br>睦月 | 松樹 | <img src="imgs/0.png" title="松上鶴" height="75px"> | | <img src="imgs/1.png" title="松上赤短" height="75px"> | <img src="imgs/2.png" title="松" height="75px"> <img src="imgs/3.png" title="松" height="75px"> |
+| 2月<br>如月 | 梅花 | | <img src="imgs/4.png" title="梅上鶯" height="75px"> | <img src="imgs/5.png" title="梅上赤短" height="75px"> | <img src="imgs/6.png" title="梅" height="75px"> <img src="imgs/6.png" title="梅" height="75px"> |
+| 3月<br>彌生 | 櫻花 | <img src="imgs/8.png" title="櫻上幕簾" height="75px"> | | <img src="imgs/9.png" title="櫻上赤短" height="75px"> | <img src="imgs/10.png" title="櫻" height="75px"> <img src="imgs/11.png" title="櫻" height="75px"> |
+| 4月<br>卯月 | 紫藤 | | <img src="imgs/12.png" title="藤上鵑" height="75px"> | <img src="imgs/13.png" title="藤上短冊" height="75px"> | <img src="imgs/14.png" title="藤" height="75px"> <img src="imgs/15.png" title="藤" height="75px"> |
+| 5月<br>皐月 | 菖蒲 | | <img src="imgs/16.png" title="蒲間八橋" height="75px"> | <img src="imgs/17.png" title="蒲上短冊" height="75px"> | <img src="imgs/18.png" title="菖蒲" height="75px"> <img src="imgs/19.png" title="菖蒲" height="75px"> |
+| 6月<br>水無月 | 牡丹 | | <img src="imgs/20.png" title="牡丹蝴蝶" height="75px"> | <img src="imgs/21.png" title="牡丹青短" height="75px"> | <img src="imgs/22.png" title="牡丹" height="75px"> <img src="imgs/23.png" title="牡丹" height="75px"> |
+| 7月<br>文月 | 萩 | | <img src="imgs/24.png" title="萩間野豬" height="75px"> | <img src="imgs/25.png" title="萩上短冊" height="75px"> | <img src="imgs/26.png" title="萩" height="75px"> <img src="imgs/27.png" title="萩" height="75px"> |
+| 8月<br>葉月 | 芒草 | <img src="imgs/28.png" title="芒上月" height="75px"> | <img src="imgs/29.png" title="芒上雁" height="75px"> | | <img src="imgs/30.png" title="芒" height="75px"> <img src="imgs/31.png" title="芒" height="75px"> |
+| 9月<br>長月 | 菊花 | | <img src="imgs/32.png" title="菊上盃" height="75px"> | <img src="imgs/33.png" title="菊上青短" height="75px"> | <img src="imgs/34.png" title="菊" height="75px"> <img src="imgs/35.png" title="菊" height="75px"> |
+| 10月<br>神無月 | 楓葉<br>紅葉 | | <img src="imgs/36.png" title="楓間鹿" height="75px"> | <img src="imgs/37.png" title="楓上青短" height="75px"> | <img src="imgs/38.png" title="楓葉" height="75px"> <img src="imgs/39.png" title="楓葉" height="75px"> |
+| 11月<br>霜月 | 柳樹（雨） | <img src="imgs/40.png" title="柳間小野道風" height="75px"> | <img src="imgs/41.png" title="柳上燕" height="75px"> | <img src="imgs/42.png" title="柳上短冊" height="75px"> | <img src="imgs/43.png" title="柳雷雨鼓" height="75px"> |
+| 12月<br>師走 | 泡桐 | <img src="imgs/44.png" title="桐上鳳凰" height="75px"> | | | <img src="imgs/45.png" title="桐" height="75px"> <img src="imgs/46.png" title="桐" height="75px"> <img src="imgs/47.png" title="桐" height="75px"> |
 
 ### Yaku（役） List
 
@@ -64,9 +81,9 @@
 | ~~手四~~ | 一開始時手牌中即持有一個月份中的四張牌 | 6 |
 | ~~喰付~~ | 一開始時手牌中即持有四個月各2張牌 | 6 |
 
-## Source
+## Sources
+
+The font [Yuji Syuku](fonts/) is is licensed under the SIL Open Font License, Version 1.1., sourced from https://github.com/Kinutafontfactory/Yuji.
+The license is copied in [fonts/OFL.txt](fonts/OFL.txt), and is also available with a FAQ at: http://scripts.sil.org/OFL.
 
 The images in `imgs` are licensed under the [Creative Commons](https://en.wikipedia.org/wiki/en:Creative_Commons) [Attribution-Share Alike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/deed.en) license （CC BY-SA 4.0） by [Louie Mantia](https://commons.wikimedia.org/wiki/User:Louiemantia), sourced from https://en.wikipedia.org/wiki/Sakura_(card_game).
-
-The font in `fonts` is is licensed under the SIL Open Font License, Version 1.1., sourced from https://github.com/Kinutafontfactory/Yuji.
-The license is copied in `fonts/OFL.txt`, and is also available with a FAQ at: http://scripts.sil.org/OFL.

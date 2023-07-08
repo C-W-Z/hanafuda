@@ -141,8 +141,8 @@ class Player {
     check_yaku() {
         const light   = this.collect[3].length;
         const seed    = this.collect[2].length;
-        const tanzaku = this.collect[1].length;
-        const dreg    = this.collect[0].length;
+        const ribbon  = this.collect[1].length;
+        const dross   = this.collect[0].length;
 
         // see : yaku_name
         let now_yaku = new Array(YAKU_NUM);
@@ -171,9 +171,9 @@ class Player {
             }
         }
 
-        if (dreg               >= 10) now_yaku[ 1] += dreg    - 9; // カス
-        if (tanzaku            >= 5 ) now_yaku[ 2] += tanzaku - 4; // 短冊
-        if (seed               >= 5 ) now_yaku[ 3] += seed    - 4; // タネ
+        if (dross              >= 10) now_yaku[ 1] += dross  - 9; // カス
+        if (ribbon             >= 5 ) now_yaku[ 2] += ribbon - 4; // 短冊
+        if (seed               >= 5 ) now_yaku[ 3] += seed   - 4; // タネ
         if (aotan              == 3 ) now_yaku[ 4] += 1; // 青短
         if (akatan             == 3 ) now_yaku[ 5] += 1; // 赤短
         if (inoshikacho        == 3 ) now_yaku[ 6] += 1; // 猪鹿蝶
