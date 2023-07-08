@@ -139,3 +139,10 @@ function easeInQuad(t, b, c, d) {
 function easeOutQuad (t, b, c, d) {
     return -c * (t /= d) * (t - 2) + b;
 }
+
+function endAnimation() {
+    time_func = null;
+    next_func = null;
+    while (movingCard.length > 0)
+        movingCard.pop();
+}

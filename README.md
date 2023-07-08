@@ -83,7 +83,6 @@
 
 ## Sources
 
-The font [Yuji Syuku](fonts/) is is licensed under the SIL Open Font License, Version 1.1., sourced from https://github.com/Kinutafontfactory/Yuji.
-The license is copied in [fonts/OFL.txt](fonts/OFL.txt), and is also available with a FAQ at: http://scripts.sil.org/OFL.
+The font Yuji Syuku is is licensed under the SIL Open Font License, Version 1.1., sourced from https://github.com/Kinutafontfactory/Yuji.
 
 The images in `imgs` are licensed under the [Creative Commons](https://en.wikipedia.org/wiki/en:Creative_Commons) [Attribution-Share Alike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/deed.en) license （CC BY-SA 4.0） by [Louie Mantia](https://commons.wikimedia.org/wiki/User:Louiemantia), sourced from https://en.wikipedia.org/wiki/Sakura_(card_game).

@@ -106,7 +106,7 @@ function keydown_func(e) {
             context.textAlign = "center";
             context.textBaseline = 'middle';
             break;
-    
+
         default:
             break;
     }
@@ -156,13 +156,6 @@ function animate(time) {
         draw_gaming();
 
     requestAnimationFrame(animate);
-}
-
-function endAnimation() {
-    time_func = null;
-    next_func = null;
-    while (movingCard.length > 0)
-        movingCard.pop();
 }
 
 function draw_title() {
