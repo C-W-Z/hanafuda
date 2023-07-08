@@ -264,9 +264,9 @@ class Field {
 }
 
 class Game {
-    constructor(maxMonth = 3) {
+    constructor(maxMonth = 12) {
         this.state = gameState.title; // 整個網頁現在的狀態(畫面)
-        this.MAXMONTH = maxMonth; // 預設三月玩法
+        this.MAXMONTH = maxMonth; // 預設12月玩法
         this.month = 0; // 月份
         this.first = 0; // 誰先手
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
@@ -274,10 +274,10 @@ class Game {
         this.winner = -1; // 贏家
 
         // rules
-        this.month_yaku = false; // 啟用月札
+        this.month_yaku = true; // 啟用月札
         this.flower_sake = false; // 啟用花見酒
         this.moon_sake = false; // 啟用花見酒
-        this.flower_moon_sake = false; // 啟用花月見
+        this.flower_moon_sake = true; // 啟用花月見
         this.grass = false; // 啟用草上短冊
         this.koi_bouns = true; // koikoi bonus (score * koikoi time)
 

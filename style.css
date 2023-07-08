@@ -7,7 +7,10 @@
  */
 
 /* import Yuji Syuku font */
-@import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap');
+@font-face {
+    font-family: 'Yuji Syuku';
+    src: url('fonts/YujiSyuku-Regular.ttf');
+}
 
 html {
     font-family: 'Yuji Syuku', 'Microsoft YaHei', sans-serif;
