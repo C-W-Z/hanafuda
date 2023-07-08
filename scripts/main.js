@@ -6,100 +6,6 @@
  * @repo https://github.com/C-W-Z/Hanafuda.git
  */
 
-//#region Global Variables
-
-/* constants */
-const SCREEN_W = 1200;
-const SCREEN_H = 675;
-const CARD_IMG_W = 976; // width of card in img
-const CARD_IMG_H = 1600; // height of card in img
-const CARD_W = 75;
-const CARD_H = CARD_W * 1600/976;
-const CARD_GAP = 5;
-const CARD_NUM = 48; // num of total cards
-const YAKU_NUM = 12;
-const HAND_NUM = 8; // num of cards be distributed to a player when game starts
-const FIELD_SPACE = 12; // max num of cards can be place on the field
-const PLR = 0; // player
-const CPU = 1; // computer
-// cardID = 0 ~ 47
-const CARD_BACK_ID = 48; // 牌背
-const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
-// 牌的種類（カス・短冊・タネ・五光）
-const card_type = [3,1,0,0, 2,1,0,0, 3,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 3,2,0,0, 2,1,0,0, 2,1,0,0, 3,2,1,0, 3,0,0,0];
-// 役(yaku)
-const yaku_score = [   6  ,  1   , 1   ,  1  ,   5  ,  5  ,   5   ,  5   ,   7   ,   8  ,  10 ,  4  ];
-const yaku_name  = ["親権","カス","短冊","タネ","青短","赤短","猪鹿蝶","三光","雨四光","四光","五光","月札"];
-const tuki_name  = ["松","梅","桜","藤","菖蒲","牡丹","萩","芒","菊","紅葉","雨","桐"];
-// 數字
-const NUMBER = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
-const cardPlace = {
-    deck: 0,
-    field: 1,
-    player_hand: 2,
-    cpu_hand: 3,
-    player_collect: 4,
-    cpu_collect: 5,
-    moving: 6
-};
-/* Animation Settings */
-const FONT_SIZE = 24;
-const normalMoveTime = 400; // ms
-const fastMoveTime = 250; // ms
-const gameState = {
-    title: 0,
-    start: 1,
-    deal: 2,
-    player_select_hand: 3,
-    player_select_field: 4,
-    player_play_card: 5,
-    player_choose_card: 6, // when draw a card with two cards on field can be paired
-    player_end_round: 7,
-    player_decide_koi: 8,
-    cpu_play: 9,
-    koikoi_animation: 10,
-    month_end: 11,
-    game_result: 12
-};
-
-/* canvas & sources & control */
-let R = window.devicePixelRatio;
-let scaleRate = 1; // the scale rate of canvas
-let canvas;
-let context;
-let cardImg = new Array();
-let mouse = { x: 0, y: 0 }; // the mouse coordinates
-
-/* game variables */
-let card; // the card objs
-let deck; // the deck obj(array)
-let player; // the player objs ()
-let field; // the field obj
-let game; // the game data obj
-
-/* animation */
-let MOVE_TIME = normalMoveTime; // 牌移動的時間
-let startTime = null;
-let time_func = new Function();
-time_func = null;
-let next_func = new Function();
-next_func = null;
-let movingCard;
-
-/* UI */
-// when ask player for koikoi
-let koi_panel;
-let end_button;
-let koi_button;
-let koikoi_banner;
-// when game end -> show yaku and score
-let yaku_panel;
-let next_month_button;
-let to_result_button;
-let result_panel;
-
-//#endregion
-
 /* Main Function */
 window.onload = function()
 {
@@ -113,7 +19,7 @@ window.onload = function()
     canvas.style.width = SCREEN_W * scaleRate + 'px';
     canvas.style.height = SCREEN_H * scaleRate + 'px';
     context = canvas.getContext('2d');
-    // animation settings
+    // text settings
     context.textAlign = "center";
     context.textBaseline = 'middle';
     // control settings
@@ -199,6 +105,8 @@ function keydown_func(e) {
             scaleRate = self.innerHeight / SCREEN_H;
             canvas.style.width = SCREEN_W * scaleRate + 'px';
             canvas.style.height = SCREEN_H * scaleRate + 'px';
+            context.textAlign = "center";
+            context.textBaseline = 'middle';
             break;
     
         default:
@@ -311,21 +219,22 @@ function draw_gaming() {
         card[movingCard[i]].draw();
 
     /* draw the information of this game */
-    /*
+    
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     // 幾月
     context.lineWidth = 2 * R;
     context.fillStyle = 'black';
     context.strokeStyle = 'black';
-    context.fillText(NUMBER[game.MAXMONTH], (FONT_SIZE+2)/2 * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText("月"                 , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (1+0.5))) * R);
-    context.strokeRect(0, (SCREEN_H/2 - FONT_SIZE*2) * R, (FONT_SIZE+2) * R, (FONT_SIZE*2) * R);
+    if (game.MAXMONTH >= 10)
+        context.fillText(NUMBER[10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*3 + (FONT_SIZE * (0+0.5))) * R);
+    context.fillText(NUMBER[game.MAXMONTH%10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (0+0.5))) * R);
+    context.fillText("月"                 , (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (1+0.5))) * R);
+    context.strokeRect(0, (SCREEN_H/2 - FONT_SIZE*3) * R, (FONT_SIZE+2) * R, (FONT_SIZE*3) * R);
     // 幾戰目
-    context.fillText(NUMBER[game.month], (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText("戦"              , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (1+0.5))) * R);
-    context.fillText("目"              , (FONT_SIZE+2)/2 * R, (SCREEN_H/2 + (FONT_SIZE * (2+0.5))) * R);
+    context.fillText(NUMBER[game.month], (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (0+0.5))) * R);
+    context.fillText("戦"              , (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (1+0.5))) * R);
+    context.fillText("目"              , (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (2+0.5))) * R);
     context.strokeRect(0, SCREEN_H/2 * R, (FONT_SIZE+2) * R, (FONT_SIZE * 3) * R);
-    */
 
     // 親
     const circleY = (game.first == CPU) ? 30 : SCREEN_H - 30;
@@ -341,13 +250,10 @@ function draw_gaming() {
     context.fillText("親", (SCREEN_W - 30) * R, circleY * R);
 
     // 文
-    /*
-    context.fillStyle = 'white';
-    context.strokeStyle = 'white';
-    context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText(`${player[PLR].money}文`, 45 * R, (30) * R);
-    context.fillText(`${player[PLR].money}文`, 45 * R, (SCREEN_H - 30) * R);
-    */
+    score_panel[PLR].text = `${player[PLR].total_money}文`;
+    score_panel[CPU].text = `${player[CPU].total_money}文`;
+    score_panel[PLR].draw();
+    score_panel[CPU].draw();
 
     /* draw UI */
     switch (game.state) {
@@ -482,8 +388,13 @@ function init_game() {
     game = new Game();
 
     /* init UI in game */
+    let w, h;
+    // 文
+    w = 60, h = 35;
+    score_panel[CPU] = new Button(5, 5, w, h, 5, '0文', 20);
+    score_panel[PLR] = new Button(5, SCREEN_H-h-5, w, h, 5, '0文', 20);
     // the size of panel of decide koi
-    let w = 400, h = 200;
+    w = 400, h = 200;
     koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
     end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win(PLR);}, 'lightgray');
     koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
@@ -1008,355 +919,6 @@ function player_unselect_hand(handID) {
     card[player[PLR].hand[handID]].selected = false;
     field.update_noticed(-1);
     player[PLR].selected_handID = -1;
-}
-
-//#endregion
-
-//#region Classes
-
-class Card {
-    constructor(ID) {
-        this.ID = ID;
-        this.reset_month()
-    }
-
-    reset_month() {
-        this.px = DECK_P.x;
-        this.py = DECK_P.y;
-        this.scaleX = 1;
-        this.back = true;
-        this.noticed = false;
-        this.selected = false;
-        this.place = cardPlace.deck;
-    }
-
-    draw() {
-        draw_card((this.back ? CARD_BACK_ID : this.ID),
-                   this.px,
-                  (this.selected ? this.py - 20 : this.py),
-                  (this.back ? false : this.noticed),
-                   this.scaleX);
-    }
-}
-
-class Player {
-    constructor(ID) {
-        this.ID = ID;
-        this.money = new Array(12); // 文
-        for (let i = 0; i < 12; i++)
-            this.money[i] = 0;
-        this.total_money = 0;
-        this.reset_month();
-    }
-
-    reset_month() {
-        this.hand = new Array(); // 手牌
-        this.noticed = new Array();
-        this.score = 0; // 當回合分數
-        this.collect = [[], [], [], []]; // 玩家獲得的牌
-        this.yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        this.selected_handID = -1;
-        this.selected_fieldID = 0;
-        this.needToThrow = false;
-        this.draw_cardID = -1;
-        this.koi_time = 0;
-    }
-
-    addHand(cardID) {
-        card[cardID].back = (this.ID == CPU);
-        card[cardID].noticed = false;
-        card[cardID].selected = false;
-        card[cardID].place = (this.ID == PLR) ? cardPlace.player_hand : cardPlace.cpu_hand;
-        this.hand.push(cardID);
-    }
-
-    removeHand(handID) {
-        card[this.hand[handID]].back = false;
-        card[this.hand[handID]].noticed = false;
-        card[this.hand[handID]].selected = false;
-        card[this.hand[handID]].place = cardPlace.moving;
-        for (let i = handID; i < this.hand.length - 1; i++)
-            this.hand[i] = this.hand[i + 1];
-        this.hand.pop();
-        this.selected_handID = -1;
-    }
-
-    addCollect(cardID) {
-        card[cardID].back = false;
-        card[cardID].noticed = false;
-        card[cardID].selected = false;
-        card[cardID].place = (this.ID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
-        this.collect[card_type[cardID]].push(cardID);
-    }
-
-    update_noticed() {
-        this.needToThrow = true;
-        for (let i = 0; i < this.hand.length; i++)
-            for (const c of field.card) {
-                if (c < 0) continue;
-                if (Math.floor(c / 4) == Math.floor(this.hand[i] / 4)) {
-                    this.noticed[i] = true;
-                    card[this.hand[i]].noticed = true;
-                    this.needToThrow = false;
-                    break;
-                }
-                this.noticed[i] = false;
-                card[this.hand[i]].noticed = false;
-            }
-        for (const arr of this.collect)
-            for (const c of arr) {
-                card[c].noticed = false;
-                card[c].back = false;
-            }
-    }
-
-    update_card_info() {
-        this.update_noticed();
-        for (let i = 0; i < this.hand.length; i++) {
-            // update hand card px, py
-            card[this.hand[i]].px = SCREEN_W / 2 + (CARD_W+CARD_GAP*2) * (i - this.hand.length / 2) + CARD_GAP;
-            if (this.ID == PLR)
-                card[this.hand[i]].py = SCREEN_H - (CARD_H+CARD_GAP*2) + CARD_GAP;
-            else // ID == CPU
-                card[this.hand[i]].py = CARD_GAP;
-            // update hand card showing or not
-            card[this.hand[i]].back = (!game.op && this.ID == CPU);
-        }
-        // update collected card px, py
-        for (let i = 0; i < this.collect.length; i++)
-            for (let j = 0; j < this.collect[i].length; j++) {
-                if (i < this.collect.length / 2)
-                    card[this.collect[i][j]].px = SCREEN_W - (CARD_W+CARD_GAP*2) - (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
-                else
-                    card[this.collect[i][j]].px = (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
-                if (this.ID == PLR) {
-                    if (i % 2 == 0)
-                        card[this.collect[i][j]].py = SCREEN_H - (CARD_H+CARD_GAP*2) + CARD_GAP;
-                    else
-                        card[this.collect[i][j]].py = SCREEN_H - 2 * (CARD_H+CARD_GAP*2) + CARD_GAP;
-                } else { // ID == CPU
-                    if (i % 2 == 0)
-                        card[this.collect[i][j]].py = (CARD_H+CARD_GAP*2) + CARD_GAP;
-                    else
-                        card[this.collect[i][j]].py = CARD_GAP;
-                }
-            }
-    }
-
-    pointedCollectIndex() {
-        for (let i = 0; i < 4; i++)
-            for (const c of this.collect[i])
-                if (mouse.x >= card[c].px && mouse.x <= card[c].px + CARD_W &&
-                    mouse.y >= card[c].py && mouse.y <= card[c].py + CARD_H)
-                    return i;
-        return -1;
-    }
-
-    /* 結算役 */
-    // 回傳是否有新的役
-    check_yaku() {
-        const light   = this.collect[3].length;
-        const seed    = this.collect[2].length;
-        const tanzaku = this.collect[1].length;
-        const dreg    = this.collect[0].length;
-
-        // see : yaku_name
-        let now_yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-        let rain = 0; // 雨
-        let inoshikacho = 0; // 猪鹿蝶
-        let akatan = 0; // 赤短
-        let aotan = 0; // 青短
-        let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 月札
-
-        for (const arr of this.collect) {
-            for (const c of arr) {
-                if (c == 40) rain++;
-                if (c == 20 || c == 24 || c == 26) inoshikacho++;
-                if (c ==  1 || c ==  5 || c == 9) akatan++;
-                if (c == 21 || c == 33 || c == 37) aotan++;
-                month[Math.floor(c / 4)]++;
-            }
-        }
-
-        if (dreg               >= 10) now_yaku[ 1] += dreg    - 9; // カス
-        if (tanzaku            >= 5 ) now_yaku[ 2] += tanzaku - 4; // 短冊
-        if (seed               >= 5 ) now_yaku[ 3] += seed    - 4; // タネ
-        if (aotan              == 3 ) now_yaku[ 4] += 1; // 青短
-        if (akatan             == 3 ) now_yaku[ 5] += 1; // 赤短
-        if (inoshikacho        == 3 ) now_yaku[ 6] += 1; // 猪鹿蝶
-        if (light == 3 && rain == 0 ) now_yaku[ 7] += 1; // 三光
-        if (light == 4 && rain == 1 ) now_yaku[ 8] += 1; // 雨四光
-        if (light == 4 && rain == 0 ) now_yaku[ 9] += 1; // 四光
-        if (light              == 5 ) now_yaku[10] += 1; // 五光
-        if (game.month_yaku) {
-            for (let i = 0; i < month.length; i++)
-                if (month[i] == 4)
-                now_yaku[11]++; // 月札
-        }
-
-        this.score = 0;
-        let get_new_yaku = false;
-        for (let i = 0; i < YAKU_NUM; i++) {
-            // check is there new yaku
-            if (now_yaku[i] > this.yaku[i])
-                get_new_yaku = true;
-            // copy now yaku to old yaku
-            this.yaku[i] = now_yaku[i];
-            // calculate new score
-            this.score += yaku_score[i] * now_yaku[i];
-        }
-
-        return get_new_yaku;
-    }
-}
-
-class Field {
-    constructor() {
-        this.card = new Array(FIELD_SPACE);
-        this.reset_month();
-    }
-
-    reset_month() {
-        for (let i = 0; i < FIELD_SPACE; i++)
-            this.card[i] = -1;
-    }
-
-    insertCard(fieldID, cardID) {
-        card[cardID].back = false;
-        card[cardID].noticed = false;
-        card[cardID].selected = false;
-        card[cardID].place = cardPlace.field;
-        this.card[fieldID] = cardID;
-    }
-
-    removeCard(fieldID) {
-        card[this.card[fieldID]].back = false;
-        card[this.card[fieldID]].noticed = false;
-        card[this.card[fieldID]].selected = false;
-        card[this.card[fieldID]].place = cardPlace.moving;
-        movingCard.unshift(this.card[fieldID]); // push_front
-        this.card[fieldID] = -1;
-        this.update_noticed(-1);
-    }
-
-    update_noticed(month) {
-        for (let i = 0; i < FIELD_SPACE; i++) {
-            if (this.card[i] < 0) continue;
-            if (Math.floor(this.card[i] / 4) == month)
-                card[this.card[i]].noticed = true;
-            else
-                card[this.card[i]].noticed = false;
-        }
-    }
-
-    update_card_info() {
-        // this.update_noticed();
-        // update px,py
-        for (let i = 0; i < FIELD_SPACE; i++) {
-            if (this.card[i] < 0) continue;
-            card[this.card[i]].px = Field.X(i);
-            card[this.card[i]].py = Field.Y(i);
-        }
-    }
-
-    // i: index in field.card[i]
-    static X(i) {
-        if (i < FIELD_SPACE / 2)
-            return SCREEN_W/2 -CARD_W+CARD_GAP - (CARD_W+CARD_GAP*2) * Math.floor((FIELD_SPACE/2-i+1)/2) + CARD_GAP;
-        return SCREEN_W/2 +CARD_W+CARD_GAP + (CARD_W+CARD_GAP*2) * Math.floor((i-FIELD_SPACE/2)/2) + CARD_GAP;
-    }
-    static Y(i) {
-        return SCREEN_H / 2 - (CARD_H+CARD_GAP*2) + (CARD_H+CARD_GAP*2) * (i % 2) + CARD_GAP;
-    }
-}
-
-class Game {
-    constructor(maxMonth = 3) {
-        this.state = gameState.title; // 整個網頁現在的狀態(畫面)
-        this.MAXMONTH = maxMonth; // 預設三月玩法
-        this.month = 0; // 月份
-        this.first = 0; // 誰先手
-        this.round = 0; // 當前月份現在是第幾回合(start from 0)
-        this.koi = -1; // whether player/cpu is doing koi koi
-        this.winner = -1; // 贏家
-
-        // rules
-        this.month_yaku = false; // 啟用月札
-        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
-
-        this.op = false; // look cpu's hand cards
-    }
-
-    reset_month() {
-        this.state = gameState.start; // 整個網頁現在的狀態(畫面)
-        this.round = 0; // 當前月份現在是第幾回合(start from 0)
-        this.koi = -1; // whether player/cpu is doing koi koi
-        this.winner = -1; // 贏家
-    }
-}
-
-class Button {
-    /**
-     * @param {number} px 按鈕左上角x座標
-     * @param {number} py 按鈕左上角y座標
-     * @param {number} width 按鈕寬度
-     * @param {number} height 按鈕高度
-     * @param {number} radius 按鈕四角的圓半徑
-     * @param {string} text 按鈕上的文字
-     * @param {number} fontsize 字體大小
-     * @param {Function} func 按下按鈕後會執行的函式
-     * @param {string} bordercolor 邊界顏色
-     * @param {string} fillcolor 按鈕顏色
-     * @param {string} textcolor 文字顏色
-     */
-    constructor(px, py, width, height, radius, text = '', fontsize = FONT_SIZE, func = null, bordercolor = '', fillcolor = 'black', textcolor = 'white') {
-        this.x = px;
-        this.y = py;
-        this.w = width;
-        this.h = height;
-        this.r = radius;
-        this.text = text;
-        this.fontsize = fontsize;
-        this.press_func = func;
-        this.borderColor = bordercolor;
-        this.fillColor = fillcolor;
-        this.textColor = textcolor;
-    }
-
-    draw() {
-        context.fillStyle = this.fillColor;
-        context.beginPath();
-        context.roundRect(this.x * R, this.y * R, this.w * R, this.h * R, this.r * R);
-        context.fill();
-        if (this.fontsize > 0 || text == '') {
-            context.fillStyle = this.textColor;
-            context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-            context.fillText(this.text, (this.x + this.w/2) * R, (this.y + this.h/2) * R, (this.w) * R);
-        }
-        if (this.borderColor != "") {
-            context.lineWidth = 3 * R;
-            context.strokeStyle = this.borderColor;
-            context.stroke();
-        }
-    }
-
-    /**
-     * @abstract 檢查滑鼠座標是否在此按鈕內
-     * @param {{x,y}} mouse 滑鼠座標
-     * @returns {bool} true or false
-     */
-    include(mouse) {
-        return (mouse.x > this.x && mouse.x < this.x + this.w &&
-                mouse.y > this.y && mouse.y < this.y + this.h)
-    }
-
-    // 在click_func裡呼叫這個函式
-    // 檢查是否被按下並執行
-    check_press() {
-        if (this.include(mouse) && this.press_func != null)
-            this.press_func();
-    }
 }
 
 //#endregion
