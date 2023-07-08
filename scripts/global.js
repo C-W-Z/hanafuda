@@ -89,3 +89,53 @@ let yaku_panel;
 let next_month_button;
 let to_result_button;
 let result_panel;
+
+/* draw card */
+/**
+ * @param {number} cardID 要畫哪張牌 (0 ~ 48) (48是牌背)
+ * @param {number} px card的左上角x座標
+ * @param {number} py card的左上角y座標
+ * @param {boolean} [noticed=false] 是否有醒目提示(預設無)
+ * @param {number} [scaleX=1] 牌的橫向縮放比例(預設1)
+ */
+function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
+    context.drawImage(cardImg[cardID], (px + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
+    if (noticed) {
+        context.strokeStyle = "gold";
+        context.lineWidth = 2 * R;
+        context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
+    }
+}
+// draw card outline on field
+function draw_noticed(px, py) {
+    context.strokeStyle = "darkred";
+    context.lineWidth = 2 * R;
+    context.setLineDash([5]);
+    context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
+    context.setLineDash([]);
+}
+
+/**
+ * @abstract easing functions for animation
+ * @reference https://stackoverflow.com/questions/8316882/what-is-an-easing-function
+ * @param {number} t current time,
+ * @param {number} b beginning value,
+ * @param {number} c change in value,
+ * @param {number} d duration
+ * @returns 
+ */
+function linear(t, b, c, d) {
+    return c * (t / d) + b;
+}
+function easeInOutQuad(t, b, c, d) {
+    if ((t /= d / 2) < 1)
+        return c / 2 * t * t + b;
+    else
+        return -c / 2 * ((--t) * (t - 2) - 1) + b;
+}
+function easeInQuad(t, b, c, d) {
+    return c * (t /= d) * t + b;
+}
+function easeOutQuad (t, b, c, d) {
+    return -c * (t /= d) * (t - 2) + b;
+}

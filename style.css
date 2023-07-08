@@ -6,12 +6,6 @@
  * @repo https://github.com/C-W-Z/Hanafuda.git
  */
 
-/* import Yuji Syuku font */
-@font-face {
-    font-family: 'Yuji Syuku';
-    src: url('fonts/YujiSyuku-Regular.ttf');
-}
-
 html {
     font-family: 'Yuji Syuku', 'Microsoft YaHei', sans-serif;
     font-size: 22px;
@@ -23,11 +17,6 @@ body {
     height: 100vh;
 	margin: 0;
 	padding: 0;
-	/*
-    display: flex;
-	align-items: center;
-	justify-content: center;
-    */
 }
 
 canvas {
