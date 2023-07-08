@@ -57,8 +57,12 @@ let R = window.devicePixelRatio;
 let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
-let cardImg = new Array();
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
+let cardImg = new Array();
+for (let i = 0; i < CARD_NUM+1; i++) {
+    cardImg[i] = new Image();
+    cardImg[i].src = `imgs/${i}.webp`;
+}
 
 /* game variables */
 let card; // the card objs

@@ -270,9 +270,8 @@ function check_win(playerID) {
         // 若是最後一回合 => 強制結束
         if (player[playerID].hand.length == 0)
             player_win(playerID);
-
         // ask koi koi or not
-        if (playerID == PLR)
+        else if (playerID == PLR)
             game.state = gameState.player_decide_koi;
         else {
             if (Math.floor(Math.random() * 2))

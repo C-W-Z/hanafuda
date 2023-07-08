@@ -161,7 +161,7 @@ class Player {
         for (const arr of this.collect) {
             for (const c of arr) {
                 if (c == 40) rain++;
-                if (c == 20 || c == 24 || c == 26) inoshikacho++;
+                if (c == 20 || c == 24 || c == 36) inoshikacho++;
                 if (c ==  1 || c ==  5 || c ==  9) akatan++;
                 if (c == 21 || c == 33 || c == 37) aotan++;
                 if (Math.floor(c/4) == game.month-1) getsusatsu++;
