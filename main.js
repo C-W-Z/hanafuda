@@ -58,7 +58,8 @@ const gameState = {
     player_decide_koi: 8,
     cpu_play: 9,
     koikoi_animation: 10,
-    month_end: 11
+    month_end: 11,
+    game_result: 12
 };
 
 /* canvas & sources & control */
@@ -94,6 +95,8 @@ let koikoi_banner;
 // when game end -> show yaku and score
 let yaku_panel;
 let next_month_button;
+let to_result_button;
+let result_panel;
 
 //#endregion
 
@@ -174,7 +177,10 @@ function click_func(event) {
             koi_button.check_press();
             break;
         case gameState.month_end:
-            next_month_button.check_press();
+            if (game.month == game.MAXMONTH)
+                to_result_button.check_press();
+            else
+                next_month_button.check_press();
             break;
         default:
             break;
@@ -354,6 +360,9 @@ function draw_gaming() {
         case gameState.month_end:
             draw_show_yaku();
             break;
+        case gameState.game_result:
+            draw_game_result();
+            break;
         default:
             break;
     }
@@ -480,13 +489,17 @@ function init_game() {
     koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
     // the size of banner of koi koi
     w = SCREEN_W + 20, h = 100;
-    koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 48, null);
+    koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 52, null);
     // the size of the panel of showing yaku and score
     w = 400, h = 400;
     yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
     // the size of restart button
     w = 400, h = 50;
     next_month_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '次の対局へ', 24, start_month);
+    to_result_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '対局結果へ', 24, result_game);
+    // the size of  result panel
+    w = 400, h = 480;
+    result_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
 }
 
 /* init new game */
@@ -533,6 +546,7 @@ function start_month() {
 
     // reset game info
     game.reset_month();
+    game.month++;
     game.first = Number(!game.first);
 
     // reset animation
@@ -760,11 +774,15 @@ function check_win(playerID) {
             player_win(game.first);
         }
     } else if (win) {
+        // 若是最後一回合 => 強制結束
+        if (player[playerID].hand.length == 0)
+            player_win(playerID);
+
         // ask koi koi or not
         if (playerID == PLR)
             game.state = gameState.player_decide_koi;
         else {
-            if (player[CPU].hand.length > 0 && Math.floor(Math.random() * 2))
+            if (Math.floor(Math.random() * 2))
                 koikoi(CPU);
             else
                 player_win(CPU);
@@ -779,7 +797,8 @@ function check_win(playerID) {
 function player_win(playerID) {
     game.winner = playerID;
     game.state = gameState.month_end;
-    player[playerID].money += player[playerID].score * (game.koi_bouns ? player[playerID].koi_time+1 : 1);
+    player[playerID].money[game.month-1] = player[playerID].score * (game.koi_bouns ? player[playerID].koi_time+1 : 1);
+    player[playerID].total_money += player[playerID].money[game.month-1];
 }
 
 function draw_decide_koi() {
@@ -868,7 +887,7 @@ function draw_show_yaku() {
     context.fillStyle = 'white';
     const fontsize = 32;
     context.font = fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    const text = (game.winner == PLR) ? 'YOU WIN' : 'YOU LOSE';
+    const text = (game.winner == PLR) ? '勝利' : '敗北';
     const title_h = 100;
     context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
     // draw yaku
@@ -898,8 +917,43 @@ function draw_show_yaku() {
         context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
     }
 
-    // draw restart button
-    next_month_button.draw();
+    // draw button
+    if (game.month < game.MAXMONTH)
+        next_month_button.draw();
+    else
+        to_result_button.draw();
+}
+
+function result_game() {
+    game.state = gameState.game_result;
+}
+
+function draw_game_result() {
+    result_panel.draw();
+    const w = result_panel.w, h = result_panel.h, py = result_panel.y;
+
+    // draw who win
+    context.fillStyle = 'white';
+    const fontsize = 32;
+    context.font = fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    const text = (player[PLR].total_money > player[CPU].total_money) ? '勝利' : '敗北';
+    const title_h = 100;
+    context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
+
+    // draw scores
+    context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText('あなた', (SCREEN_W/2) * R, (py + title_h) * R);
+    context.fillText('相手', (SCREEN_W/2 + w/4) * R, (py + title_h) * R);
+    for (let i = 1; i <= game.MAXMONTH; i++) {
+        context.fillText(`${i}月`, (SCREEN_W/2 - w/4) * R, (py + title_h + i * 24) * R);
+        context.fillText((player[PLR].money[i-1] > 0) ? `${player[PLR].money[i-1]}文` : '-',
+                         (SCREEN_W/2) * R, (py + title_h + i * 24) * R);
+        context.fillText((player[CPU].money[i-1] > 0) ? `${player[CPU].money[i-1]}文` : '-',
+                         (SCREEN_W/2 + w/4) * R, (py + title_h + i * 24) * R);
+    }
+    context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
+    context.fillText(`${player[PLR].total_money}文`, (SCREEN_W/2) * R, (py + h - title_h/2) * R);
+    context.fillText(`${player[CPU].total_money}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
 }
 
 /* AI的回合 */
@@ -988,7 +1042,10 @@ class Card {
 class Player {
     constructor(ID) {
         this.ID = ID;
-        this.money = 0; // 文
+        this.money = new Array(12); // 文
+        for (let i = 0; i < 12; i++)
+            this.money[i] = 0;
+        this.total_money = 0;
         this.reset_month();
     }
 
@@ -1218,7 +1275,7 @@ class Game {
     constructor(maxMonth = 3) {
         this.state = gameState.title; // 整個網頁現在的狀態(畫面)
         this.MAXMONTH = maxMonth; // 預設三月玩法
-        this.month = 1; // 月份
+        this.month = 0; // 月份
         this.first = 0; // 誰先手
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.koi = -1; // whether player/cpu is doing koi koi
