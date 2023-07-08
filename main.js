@@ -9,7 +9,6 @@
 //#region Global Variables
 
 /* constants */
-const R = window.devicePixelRatio;
 const SCREEN_W = 1200;
 const SCREEN_H = 675;
 const CARD_IMG_W = 976; // width of card in img
@@ -63,6 +62,7 @@ const gameState = {
 };
 
 /* canvas & sources & control */
+let R = window.devicePixelRatio;
 let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
@@ -103,6 +103,7 @@ window.onload = function()
 {
     /* get canvas */
     canvas = document.getElementById('canvas');
+    R = window.devicePixelRatio;
     canvas.width = SCREEN_W * R;
     canvas.height = SCREEN_H * R;
     // auto adaptive size by height
@@ -115,6 +116,7 @@ window.onload = function()
     context.textBaseline = 'middle';
     // control settings
     canvas.onmousedown = click_func;
+    document.addEventListener('keydown', keydown_func);
 
     init_game();
     animate(startTime);
@@ -180,6 +182,26 @@ function click_func(event) {
         case gameState.month_end:
             restart_button.check_press();
             break;
+        default:
+            break;
+    }
+}
+
+function keydown_func(e) {
+    // console.log(e);
+    const key = e.key;
+    switch (key) {
+        case 'r':
+            /* resize screen */
+            R = window.devicePixelRatio;
+            canvas.width = SCREEN_W * R;
+            canvas.height = SCREEN_H * R;
+            // auto adaptive size by height
+            scaleRate = self.innerHeight / SCREEN_H;
+            canvas.style.width = SCREEN_W * scaleRate + 'px';
+            canvas.style.height = SCREEN_H * scaleRate + 'px';
+            break;
+    
         default:
             break;
     }
