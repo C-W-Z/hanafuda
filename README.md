@@ -45,17 +45,17 @@
 
 | name | condition | score |
 | --- | --- | --- |
-| 五光 | <imgs src="imgs/0.png" title="松上鶴" height="75px"> <imgs src="imgs/8.png" title="櫻上幕簾" height="75px"> <imgs src="imgs/28.png" title="芒上月" height="75px"> <imgs src="imgs/40.png" title="柳間小野道風" height="75px"> <imgs src="imgs/44.png" title="桐上鳳凰" height="75px"> | 10 |
+| 五光 | <img src="imgs/0.png" title="松上鶴" height="75px"> <img src="imgs/8.png" title="櫻上幕簾" height="75px"> <img src="imgs/28.png" title="芒上月" height="75px"> <img src="imgs/40.png" title="柳間小野道風" height="75px"> <img src="imgs/44.png" title="桐上鳳凰" height="75px"> | 10 |
 | 四光 | 得到不包含「柳間小野道風」之外其餘4張光牌 | 8 |
 | 雨四光 | 得到「柳間小野道風」加上另外3張光牌 | 7 |
 | 三光 | 得到不包含「柳間小野道風」之外得到其餘4張光牌裡面的3張 | 5 |
-| ~~花見で一杯~~ | <imgs src="imgs/8.png" title="櫻上幕簾" height="75px"> <imgs src="imgs/32.png" title="菊上盃" height="75px"> | 3 |
-| ~~月見で一杯~~ | <imgs src="imgs/28.png" title="芒上月" height="75px"> <imgs src="imgs/32.png" title="菊上盃" height="75px"> | 3 |
-| 飲み | <imgs src="imgs/8.png" title="櫻上幕簾" height="75px"> <imgs src="imgs/28.png" title="芒上月" height="75px"> <imgs src="imgs/32.png" title="菊上盃" height="75px"> | 5 |
-| 猪鹿蝶 | <imgs src="imgs/20.png" title="牡丹蝶" height="75px"> <imgs src="imgs/24.png" title="萩間野豬" height="75px"> <imgs src="imgs/36.png" title="楓間鹿" height="75px"> | 5 |
-| 赤短 | <imgs src="imgs/1.png" title="松上赤短" height="75px"> <imgs src="imgs/5.png" title="梅上赤短" height="75px"> <imgs src="imgs/9.png" title="櫻上赤短" height="75px"> | 5 |
-| 青短 | <imgs src="imgs/21.png" title="牡丹上青短" height="75px"> <imgs src="imgs/33.png" title="菊上青短" height="75px"> <imgs src="imgs/37.png" title="楓上青短" height="75px"> | 5 |
-| ~~草~~ | <imgs src="imgs/13.png" title="藤上短冊" height="75px"> <imgs src="imgs/17.png" title="蒲上短冊" height="75px"> <imgs src="imgs/25.png" title="萩上短冊" height="75px"> | 5 |
+| ~~花見で一杯~~ | <img src="imgs/8.png" title="櫻上幕簾" height="75px"> <img src="imgs/32.png" title="菊上盃" height="75px"> | 3 |
+| ~~月見で一杯~~ | <img src="imgs/28.png" title="芒上月" height="75px"> <img src="imgs/32.png" title="菊上盃" height="75px"> | 3 |
+| 飲み | <img src="imgs/8.png" title="櫻上幕簾" height="75px"> <img src="imgs/28.png" title="芒上月" height="75px"> <img src="imgs/32.png" title="菊上盃" height="75px"> | 5 |
+| 猪鹿蝶 | <img src="imgs/20.png" title="牡丹蝶" height="75px"> <img src="imgs/24.png" title="萩間野豬" height="75px"> <img src="imgs/36.png" title="楓間鹿" height="75px"> | 5 |
+| 赤短 | <img src="imgs/1.png" title="松上赤短" height="75px"> <img src="imgs/5.png" title="梅上赤短" height="75px"> <img src="imgs/9.png" title="櫻上赤短" height="75px"> | 5 |
+| 青短 | <img src="imgs/21.png" title="牡丹上青短" height="75px"> <img src="imgs/33.png" title="菊上青短" height="75px"> <img src="imgs/37.png" title="楓上青短" height="75px"> | 5 |
+| ~~草~~ | <img src="imgs/13.png" title="藤上短冊" height="75px"> <img src="imgs/17.png" title="蒲上短冊" height="75px"> <img src="imgs/25.png" title="萩上短冊" height="75px"> | 5 |
 | タネ | 得到5張任意種牌，每多獲得1張種牌結算時分數+1 | 1（+1） |
 | 短冊 | 得到5張短冊牌，每多獲得1張短冊牌結算時分數+1 | 1（+1） |
 | カス | 得到10張粕（滓）牌，每多獲得1張粕牌結算時分數+1 | 1（+1） |
