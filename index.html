@@ -4,7 +4,7 @@
 <!--contact: chenweizhang3021@gmail.com-->
 <!--language: 繁體中文, 日本語-->
 <!--repo: https://github.com/C-W-Z/Hanafuda.git-->
-<html>
+<html lang="ja">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,23 +13,24 @@
 	<!-- Title -->
 	<title>花札 Hanafuda</title>
 	<link rel="icon" href="imgs/title.ico" type="image/x-icon"/>
-	<!-- Google Font - Yuji Syuku font -->
+	<!-- Preload & Preconnect -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap" rel="stylesheet">
-	<!-- Preload Scripts -->
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap">
+	<link rel="preload" as="style" href="style.css">
 	<link rel="preload" as="script" href="scripts/global.js">
 	<link rel="preload" as="script" href="scripts/class.js">
 	<link rel="preload" as="script" href="scripts/main.js">
 	<!-- CSS -->
+	<link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 	<canvas id="canvas"></canvas>
 	<!-- Scripts -->
-	<script src="scripts/global.js"></script>
-	<script src="scripts/class.js"></script>
-	<script src="scripts/main.js"></script>
-	<script src="scripts/function.js"></script>
+	<script src="scripts/global.js" defer></script>
+	<script src="scripts/class.js" defer></script>
+	<script src="scripts/main.js" defer></script>
+	<script src="scripts/function.js" defer></script>
 </body>
 </html>

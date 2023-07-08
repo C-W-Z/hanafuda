@@ -271,6 +271,12 @@ function draw_gaming() {
 }
 
 function init_game() {
+    /* Card Imgs */
+    for (let i = 0; i < CARD_NUM+1; i++) {
+        cardImg[i] = new Image();
+        cardImg[i].src = `imgs/${i}.webp`;
+    }
+
     /* init game data */
     game = new Game();
 
