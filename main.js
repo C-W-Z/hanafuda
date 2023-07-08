@@ -45,7 +45,7 @@ const cardPlace = {
 /* Animation Settings */
 const FONT_SIZE = 24;
 const normalMoveTime = 400; // ms
-const fastMoveTime = 200; // ms
+const fastMoveTime = 250; // ms
 const gameState = {
     title: 0,
     start: 1,
@@ -68,7 +68,6 @@ let canvas;
 let context;
 let cardImg = new Array();
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
-let clickCard;
 
 /* game variables */
 let card; // the card objs
@@ -94,7 +93,7 @@ let koi_button;
 let koikoi_banner;
 // when game end -> show yaku and score
 let yaku_panel;
-let restart_button;
+let next_month_button;
 
 //#endregion
 
@@ -128,9 +127,6 @@ function click_func(event) {
     /* must be left click */
     if (event.button != 0) return;
     updateMouseXY(event);
-    //clickCard = pointedCardID();
-    //if (clickCard >= 0)
-    //    console.log('card ID = ', clickCard);
 
     if (game == null) return;
     switch (game.state) {
@@ -152,10 +148,8 @@ function click_func(event) {
                 Math.floor(player[PLR].hand[player[PLR].selected_handID]/4) == Math.floor(field.card[player[PLR].selected_fieldID]/4)) {
                 // 玩家出牌
                 player_play_card(PLR, player[PLR].selected_handID, player[PLR].selected_fieldID);
-                //console.log(player[PLR].selected_fieldID);
             } else {
                 let tmp = pointedPlayerHandIndex();
-                //console.log(tmp, player[PLR].selected_handID);
                 if (tmp >= 0) {
                     // 選擇另一張手牌
                     player_unselect_hand(player[PLR].selected_handID);
@@ -180,7 +174,7 @@ function click_func(event) {
             koi_button.check_press();
             break;
         case gameState.month_end:
-            restart_button.check_press();
+            next_month_button.check_press();
             break;
         default:
             break;
@@ -188,7 +182,6 @@ function click_func(event) {
 }
 
 function keydown_func(e) {
-    // console.log(e);
     const key = e.key;
     switch (key) {
         case 'r':
@@ -214,7 +207,6 @@ function updateMouseXY(event) {
         mouse.x = (event.clientX - rect.left) / scaleRate;
         mouse.y = (event.clientY - rect.top ) / scaleRate;
     }
-    // console.log('mouseXY:', mouse);
 }
 
 function pointedFieldIndex() {
@@ -235,21 +227,6 @@ function pointedPlayerHandIndex() {
     return -1;
 }
 
-// 回傳滑鼠點到的牌的ID，若無則回傳-1
-function pointedCardID() {
-    if (card == null) return -1;
-    for (const c of card) {
-        if (c.place == cardPlace.deck ||
-            c.place == cardPlace.cpu_hand ||
-            c.place == cardPlace.moving)
-            continue;
-        if (mouse.x >= c.px && mouse.x <= c.px + CARD_W &&
-            mouse.y >= c.py && mouse.y <= c.py + CARD_H)
-            return c.ID;
-    }
-    return -1;
-}
-
 //#endregion
 
 //#region Game & Graph Functions
@@ -261,7 +238,6 @@ function animate(time) {
     // 清除整個canvas畫面
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
-    //console.log(time_func != null);
     if (time_func != null)
         time_func(time);
 
@@ -437,7 +413,6 @@ function easeOutQuad (t, b, c, d) {
 // 回傳結束了沒
 function step_move(cardID, sX, sY, dX, dY, flip = false) {
     return function(time) {
-        //console.log("step move");
         const deltaTime = (time - startTime) / MOVE_TIME;
         if (deltaTime >= 1) {
             card[cardID].px = dX;
@@ -487,17 +462,6 @@ function deal_step(cards, i) {
     }
 }
 
-function debug() {
-    console.log('========== DEBUG ==========',
-                '\ngame:'   , game,
-                '\ncards:'  , card,
-                '\ndeck:'   , deck,
-                '\nfield:'  , field,
-                '\nplayer:' , player[PLR],
-                '\ncpu:'    , player[CPU],
-                '\nmoving:' , movingCard);
-}
-
 function init_game() {
     /* card images */
     for (let i = 0; i < CARD_NUM+1; i++) {
@@ -507,12 +471,13 @@ function init_game() {
 
     /* init game data */
     game = new Game();
+
     /* init UI in game */
     // the size of panel of decide koi
     let w = 400, h = 200;
     koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
-    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, player_win(PLR), 'lightgray');
-    koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, koikoi(PLR), 'lightgray');
+    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win(PLR);}, 'lightgray');
+    koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
     // the size of banner of koi koi
     w = SCREEN_W + 20, h = 100;
     koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 48, null);
@@ -521,7 +486,7 @@ function init_game() {
     yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
     // the size of restart button
     w = 400, h = 50;
-    restart_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '再びプレー', 24, start_month);
+    next_month_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '次の対局へ', 24, start_month);
 }
 
 /* init new game */
@@ -569,7 +534,6 @@ function start_month() {
     // reset game info
     game.reset_month();
     game.first = Number(!game.first);
-    console.log("親権:", (game.first == PLR) ? "Player" : "Computer");
 
     // reset animation
     endAnimation();
@@ -584,7 +548,6 @@ function start_month() {
 function shuffle(deck) {
     let shuffle_end = false;
     while (!shuffle_end) {
-        console.log("shuffle");
         // shuffle
         for (let i = deck.length - 1; i > 0; i--) {
             const r = Math.floor(Math.random() * (i + 1));
@@ -608,21 +571,16 @@ function deal_cards() {
 
     // distribute cards
     let new_card = [[], [], []]; // 0:field, 1:player, 2:cpu
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < 3; j++)
         for (let i = 0; i < HAND_NUM; i++) {
             new_card[j].push(deck.pop());
             movingCard.push(new_card[j][i]);
             card[new_card[j][i]].place = cardPlace.moving;
         }
-    }
 
-    console.log("deal");
     // animation
     startTime = performance.now(); // reset startTime
     time_func = deal_step(new_card, 0);
-
-    // wait for Animation end
-    // setTimeout(after_deal, MOVE_TIME * 10);
 }
 
 function after_deal(new_card) {
@@ -637,9 +595,8 @@ function after_deal(new_card) {
         for (let i = 0; i < HAND_NUM; i++)
             player[CPU].addHand(new_card[CPU + 1][i]);
 
-        // game start
+        // 第一回合開始
         game.round = 0;
-        //game_rounding();
         (game.round % 2 == game.first) ? player_play() : cpu_play();
     }
 }
@@ -658,8 +615,6 @@ function player_play_card(playerID, handID, fieldID) {
     // 從手牌和場上移除handID和fieldID的2張牌
     player[playerID].removeHand(handID);
 
-    if (playerID == PLR)
-        console.log("player play");
     // animation
     startTime = performance.now(); // reset startTime
     movingCard.push(handCardID);
@@ -711,17 +666,15 @@ function after_play(playerID, handCardID, fieldCardID, fieldID = -1) {
 function draw_new_card(playerID) {
     // draw card
     let new_card = deck.pop();
-    console.log("draw ", new_card);
     player[playerID].draw_cardID = new_card;
 
     // show the new card
     card[new_card].back = false;
     card[new_card].place = cardPlace.moving;
     movingCard.push(new_card);
-    //console.log(card[new_card]);
 
     // find the pair card
-    let fieldID, fieldCardID;
+    let fieldID;
     let pairFieldID = [];
     // find if there are pair cards
     for (let i = 0; i < FIELD_SPACE; i++)
@@ -731,19 +684,17 @@ function draw_new_card(playerID) {
     if (pairFieldID.length == 0)
     {
         // find space on field
-        for (let i = 0; i < FIELD_SPACE; i++) {
+        for (let i = 0; i < FIELD_SPACE; i++)
             if (field.card[i] == -1) {
                 fieldID = i;
                 break;
             }
-        }
         draw_card_animation(playerID, new_card, fieldID, -1);
     }
     else if (pairFieldID.length >= 2)
     {
         if (playerID == PLR) {
             // wait for player choose
-            console.log("choose a card");
             game.state = gameState.player_choose_card;
             field.update_noticed(Math.floor(new_card/4));
         } else /* CPU */ {
@@ -765,9 +716,7 @@ function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
 
     if (fieldCardID >= 0) {
         // remove the card from field
-        //console.log("remove from field");
         field.removeCard(fieldID);
-        console.log("pair:", fieldCardID);
     }
     // animation
     startTime = performance.now(); // reset startTime
@@ -781,12 +730,10 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
         endAnimation();
 
         if (fieldCardID != -1) {
-            console.log("put to collect");
             // put to player's collect
             player[playerID].addCollect(new_cardID);
             player[playerID].addCollect(fieldCardID);
         } else {
-            console.log("put to field");
             // put to field
             field.insertCard(fieldID, new_cardID);
         }
@@ -802,29 +749,25 @@ function check_win(playerID) {
     if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
     {
         // end this month
-        if (win) {
-            player_win(playerID)();
-            console.log(playerID==PLR?"player":"cpu","win");
-        } else if (game.koi != -1) {
-            player_win(game.koi)();
-            console.log(game.koi==PLR?"player":"cpu","win");
-        } else {
+        if (win)
+            player_win(playerID);
+        else if (game.koi != -1)
+            player_win(game.koi);
+        else {
             // 親權
             player[game.first].yaku[0] = 1;
             player[game.first].score += yaku_score[0];
-            player_win(game.first)();
-            console.log(game.first==PLR?"player":"cpu","win");
+            player_win(game.first);
         }
     } else if (win) {
         // ask koi koi or not
-        console.log(playerID==PLR?"player":"cpu","get new yaku");
         if (playerID == PLR)
             game.state = gameState.player_decide_koi;
         else {
             if (player[CPU].hand.length > 0 && Math.floor(Math.random() * 2))
-                koikoi(CPU)();
+                koikoi(CPU);
             else
-                player_win(CPU)();
+                player_win(CPU);
         }
     } else {
         // next round
@@ -834,11 +777,9 @@ function check_win(playerID) {
 }
 
 function player_win(playerID) {
-    return function () {
-        game.winner = playerID;
-        game.state = gameState.month_end;
-        player[playerID].money += player[playerID].score * (game.koi_bouns ? player[playerID].koi_time+1 : 1);
-    }
+    game.winner = playerID;
+    game.state = gameState.month_end;
+    player[playerID].money += player[playerID].score * (game.koi_bouns ? player[playerID].koi_time+1 : 1);
 }
 
 function draw_decide_koi() {
@@ -860,22 +801,18 @@ function draw_decide_koi() {
 }
 
 function koikoi(playerID) {
-    return function() {
-        console.log(playerID==PLR?"player":"cpu","koi koi");
+    game.state = gameState.koikoi_animation;
+    game.koi = playerID;
+    player[playerID].koi_time++;
 
-        game.state = gameState.koikoi_animation;
-        game.koi = playerID;
-        player[playerID].koi_time++;
-
-        // animation
-        startTime = performance.now();
-        time_func = koi_step();
-        next_func = function (time) {
-            endAnimation();
-            // next round
-            game.round++;
-            (game.round % 2 == game.first) ? player_play() : cpu_play();
-        }
+    // animation
+    startTime = performance.now();
+    time_func = koi_step();
+    next_func = function (time) {
+        endAnimation();
+        // next round
+        game.round++;
+        (game.round % 2 == game.first) ? player_play() : cpu_play();
     }
 }
 
@@ -962,16 +899,12 @@ function draw_show_yaku() {
     }
 
     // draw restart button
-    restart_button.draw();
+    next_month_button.draw();
 }
 
 /* AI的回合 */
 function cpu_play() {
     game.state = gameState.cpu_play;
-
-    //console.log(player[CPU]);
-    //console.log(field);
-    //console.log("cpu_play");
 
     // 找出所有可以出的牌與對應的場牌
     // 找到價值最高的
@@ -1008,8 +941,6 @@ function cpu_play() {
                 break;
             }
     }
-
-    console.log("cpu play: ", player[CPU].hand[player[CPU].selected_handID], ", ", field.card[player[CPU].selected_fieldID]);
     
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
 }
@@ -1115,12 +1046,11 @@ class Player {
                 this.noticed[i] = false;
                 card[this.hand[i]].noticed = false;
             }
-        for (const arr of this.collect) {
+        for (const arr of this.collect)
             for (const c of arr) {
                 card[c].noticed = false;
                 card[c].back = false;
             }
-        }
     }
 
     update_card_info() {
@@ -1136,7 +1066,7 @@ class Player {
             card[this.hand[i]].back = (!game.op && this.ID == CPU);
         }
         // update collected card px, py
-        for (let i = 0; i < this.collect.length; i++) {
+        for (let i = 0; i < this.collect.length; i++)
             for (let j = 0; j < this.collect[i].length; j++) {
                 if (i < this.collect.length / 2)
                     card[this.collect[i][j]].px = SCREEN_W - (CARD_W+CARD_GAP*2) - (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
@@ -1154,7 +1084,6 @@ class Player {
                         card[this.collect[i][j]].py = CARD_GAP;
                 }
             }
-        }
     }
 
     pointedCollectIndex() {
@@ -1257,13 +1186,10 @@ class Field {
     update_noticed(month) {
         for (let i = 0; i < FIELD_SPACE; i++) {
             if (this.card[i] < 0) continue;
-            if (Math.floor(this.card[i] / 4) == month){
-                //this.noticed[i] = true;
+            if (Math.floor(this.card[i] / 4) == month)
                 card[this.card[i]].noticed = true;
-            } else {
-                //this.noticed[i] = false;
+            else
                 card[this.card[i]].noticed = false;
-            }
         }
     }
 
