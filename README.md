@@ -10,6 +10,8 @@
 
 `left mouse` : press buttons & play cards
 
+`right mouse` : show menu
+
 `r` : resize the screen
 
 ## Rules
@@ -76,13 +78,13 @@
 | タネ | 得到5張任意種牌，每多獲得1張種牌結算時分數+1 | 1（+1） |
 | 短冊 | 得到5張短冊牌，每多獲得1張短冊牌結算時分數+1 | 1（+1） |
 | カス | 得到10張粕（滓）牌，每多獲得1張粕牌結算時分數+1 | 1（+1） |
-| 月札 | 僅用於12月玩法，收集到當月的4張牌 | 4 |
+| 月札 | 收集到當月的4張牌 | 4 |
 | 親権 | 雙方牌出完卻都沒有湊成役時，「親」得6文 | 6 |
 | ~~手四~~ | 一開始時手牌中即持有一個月份中的四張牌 | 6 |
 | ~~喰付~~ | 一開始時手牌中即持有四個月各2張牌 | 6 |
 
 ## Sources
 
-The font Yuji Syuku is is licensed under the SIL Open Font License, Version 1.1., sourced from https://github.com/Kinutafontfactory/Yuji.
+The font `Yuji Syuku` is is licensed under the SIL Open Font License, Version 1.1., sourced from https://github.com/Kinutafontfactory/Yuji.
 
 The images in `imgs` are licensed under the [Creative Commons](https://en.wikipedia.org/wiki/en:Creative_Commons) [Attribution-Share Alike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/deed.en) license （CC BY-SA 4.0） by [Louie Mantia](https://commons.wikimedia.org/wiki/User:Louiemantia), sourced from https://en.wikipedia.org/wiki/Sakura_(card_game).
