@@ -69,10 +69,9 @@ let canvas;
 let context;
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
 let menu; // right click menu
-const loadingOrder = [48,0,4,8,12,16,20,24,28,32,36,40,44,1,2,3,5,6,7,9,10,11,13,14,15,17,18,19,21,22,23,25,26,27,29,30,31,33,34,35,37,38,39,41,42,43,45,46,47];
 let cardImg = new Array(CARD_NUM+1);
 for (let i = 0; i < CARD_NUM+1; i++)
-    cardImg[loadingOrder[i]] = new Image();
+    cardImg[i] = new Image();
 
 /* game variables */
 let card; // the card objs

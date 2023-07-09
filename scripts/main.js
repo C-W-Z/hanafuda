@@ -269,7 +269,7 @@ function init_game() {
 
     /* Card Imgs */
     for (let i = 0; i < CARD_NUM+1; i++)
-        cardImg[loadingOrder[i]].src = `imgs/${i}.webp`;
+        cardImg[i].src = `imgs/${i}.webp`;
 
     /* init game data */
     game = new Game();
