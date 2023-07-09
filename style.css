@@ -8,7 +8,7 @@
 
 html {
     font-family: 'Yuji Syuku', 'Microsoft YaHei', sans-serif;
-    font-size: 22px;
+    font-size: 20px;
 }
 
 body {
@@ -27,4 +27,30 @@ canvas {
 	background-size: cover;
     border-radius: 5px;
     box-shadow: 0 0 5px 2px;
+}
+
+#menu{
+    display: none;
+    width: fit-content;
+    height: fit-content;
+    overflow: hidden;
+    position: absolute;
+    border-radius: 5px;
+    background: white;
+}
+.menu{
+    display: block;
+    width: 100%;
+    height: fit-content;
+    padding: 5px 10px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 0;
+    font-family: 'Microsoft YaHei', sans-serif;
+    font-size: 16px;
+}
+.menu:hover {
+    background: #ccc;
+    cursor: pointer;
 }

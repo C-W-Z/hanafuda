@@ -58,6 +58,7 @@ let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
+let menu; // right click menu
 let cardImg = new Array();
 
 /* game variables */

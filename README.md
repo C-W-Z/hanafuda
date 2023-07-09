@@ -10,6 +10,8 @@
 
 `left mouse` : press buttons & play cards
 
+`right mouse` : show menu
+
 `r` : resize the screen
 
 ## Rules

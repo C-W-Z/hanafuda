@@ -11,28 +11,41 @@ window.onload = function()
 {
     /* get canvas */
     canvas = document.getElementById('canvas');
-    R = window.devicePixelRatio;
-    canvas.width = SCREEN_W * R;
-    canvas.height = SCREEN_H * R;
-    // auto adaptive size by height
-    scaleRate = self.innerHeight / SCREEN_H;
-    canvas.style.width = SCREEN_W * scaleRate + 'px';
-    canvas.style.height = SCREEN_H * scaleRate + 'px';
     context = canvas.getContext('2d');
-    // text settings
-    context.textAlign = "center";
-    context.textBaseline = 'middle';
+    resize();
     // control settings
     canvas.onmousedown = click_func;
     document.addEventListener('keydown', keydown_func);
+    // right click menu
+    menu = document.getElementById("menu");
+    document.getElementById('resize').onclick = resize;
+    window.oncontextmenu = right_click_menu;
 
     init_game();
     animate(startTime);
 }
 
+/* 自訂右鍵選單 */
+function right_click_menu(e) {
+    // cancel default menu
+    e.preventDefault();
+
+    // move menu to mouse
+    menu.style.left = e.clientX + 'px';
+    menu.style.top  = e.clientY + 'px';
+
+    // show
+    menu.style.display='block';
+}
+
 function click_func(event) {
-    /* must be left click */
-    if (event.button != 0) return;
+    /* not right click */
+    if (event.button != 2)
+        menu.style.display = 'none'; // hide right click menu
+    /* not left click */
+    if (event.button != 0)
+        return;
+
     updateMouseXY(event);
 
     if (game == null) return;
@@ -95,21 +108,26 @@ function keydown_func(e) {
     const key = e.key;
     switch (key) {
         case 'r':
-            /* resize screen */
-            R = window.devicePixelRatio;
-            canvas.width = SCREEN_W * R;
-            canvas.height = SCREEN_H * R;
-            // auto adaptive size by height
-            scaleRate = self.innerHeight / SCREEN_H;
-            canvas.style.width = SCREEN_W * scaleRate + 'px';
-            canvas.style.height = SCREEN_H * scaleRate + 'px';
-            context.textAlign = "center";
-            context.textBaseline = 'middle';
+            resize();
             break;
 
         default:
             break;
     }
+}
+
+/* resize screen */
+function resize() {
+    R = window.devicePixelRatio;
+    canvas.width = SCREEN_W * R;
+    canvas.height = SCREEN_H * R;
+    // auto adaptive size by height
+    scaleRate = self.innerHeight / SCREEN_H;
+    canvas.style.width = SCREEN_W * scaleRate + 'px';
+    canvas.style.height = SCREEN_H * scaleRate + 'px';
+    // fix text position
+    context.textAlign = "center";
+    context.textBaseline = 'middle';
 }
 
 // get mouse coorfinates
