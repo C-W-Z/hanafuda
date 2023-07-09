@@ -22,6 +22,8 @@ window.onload = function()
     window.oncontextmenu = right_click_menu;
     window.onclick = hide_menu;
     window.addEventListener('resize', resize_menu);
+    // set menu options
+    document.getElementById("resize").onclick = resize_canvas;
 
     /* load Data */
     data = new Data();
