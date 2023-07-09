@@ -13,7 +13,7 @@ class Data {
         this.battleTime = [0,0,0,0,0,0,0,0,0,0,0,0]; // 對戰回數 [1~12月]
         this.totalMonth = 0; // 總對局數
         this.maxTotalMoney = [0,0,0,0,0,0,0,0,0,0,0,0]; // 最高獲得總文數 [1~12月]
-        this.maxMoney = 0; // 最高獲得文數(單月) [PLR, CPU]
+        this.maxMoneyMonth = 0; // 最高獲得文數(單月) [PLR, CPU]
         this.totalMoney = 0; // 累計獲得文數 [PLR, CPU]
         // 平均獲得文數 = totalMoney / totalMonth
         this.totalWin = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 勝利數 [PLR, CPU][1~12月]
@@ -71,10 +71,10 @@ class Card {
 
     draw_large() {
         context.drawImage(cardImg[(this.back ? CARD_BACK_ID : this.ID)],
-                         (this.px + (1 - this.scaleX) * CARD_SHOW_W / 2) * R,
+                         (this.px + (1 - this.scaleX) * CARD_LARGE_W / 2) * R,
                           this.py * R,
-                          CARD_SHOW_W * this.scaleX * R,
-                          CARD_SHOW_H * R);
+                          CARD_LARGE_W * this.scaleX * R,
+                          CARD_LARGE_H * R);
     }
 }
 

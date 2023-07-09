@@ -355,10 +355,10 @@ function start_guess() {
     shuffle(month);
     guess_card[0] = new Card(month[0] * 4);
     guess_card[1] = new Card(month[11] * 4);
-    guess_card[0].px = SCREEN_W/2 - CARD_SHOW_W * 2;
-    guess_card[0].py = SCREEN_H/2-CARD_SHOW_H/2;
-    guess_card[1].px = SCREEN_W/2 + CARD_SHOW_W;
-    guess_card[1].py = SCREEN_H/2-CARD_SHOW_H/2;
+    guess_card[0].px = SCREEN_W/2 - CARD_LARGE_W * 2;
+    guess_card[0].py = SCREEN_H/2-CARD_LARGE_H/2;
+    guess_card[1].px = SCREEN_W/2 + CARD_LARGE_W;
+    guess_card[1].py = SCREEN_H/2-CARD_LARGE_H/2;
     guess_text = '札を一枚選んでください';
 
     canvas.onmousedown = guess_click_func;
@@ -370,25 +370,25 @@ function draw_guess_card() {
 
     context.fillStyle = 'black';
     context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_SHOW_H/2 - 36) * R);
+    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_LARGE_H/2 - 36) * R);
 }
 
 function pointedGuessIndex() {
-    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_LARGE_H)
         return 0;
-    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_LARGE_H)
         return 1;
     return -1;
 }
 
 function check_guess_result(mouse) {
-    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_LARGE_H)
         return (guess_card[0].ID < guess_card[1].ID);
-    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_LARGE_H)
         return (guess_card[1].ID < guess_card[0].ID);
     return false;
 }
@@ -418,8 +418,8 @@ function guess_click_func(e) {
             /* draw month under the two guess cards */
             context.fillStyle = 'black';
             context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_SHOW_W/2) * R, (guess_card[0].py + CARD_SHOW_H + 36) * R);
-            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_SHOW_W/2) * R, (guess_card[1].py + CARD_SHOW_H + 36) * R);
+            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_LARGE_W/2) * R, (guess_card[0].py + CARD_LARGE_H + 36) * R);
+            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_LARGE_W/2) * R, (guess_card[1].py + CARD_LARGE_H + 36) * R);
             
             if (time - startTime >= GUESS_WAIT) {
                 startTime = null;

@@ -313,7 +313,7 @@ function player_win_month(playerID) {
     // update data
     if (game.koi == playerID)
         data.koiSucessTime[playerID]++;
-    data.maxMoney = Math.max(data.maxMoney, player[PLR].money[game.month-1]);
+    data.maxMoneyMonth = Math.max(data.maxMoneyMonth, player[PLR].money[game.month-1]);
     data.totalMoney += player[PLR].money[game.month-1];
     data.totalWinMonth[playerID]++;
     // 連勝月
@@ -481,6 +481,9 @@ function result_game() {
         data.totalLastWin[game.winner] = 1;
         data.totalLastWin[Number(!game.winner)] = 0;
     }
+
+    // store data
+    data.store();
 }
 
 function draw_game_result() {
