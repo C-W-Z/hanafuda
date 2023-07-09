@@ -273,7 +273,7 @@ function init_game() {
     for (let i = 0; i < CARD_NUM+1; i++)
         cardImg[i].src = `imgs/${i}.webp`;
 
-    /* init game data */
+    /* init game obj */
     game = new Game();
 
     /* init UI in game */
@@ -285,7 +285,7 @@ function init_game() {
     // the size of panel of decide koi
     w = 400, h = 200;
     koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
-    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win(PLR);}, 'lightgray');
+    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win_month(PLR);}, 'lightgray');
     koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
     // the size of banner of koi koi
     w = SCREEN_W + 20, h = 100;
@@ -327,10 +327,12 @@ function start_game() {
     month_panel = new Button(5, SCREEN_H/2-h/2, w, h, 5);
     month_panel.vertical = true;
 
+    // update data
+    data.battleTime[game.MAXMONTH-1]++;
+
     /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
     choose_first();
-    game.first = Math.floor(Math.random() * 2);
 }
 
 function choose_first() {
@@ -451,35 +453,3 @@ function flip_guess_card(i) {
 }
 
 //#endregion
-
-function start_month() {
-    /* init month */
-    // init deck
-    deck = new Array(CARD_NUM);
-    for (let i = 0; i < CARD_NUM; i++)
-        deck[i] = i;
-
-    // reset cards
-    for (let i = 0; i < CARD_NUM; i++)
-        card[i].reset_month();
-    
-    // reset field
-    field.reset_month();;
-
-    // reset players
-    player[PLR].reset_month();
-    player[CPU].reset_month();
-
-    // reset game info
-    game.reset_month();
-    game.month++;
-    game.first = Number(!game.first);
-
-    // reset animation
-    endAnimation();
-
-    // shuffle
-    shuffle(deck);
-    // 發牌
-    deal_cards(game.first);
-}

@@ -1,3 +1,38 @@
+function start_month() {
+    /* init month */
+    // init deck
+    deck = new Array(CARD_NUM);
+    for (let i = 0; i < CARD_NUM; i++)
+        deck[i] = i;
+
+    // reset cards
+    for (let i = 0; i < CARD_NUM; i++)
+        card[i].reset_month();
+    
+    // reset field
+    field.reset_month();;
+
+    // reset players
+    player[PLR].reset_month();
+    player[CPU].reset_month();
+
+    // reset game info
+    game.reset_month();
+    game.month++;
+    game.first = Number(!game.first);
+
+    // reset animation
+    endAnimation();
+
+    // update data
+    data.totalMonth++;
+
+    // shuffle
+    shuffle(deck);
+    // 發牌
+    deal_cards(game.first);
+}
+
 function pointedFieldIndex() {
     if (card == null) return -1;
     for (let i = 0; i < FIELD_SPACE; i++)
@@ -227,28 +262,24 @@ function check_win(playerID) {
     {
         // end this month
         if (win)
-            player_win(playerID);
+            player_win_month(playerID);
         else if (game.koi != -1)
-            player_win(game.koi);
+            player_win_month(game.koi);
         else {
             // 親權
             player[game.first].yaku[0] = 1;
             player[game.first].score += yaku_score[0];
-            player_win(game.first);
+            player_win_month(game.first);
         }
     } else if (win) {
         // 若是最後一回合 => 強制結束
         if (player[playerID].hand.length == 0)
-            player_win(playerID);
+            player_win_month(playerID);
         // ask koi koi or not
         else if (playerID == PLR)
-            game.state = gameState.player_decide_koi;
-        else {
-            if (Math.floor(Math.random() * 2))
-                koikoi(CPU);
-            else
-                player_win(CPU);
-        }
+            start_ask_koikoi();
+        else // CPU
+            cpu_decide_koi();
     } else {
         // next round
         game.round++;
@@ -256,11 +287,47 @@ function check_win(playerID) {
     }
 }
 
-function player_win(playerID) {
+function start_ask_koikoi() {
+    // update data
+    data.canKoiTime[PLR]++;
+    // start draw UI
+    game.state = gameState.player_decide_koi;
+}
+
+function cpu_decide_koi() {
+    // update data
+    data.canKoiTime[CPU]++;
+
+    if (Math.floor(Math.random() * 2))
+        koikoi(CPU);
+    else
+        player_win_month(CPU);
+}
+
+function player_win_month(playerID) {
     game.winner = playerID;
     game.state = gameState.month_end;
     player[playerID].money[game.month-1] = player[playerID].score * (game.koi_bouns ? player[playerID].koi_time+1 : 1);
     player[playerID].total_money += player[playerID].money[game.month-1];
+
+    // update data
+    if (game.koi == playerID)
+        data.koiSucessTime[playerID]++;
+    data.maxMoney = Math.max(data.maxMoney, player[PLR].money[game.month-1]);
+    data.totalMoney += player[PLR].money[game.month-1];
+    data.totalWinMonth[playerID]++;
+    // 連勝月
+    if (data.lastWinMonth[playerID] > 0) {
+        data.lastWinMonth[playerID]++;
+        data.maxStreakMonth[playerID] = Math.max(data.lastWinMonth[playerID], data.maxStreakMonth[playerID]);
+    } else {
+        data.lastWinMonth[playerID] = 1;
+        data.lastWinMonth[Number(!playerID)] = 0;
+    }
+    // yaku
+    for (let i = 0; i < YAKU_NUM; i++)
+        if (player[playerID].yaku[i] > 0)
+            data.yakuTime[i]++;
 }
 
 function draw_decide_koi() {
@@ -282,6 +349,11 @@ function draw_decide_koi() {
 }
 
 function koikoi(playerID) {
+    // update data
+    data.totalKoiTime[playerID]++;
+    if (game.koi == playerID)
+        data.koiSucessTime[playerID]++;
+
     game.state = gameState.koikoi_animation;
     game.koi = playerID;
     player[playerID].koi_time++;
@@ -387,7 +459,28 @@ function draw_show_yaku() {
 }
 
 function result_game() {
+    game.winner = (player[PLR].total_money > player[CPU].total_money) ? PLR : CPU;
     game.state = gameState.game_result;
+
+    // update data
+    data.maxTotalMoney[game.MAXMONTH-1] = Math.max(player[PLR].total_money, data.maxTotalMoney[game.MAXMONTH-1]);
+    data.totalWin[game.winner][game.MAXMONTH-1]++;
+    // data.maxStreak
+    // 對戰連勝
+    if (data.lastWin[game.winner][game.MAXMONTH-1] > 0) {
+        data.lastWin[game.winner][game.MAXMONTH-1]++;
+        data.maxStreak[game.winner][game.MAXMONTH-1] = Math.max(data.lastWin[game.winner][game.MAXMONTH-1], data.maxStreak[game.winner][game.MAXMONTH-1]);
+    } else {
+        data.lastWin[game.winner][game.MAXMONTH-1] = 1;
+        data.lastWin[Number(!game.winner)][game.MAXMONTH-1] = 0;
+    }
+    if (data.totalLastWin[game.winner] > 0) {
+        data.totalLastWin[game.winner]++;
+        data.maxTotalStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.maxTotalStreak[game.winner]);
+    } else {
+        data.totalLastWin[game.winner] = 1;
+        data.totalLastWin[Number(!game.winner)] = 0;
+    }
 }
 
 function draw_game_result() {
@@ -398,7 +491,7 @@ function draw_game_result() {
     context.fillStyle = 'white';
     const fontsize = 32;
     context.font = fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    const text = (player[PLR].total_money > player[CPU].total_money) ? '勝利' : '敗北';
+    const text = (game.winner == PLR) ? '勝利' : '敗北';
     const title_h = 100;
     context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
 

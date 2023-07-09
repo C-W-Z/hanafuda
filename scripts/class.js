@@ -10,18 +10,22 @@ class Data {
     }
 
     init() {
-        this.battleTime = [0, 0, 0, 0]; // 對戰回數(1/3/6/12月玩法)
+        this.battleTime = [0,0,0,0,0,0,0,0,0,0,0,0]; // 對戰回數 [1~12月]
         this.totalMonth = 0; // 總對局數
-        this.maxTotalMoney = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 最高獲得總文數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
-        this.maxMoney = [0, 0]; // 最高獲得文數(單月) [PLR, CPU]
-        this.totalMoney = [0, 0]; // 累計獲得文數 [PLR, CPU]
+        this.maxTotalMoney = [0,0,0,0,0,0,0,0,0,0,0,0]; // 最高獲得總文數 [1~12月]
+        this.maxMoney = 0; // 最高獲得文數(單月) [PLR, CPU]
+        this.totalMoney = 0; // 累計獲得文數 [PLR, CPU]
         // 平均獲得文數 = totalMoney / totalMonth
-        this.totalWin = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 勝利數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        this.totalWin = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 勝利數 [PLR, CPU][1~12月]
         // 平手數[1/3/6/12月] = battleTime[i] - totalWin[PLR][i] - totalWin[CPU][i];
         // 勝率 = totalWin[PLR][i] / battleTime[i];
         this.totalWinMonth = [0, 0]; // 單月勝利數 [PLR, CPU]
         // 勝率(月) = totalWinMonth[PLR] / totalMonth;
-        this.maxStreak = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 最大連勝數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        this.totalLastWin = [0, 0]; // 目前對戰連勝數 (不分幾月玩法) [PLR, CPU]
+        this.lastWin = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 目前對戰連勝數[PLR, CPU][1~12月]
+        this.lastWinMonth = [0, 0]; // 目前單月連勝數 [PLR, CPU]
+        this.maxTotalStreak = [0, 0]; // 不分幾月玩法的連勝數 [PLR, CPU]
+        this.maxStreak = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 最大連勝數 [PLR, CPU][1~12月]
         this.maxStreakMonth = [0, 0]; // 最大連勝月數 [PLR, CPU]
         this.canKoiTime = [0, 0]; // 可以Koi Koi的次數(除了最後一回合之外組成役的次數) [PLR, CPU]
         this.totalKoiTime = [0, 0]; // koikoi總次數 [PLR, CPU]
