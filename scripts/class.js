@@ -1,3 +1,46 @@
+class Data {
+    constructor() {
+        const obj = localStorage.getItem('Data');
+        if (!obj) {
+            this.init();
+            this.store();
+        } else {
+            Object.assign(this, JSON.parse(obj));
+        }
+    }
+
+    init() {
+        this.battleTime = [0, 0, 0, 0]; // 對戰回數(1/3/6/12月玩法)
+        this.totalMonth = 0; // 總對局數
+        this.maxTotalMoney = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 最高獲得總文數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        this.maxMoney = [0, 0]; // 最高獲得文數(單月) [PLR, CPU]
+        this.totalMoney = [0, 0]; // 累計獲得文數 [PLR, CPU]
+        // 平均獲得文數 = totalMoney / totalMonth
+        this.totalWin = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 勝利數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        // 平手數[1/3/6/12月] = battleTime[i] - totalWin[PLR][i] - totalWin[CPU][i];
+        // 勝率 = totalWin[PLR][i] / battleTime[i];
+        this.totalWinMonth = [0, 0]; // 單月勝利數 [PLR, CPU]
+        // 勝率(月) = totalWinMonth[PLR] / totalMonth;
+        this.maxStreak = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 最大連勝數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        this.maxStreakMonth = [0, 0]; // 最大連勝月數 [PLR, CPU]
+        this.canKoiTime = [0, 0]; // 可以Koi Koi的次數(除了最後一回合之外組成役的次數) [PLR, CPU]
+        this.totalKoiTime = [0, 0]; // koikoi總次數 [PLR, CPU]
+        this.koiSucessTime = [0, 0]; // koikoi之後又組成役的總次數(包括親權)
+        // Koi Koi 率 = totalKoiTime / canKoiTime
+        // Koi Koi 成功率 = koiSucessTime / totalKoiTime
+
+        // 組成yaku的次數(不論輸贏)(カス,短冊,タネ一月中最多只算一次) 參考yaku_name
+        this.yakuTime = new Array(YAKU_NUM);
+        for (let i = 0; i <  this.yakuTime.length; i++)
+            this.yakuTime[i] = 0;
+        // 出現率 = yakuTime[i] / totalMonth
+    }
+
+    store() {
+        localStorage.setItem('Data', JSON.stringify(this));
+    }
+}
+
 class Card {
     constructor(ID) {
         this.ID = ID;
@@ -20,6 +63,14 @@ class Card {
                   (this.selected ? this.py - 20 : this.py),
                   (this.back ? false : this.noticed),
                    this.scaleX);
+    }
+
+    draw_large() {
+        context.drawImage(cardImg[(this.back ? CARD_BACK_ID : this.ID)],
+                         (this.px + (1 - this.scaleX) * CARD_SHOW_W / 2) * R,
+                          this.py * R,
+                          CARD_SHOW_W * this.scaleX * R,
+                          CARD_SHOW_H * R);
     }
 }
 
@@ -171,21 +222,22 @@ class Player {
             }
         }
 
-        if (dross              >= 10) now_yaku[ 1] += dross  - 9; // カス
-        if (ribbon             >= 5 ) now_yaku[ 2] += ribbon - 4; // 短冊
-        if (seed               >= 5 ) now_yaku[ 3] += seed   - 4; // タネ
-        if (aotan              == 3 ) now_yaku[ 4] += 1; // 青短
-        if (akatan             == 3 ) now_yaku[ 5] += 1; // 赤短
-        if (inoshikacho        == 3 ) now_yaku[ 6] += 1; // 猪鹿蝶
-        if (light == 3 && rain == 0 ) now_yaku[ 7] += 1; // 三光
-        if (light == 4 && rain == 1 ) now_yaku[ 8] += 1; // 雨四光
-        if (light == 4 && rain == 0 ) now_yaku[ 9] += 1; // 四光
-        if (light              == 5 ) now_yaku[10] += 1; // 五光
-        if (game.month_yaku       && getsusatsu                     == 4) now_yaku[11]++; // 月札
-        if (game.flower_sake      && hanamideippai                  == 2) now_yaku[12]++; // 花見で一杯
-        if (game.moon_sake        && tsukimideippai                 == 2) now_yaku[13]++; // 月見で一杯
-		if (game.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[14]++; // 飲み
-		if (game.grass            && kusa                           == 3) now_yaku[15]++; // 草
+        yaku_name;
+        if (light              == 5 ) now_yaku[ 1] += 1; // 五光
+        if (light == 4 && rain == 0 ) now_yaku[ 2] += 1; // 四光
+        if (light == 4 && rain == 1 ) now_yaku[ 3] += 1; // 雨四光
+        if (light == 3 && rain == 0 ) now_yaku[ 4] += 1; // 三光
+        if (game.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 5]++; // 飲み
+        if (game.flower_sake      && hanamideippai                  == 2) now_yaku[ 6]++; // 花見で一杯
+        if (game.moon_sake        && tsukimideippai                 == 2) now_yaku[ 7]++; // 月見で一杯
+        if (inoshikacho        == 3 ) now_yaku[ 8] += 1; // 猪鹿蝶
+        if (akatan             == 3 ) now_yaku[ 9] += 1; // 赤短
+        if (aotan              == 3 ) now_yaku[10] += 1; // 青短
+        if (game.grass            && kusa                           == 3) now_yaku[11]++; // 草
+        if (game.month_yaku       && getsusatsu                     == 4) now_yaku[12]++; // 月札
+        if (dross              >= 10) now_yaku[13] += dross  - 9; // カス
+        if (ribbon             >= 5 ) now_yaku[14] += ribbon - 4; // 短冊
+        if (seed               >= 5 ) now_yaku[15] += seed   - 4; // タネ
 
         this.score = 0;
         let get_new_yaku = false;
@@ -318,6 +370,7 @@ class Button {
         this.borderColor = bordercolor;
         this.fillColor = fillcolor;
         this.textColor = textcolor;
+        this.vertical = false;
     }
 
     draw() {
@@ -328,7 +381,11 @@ class Button {
         if (this.fontsize > 0 || text != '') {
             context.fillStyle = this.textColor;
             context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-            context.fillText(this.text, (this.x + this.w/2) * R, (this.y + this.h/2) * R);
+            if (this.vertical)
+                for (let i = 0; i < this.text.length; i++)
+                    context.fillText(this.text[i], (this.x + this.w/2) * R, (this.y + this.h/2 + (i + 0.5 - this.text.length/2) * this.fontsize) * R);
+            else
+                context.fillText(this.text, (this.x + this.w/2) * R, (this.y + this.h/2) * R);
         }
         if (this.borderColor != '') {
             context.lineWidth = 3 * R;

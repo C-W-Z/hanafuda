@@ -11,34 +11,57 @@ window.onload = function()
 {
     /* get canvas */
     canvas = document.getElementById('canvas');
-    R = window.devicePixelRatio;
-    canvas.width = SCREEN_W * R;
-    canvas.height = SCREEN_H * R;
-    // auto adaptive size by height
-    scaleRate = self.innerHeight / SCREEN_H;
-    canvas.style.width = SCREEN_W * scaleRate + 'px';
-    canvas.style.height = SCREEN_H * scaleRate + 'px';
     context = canvas.getContext('2d');
-    // text settings
-    context.textAlign = "center";
-    context.textBaseline = 'middle';
+    resize_canvas();
     // control settings
     canvas.onmousedown = click_func;
     document.addEventListener('keydown', keydown_func);
+    // right click menu
+    menu = document.getElementById("menu");
+    resize_menu();
+    window.oncontextmenu = right_click_menu;
+    window.onclick = hide_menu;
+    window.addEventListener('resize', resize_menu);
+
+    /* load Data */
+    data = new Data();
 
     init_game();
     animate(startTime);
 }
 
+/* 自訂右鍵選單 */
+function right_click_menu(e) {
+    // cancel default menu
+    e.preventDefault();
+    // move menu to mouse
+    menu.style.left = 100 * e.clientX / self.innerWidth + '%';
+    menu.style.top = 100 * e.clientY / self.innerHeight + '%';
+    // show
+    menu.style.display='block';
+}
+
+function hide_menu(e) {
+    /* not right click */
+    if (e.button != 2)
+        menu.style.display = 'none'; // hide right click menu
+}
+
+function resize_menu() {
+    const ratio = originR / window.devicePixelRatio;
+    menu.style.fontSize = 16 * ratio + 'px';
+}
+
 function click_func(event) {
-    /* must be left click */
-    if (event.button != 0) return;
+    /* not left click */
+    if (event.button != 0)
+        return;
+
     updateMouseXY(event);
 
     if (game == null) return;
     switch (game.state) {
         case gameState.title:
-            game.state = gameState.start;
             start_game();
             break;
         case gameState.player_select_hand:
@@ -95,21 +118,26 @@ function keydown_func(e) {
     const key = e.key;
     switch (key) {
         case 'r':
-            /* resize screen */
-            R = window.devicePixelRatio;
-            canvas.width = SCREEN_W * R;
-            canvas.height = SCREEN_H * R;
-            // auto adaptive size by height
-            scaleRate = self.innerHeight / SCREEN_H;
-            canvas.style.width = SCREEN_W * scaleRate + 'px';
-            canvas.style.height = SCREEN_H * scaleRate + 'px';
-            context.textAlign = "center";
-            context.textBaseline = 'middle';
+            resize_canvas();
             break;
 
         default:
             break;
     }
+}
+
+/* resize canvas */
+function resize_canvas() {
+    R = window.devicePixelRatio;
+    canvas.width = SCREEN_W * R;
+    canvas.height = SCREEN_H * R;
+    // auto adaptive size by height
+    scaleRate = self.innerHeight / SCREEN_H;
+    canvas.style.width = SCREEN_W * scaleRate + 'px';
+    canvas.style.height = SCREEN_H * scaleRate + 'px';
+    // fix text position
+    context.textAlign = "center";
+    context.textBaseline = 'middle';
 }
 
 // get mouse coorfinates
@@ -119,24 +147,6 @@ function updateMouseXY(event) {
         mouse.x = (event.clientX - rect.left) / scaleRate;
         mouse.y = (event.clientY - rect.top ) / scaleRate;
     }
-}
-
-function pointedFieldIndex() {
-    if (card == null) return -1;
-    for (let i = 0; i < FIELD_SPACE; i++)
-        if (mouse.x >= Field.X(i) && mouse.x <= Field.X(i) + CARD_W &&
-            mouse.y >= Field.Y(i) && mouse.y <= Field.Y(i) + CARD_H)
-            return i;
-    return -1;
-}
-
-function pointedPlayerHandIndex() {
-    if (card == null) return -1;
-    for (let i = 0; i < player[PLR].hand.length; i++)
-        if (mouse.x >= card[player[PLR].hand[i]].px && mouse.x <= card[player[PLR].hand[i]].px + CARD_W &&
-            mouse.y >= card[player[PLR].hand[i]].py && mouse.y <= card[player[PLR].hand[i]].py + CARD_H)
-            return i;
-    return -1;
 }
 
 function animate(time) {
@@ -150,7 +160,9 @@ function animate(time) {
         time_func(time);
 
     // 重畫整個畫面
-    if (game.state == gameState.title)
+    if (guessing)
+        draw_guess_card();
+    else if (game.state == gameState.title)
         draw_title();
     else
         draw_gaming();
@@ -159,7 +171,6 @@ function animate(time) {
 }
 
 function draw_title() {
-    context.textAlign = "center";
     context.fillStyle = 'rgb(0,0,0)';
     context.font = 108 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText("花札", SCREEN_W/2 * R, (SCREEN_H/2 - 108/2) * R);
@@ -209,21 +220,11 @@ function draw_gaming() {
     
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     // 幾月
-    context.lineWidth = 2 * R;
-    context.fillStyle = 'black';
-    context.strokeStyle = 'black';
-    if (game.MAXMONTH >= 10)
-        context.fillText(NUMBER[10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*3 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText(NUMBER[game.MAXMONTH%10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText("月"                 , (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (1+0.5))) * R);
-    context.strokeRect(0, (SCREEN_H/2 - FONT_SIZE*3) * R, (FONT_SIZE+2) * R, (FONT_SIZE*3) * R);
-    // 幾戰目
-    if (game.month >= 10)
-        context.fillText(NUMBER[10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText(NUMBER[game.month%10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (1+0.5))) * R);
-    context.fillText("戦"              , (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (2+0.5))) * R);
-    context.fillText("目"              , (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (3+0.5))) * R);
-    context.strokeRect(0, SCREEN_H/2 * R, (FONT_SIZE+2) * R, (FONT_SIZE * 4) * R);
+    if (game.month_yaku)
+        month_panel.text = `${NUMBER[game.month]}月` + ` ${tuki_name[game.month-1]}`;
+    else
+        month_panel.text = `${NUMBER[game.month]}月`;
+    month_panel.draw();
 
     // 親
     const circleY = (game.first == CPU) ? 30 : SCREEN_H - 30;
@@ -264,6 +265,8 @@ function draw_gaming() {
 }
 
 function init_game() {
+    guessing = false;
+
     /* Card Imgs */
     for (let i = 0; i < CARD_NUM+1; i++) {
         cardImg[i] = new Image();
@@ -317,11 +320,137 @@ function start_game() {
     // init moving cards array
     movingCard = new Array();
 
+    // UI
+    // 月份
+    const w = FONT_SIZE + 10;
+    const h = FONT_SIZE * (game.month_yaku ? 6 : 3) + 10;
+    month_panel = new Button(5, SCREEN_H/2-h/2, w, h, 5);
+    month_panel.vertical = true;
+
     /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
+    choose_first();
     game.first = Math.floor(Math.random() * 2);
+}
+
+function choose_first() {
+    game.state = gameState.decide_first;
+    after_guess = after_choose_first;
+    start_guess();
+}
+
+function after_choose_first() {
+    game.first = guess_result;
     start_month();
 }
+
+//#region Guess Smaller Card from Two Cards
+
+function start_guess() {
+    guessing = true;
+
+    let month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    shuffle(month);
+    guess_card[0] = new Card(month[0] * 4);
+    guess_card[1] = new Card(month[11] * 4);
+    guess_card[0].px = SCREEN_W/2 - CARD_SHOW_W * 2;
+    guess_card[0].py = SCREEN_H/2-CARD_SHOW_H/2;
+    guess_card[1].px = SCREEN_W/2 + CARD_SHOW_W;
+    guess_card[1].py = SCREEN_H/2-CARD_SHOW_H/2;
+    guess_text = '札を一枚選んでください';
+
+    canvas.onmousedown = guess_click_func;
+}
+
+function draw_guess_card() {
+    guess_card[0].draw_large();
+    guess_card[1].draw_large();
+
+    context.fillStyle = 'black';
+    context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_SHOW_H/2 - 36) * R);
+}
+
+function pointedGuessIndex() {
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
+        return 0;
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
+        return 1;
+    return -1;
+}
+
+function check_guess_result(mouse) {
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
+        return (guess_card[0].ID < guess_card[1].ID);
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
+        return (guess_card[1].ID < guess_card[0].ID);
+    return false;
+}
+
+function guess_click_func(e) {
+    /* not left click */
+    if (e.button != 0)
+        return;
+    updateMouseXY(e);
+    let i = pointedGuessIndex();
+    console.log(i);
+    if (i >= 0)
+    {
+        guess_result = check_guess_result(mouse);
+        console.log(guess_result);
+        startTime = performance.now();
+        time_func = flip_guess_card(i);
+        next_func = function (time) {
+            guess_text = (guess_result ? 'あなた' : '相手') + 'が親になりました';
+            
+            next_func = function (time) {
+                endAnimation();
+                guessing = false;
+                after_guess();
+            }
+
+            /* draw month under the two guess cards */
+            context.fillStyle = 'black';
+            context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_SHOW_W/2) * R, (guess_card[0].py + CARD_SHOW_H + 36) * R);
+            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_SHOW_W/2) * R, (guess_card[1].py + CARD_SHOW_H + 36) * R);
+            
+            if (time - startTime >= GUESS_WAIT) {
+                startTime = null;
+                time_func = next_func;
+            }
+        }
+
+        canvas.onmousedown = click_func;
+    }
+}
+
+function flip_guess_card(i) {
+    return function(time) {
+        const deltaTime = (time - startTime) / FLIP_TIME;
+        if (deltaTime >= 1) {
+            guess_card[i].scaleX = 1;
+            guess_card[Number(!i)].scaleX = 1;
+            startTime = null;
+            time_func = next_func;
+        } else if (deltaTime >= 0.5) {
+            guess_card[i].scaleX = 1;
+            guess_card[Number(!i)].scaleX = Math.abs(easeOutQuad(time-startTime-FLIP_TIME*0.5, 1, -4*(deltaTime-0.5), FLIP_TIME*0.5));
+            if (deltaTime >= 0.75)
+                guess_card[Number(!i)].back = false;
+        } else {
+            guess_card[i].scaleX = Math.abs(easeOutQuad(time-startTime, 1, -4*deltaTime, FLIP_TIME*0.5));
+            if (deltaTime >= 0.25)
+                guess_card[i].back = false;
+        }
+    }
+}
+
+//#endregion
 
 function start_month() {
     /* init month */
