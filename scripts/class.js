@@ -64,6 +64,14 @@ class Card {
                   (this.back ? false : this.noticed),
                    this.scaleX);
     }
+
+    draw_large() {
+        context.drawImage(cardImg[(this.back ? CARD_BACK_ID : this.ID)],
+                         (this.px + (1 - this.scaleX) * CARD_SHOW_W / 2) * R,
+                          this.py * R,
+                          CARD_SHOW_W * this.scaleX * R,
+                          CARD_SHOW_H * R);
+    }
 }
 
 class Player {

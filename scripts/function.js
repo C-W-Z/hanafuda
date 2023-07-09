@@ -1,28 +1,19 @@
-// 一張牌在一幀內的移動
-// 回傳結束了沒
-function step_move(cardID, sX, sY, dX, dY, flip = false) {
-    return function(time) {
-        const deltaTime = (time - startTime) / MOVE_TIME;
-        if (deltaTime >= 1) {
-            card[cardID].px = dX;
-            card[cardID].py = dY;
-            card[cardID].scaleX = 1;
-            startTime = null;
-            time_func = next_func;
-            return true;
-        } else {
-            // moving animation
-            card[cardID].px = easeInOutQuad(time-startTime, sX, (dX-sX)*deltaTime, MOVE_TIME);// sX + (dX - sX) * deltaTime;
-            card[cardID].py = easeInOutQuad(time-startTime, sY, (dY-sY)*deltaTime, MOVE_TIME);// sY + (dY - sY) * deltaTime;
-            // flip
-            if (flip == true) {
-                card[cardID].scaleX = Math.abs(0.5 - deltaTime) + 0.5;
-                if (deltaTime >= 0.5)
-                    card[cardID].back = false;
-            }
-        }
-        return false;
-    }
+function pointedFieldIndex() {
+    if (card == null) return -1;
+    for (let i = 0; i < FIELD_SPACE; i++)
+        if (mouse.x >= Field.X(i) && mouse.x <= Field.X(i) + CARD_W &&
+            mouse.y >= Field.Y(i) && mouse.y <= Field.Y(i) + CARD_H)
+            return i;
+    return -1;
+}
+
+function pointedPlayerHandIndex() {
+    if (card == null) return -1;
+    for (let i = 0; i < player[PLR].hand.length; i++)
+        if (mouse.x >= card[player[PLR].hand[i]].px && mouse.x <= card[player[PLR].hand[i]].px + CARD_W &&
+            mouse.y >= card[player[PLR].hand[i]].py && mouse.y <= card[player[PLR].hand[i]].py + CARD_H)
+            return i;
+    return -1;
 }
 
 // 一幀的發牌動畫
@@ -48,27 +39,6 @@ function deal_step(cards, i) {
             step_move(cards[0][i], (SCREEN_W-CARD_W)/2, (SCREEN_H-CARD_H)/2, fx, fy, true)(time);
         }
         next_func = after_deal(cards);
-    }
-}
-
-/* shuffle deck */
-function shuffle(deck) {
-    let shuffle_end = false;
-    while (!shuffle_end) {
-        // shuffle
-        for (let i = deck.length - 1; i > 0; i--) {
-            const r = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[r]] = [deck[r], deck[i]];
-        }
-        // 檢查場上(deck[0...7])會不會出現3張以上同月分的牌(會不會有牌永遠留在場上無法被吃掉)
-        let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let flag = true;
-        for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
-            month[Math.floor(deck[i] / 4)]++;
-            if (month[Math.floor(deck[i] / 4)] >= 3)
-                flag = false;
-        }
-        shuffle_end = flag;
     }
 }
 

@@ -62,7 +62,6 @@ function click_func(event) {
     if (game == null) return;
     switch (game.state) {
         case gameState.title:
-            game.state = gameState.start;
             start_game();
             break;
         case gameState.player_select_hand:
@@ -150,24 +149,6 @@ function updateMouseXY(event) {
     }
 }
 
-function pointedFieldIndex() {
-    if (card == null) return -1;
-    for (let i = 0; i < FIELD_SPACE; i++)
-        if (mouse.x >= Field.X(i) && mouse.x <= Field.X(i) + CARD_W &&
-            mouse.y >= Field.Y(i) && mouse.y <= Field.Y(i) + CARD_H)
-            return i;
-    return -1;
-}
-
-function pointedPlayerHandIndex() {
-    if (card == null) return -1;
-    for (let i = 0; i < player[PLR].hand.length; i++)
-        if (mouse.x >= card[player[PLR].hand[i]].px && mouse.x <= card[player[PLR].hand[i]].px + CARD_W &&
-            mouse.y >= card[player[PLR].hand[i]].py && mouse.y <= card[player[PLR].hand[i]].py + CARD_H)
-            return i;
-    return -1;
-}
-
 function animate(time) {
     if (!startTime) // it's the first frame
         startTime = time || performance.now();
@@ -179,7 +160,9 @@ function animate(time) {
         time_func(time);
 
     // 重畫整個畫面
-    if (game.state == gameState.title)
+    if (guessing)
+        draw_guess_card();
+    else if (game.state == gameState.title)
         draw_title();
     else
         draw_gaming();
@@ -188,7 +171,6 @@ function animate(time) {
 }
 
 function draw_title() {
-    context.textAlign = "center";
     context.fillStyle = 'rgb(0,0,0)';
     context.font = 108 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     context.fillText("花札", SCREEN_W/2 * R, (SCREEN_H/2 - 108/2) * R);
@@ -283,6 +265,8 @@ function draw_gaming() {
 }
 
 function init_game() {
+    guessing = false;
+
     /* Card Imgs */
     for (let i = 0; i < CARD_NUM+1; i++) {
         cardImg[i] = new Image();
@@ -345,9 +329,128 @@ function start_game() {
 
     /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
+    choose_first();
     game.first = Math.floor(Math.random() * 2);
+}
+
+function choose_first() {
+    game.state = gameState.decide_first;
+    after_guess = after_choose_first;
+    start_guess();
+}
+
+function after_choose_first() {
+    game.first = guess_result;
     start_month();
 }
+
+//#region Guess Smaller Card from Two Cards
+
+function start_guess() {
+    guessing = true;
+
+    let month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    shuffle(month);
+    guess_card[0] = new Card(month[0] * 4);
+    guess_card[1] = new Card(month[11] * 4);
+    guess_card[0].px = SCREEN_W/2 - CARD_SHOW_W * 2;
+    guess_card[0].py = SCREEN_H/2-CARD_SHOW_H/2;
+    guess_card[1].px = SCREEN_W/2 + CARD_SHOW_W;
+    guess_card[1].py = SCREEN_H/2-CARD_SHOW_H/2;
+    guess_text = '札を一枚選んでください';
+
+    canvas.onmousedown = guess_click_func;
+}
+
+function draw_guess_card() {
+    guess_card[0].draw_large();
+    guess_card[1].draw_large();
+
+    context.fillStyle = 'black';
+    context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_SHOW_H/2 - 36) * R);
+}
+
+function pointedGuessIndex() {
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
+        return 0;
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
+        return 1;
+    return -1;
+}
+
+function check_guess_result(mouse) {
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
+        return (guess_card[0].ID < guess_card[1].ID);
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
+        return (guess_card[1].ID < guess_card[0].ID);
+    return false;
+}
+
+function guess_click_func(e) {
+    /* not left click */
+    if (e.button != 0)
+        return;
+    updateMouseXY(e);
+    let i = pointedGuessIndex();
+    console.log(i);
+    if (i >= 0)
+    {
+        guess_result = check_guess_result(mouse);
+        console.log(guess_result);
+        startTime = performance.now();
+        time_func = flip_guess_card(i);
+        next_func = function (time) {
+            guess_text = (guess_result ? 'あなた' : '相手') + 'が親になりました';
+            
+            next_func = function (time) {
+                endAnimation();
+                guessing = false;
+                after_guess();
+            }
+
+            /* draw month under the two guess cards */
+            context.fillStyle = 'black';
+            context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_SHOW_W/2) * R, (guess_card[0].py + CARD_SHOW_H + 36) * R);
+            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_SHOW_W/2) * R, (guess_card[1].py + CARD_SHOW_H + 36) * R);
+            
+            if (time - startTime >= GUESS_WAIT) {
+                startTime = null;
+                time_func = next_func;
+            }
+        }
+
+        canvas.onmousedown = click_func;
+    }
+}
+
+function flip_guess_card(i) {
+    return function(time) {
+        const deltaTime = (time - startTime) / FLIP_TIME;
+        if (deltaTime >= 1) {
+            guess_card[i].scaleX = 1;
+            guess_card[Number(!i)].scaleX = 1;
+            startTime = null;
+            time_func = next_func;
+        } else if (deltaTime >= 0.5) {
+            guess_card[i].scaleX = 1;
+            guess_card[Number(!i)].scaleX = Math.abs(easeOutQuad(time-startTime-FLIP_TIME*0.5, 1, -4*(deltaTime-0.5), FLIP_TIME*0.5));
+            if (deltaTime >= 0.75)
+                guess_card[Number(!i)].back = false;
+        } else {
+            guess_card[i].scaleX = Math.abs(easeOutQuad(time-startTime, 1, -4*deltaTime, FLIP_TIME*0.5));
+            if (deltaTime >= 0.25)
+                guess_card[i].back = false;
+        }
+    }
+}
+
+//#endregion
 
 function start_month() {
     /* init month */
