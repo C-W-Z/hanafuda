@@ -17,12 +17,12 @@ const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
 // 牌的種類（カス・短冊・タネ・五光）
 const card_type = [3,1,0,0, 2,1,0,0, 3,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 3,2,0,0, 2,1,0,0, 2,1,0,0, 3,2,1,0, 3,0,0,0];
 // 役(yaku)
-const yaku_score = [   6  ,  1   , 1   ,  1  ,   5  ,  5  ,   5   ,  5   ,   7   ,   8  ,  10 ,  4  ,     3     ,    3     ,  5   , 5 ];
-const yaku_name  = ["親権","カス","短冊","タネ","青短","赤短","猪鹿蝶","三光","雨四光","四光","五光","月札","花見で一杯","月見で一杯","飲み","草"];
+const yaku_score = [   6  ,  10 ,  8   ,   7   ,   5  ,  5  ,    3     ,     3     ,   5   ,  5  ,  5   ,  5 ,  4  ,    1 ,  1  , 1 ];
+const yaku_name  = ["親権","五光","四光","雨四光","三光","飲み","花見で一杯","月見で一杯","猪鹿蝶","赤短","青短","草","月札","カス","短冊","タネ"];
 const YAKU_NUM = yaku_name.length;
 const tuki_name  = ["松","梅","桜","藤","菖蒲","牡丹","萩","芒","菊","紅葉","雨","桐"];
 // 數字
-const NUMBER = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+const NUMBER = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
 const cardPlace = {
     deck: 0,
     field: 1,
@@ -52,12 +52,14 @@ const gameState = {
     game_result: 12
 };
 
-/* canvas & sources & control */
+/* local storage */
 let originR = Number(localStorage.getItem('originR'));
 if (!originR) {
     originR = window.devicePixelRatio;
     localStorage.setItem('originR', originR);
 }
+
+/* canvas & sources & control */
 let R = window.devicePixelRatio;
 let scaleRate = 1; // the scale rate of canvas
 let canvas;
@@ -83,6 +85,8 @@ next_func = null;
 let movingCard;
 
 /* UI */
+// 月
+let month_panel;
 // 文
 let score_panel = new Array(2);
 // when ask player for koikoi

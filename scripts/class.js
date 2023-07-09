@@ -171,21 +171,22 @@ class Player {
             }
         }
 
-        if (dross              >= 10) now_yaku[ 1] += dross  - 9; // カス
-        if (ribbon             >= 5 ) now_yaku[ 2] += ribbon - 4; // 短冊
-        if (seed               >= 5 ) now_yaku[ 3] += seed   - 4; // タネ
-        if (aotan              == 3 ) now_yaku[ 4] += 1; // 青短
-        if (akatan             == 3 ) now_yaku[ 5] += 1; // 赤短
-        if (inoshikacho        == 3 ) now_yaku[ 6] += 1; // 猪鹿蝶
-        if (light == 3 && rain == 0 ) now_yaku[ 7] += 1; // 三光
-        if (light == 4 && rain == 1 ) now_yaku[ 8] += 1; // 雨四光
-        if (light == 4 && rain == 0 ) now_yaku[ 9] += 1; // 四光
-        if (light              == 5 ) now_yaku[10] += 1; // 五光
-        if (game.month_yaku       && getsusatsu                     == 4) now_yaku[11]++; // 月札
-        if (game.flower_sake      && hanamideippai                  == 2) now_yaku[12]++; // 花見で一杯
-        if (game.moon_sake        && tsukimideippai                 == 2) now_yaku[13]++; // 月見で一杯
-		if (game.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[14]++; // 飲み
-		if (game.grass            && kusa                           == 3) now_yaku[15]++; // 草
+        yaku_name;
+        if (light              == 5 ) now_yaku[ 1] += 1; // 五光
+        if (light == 4 && rain == 0 ) now_yaku[ 2] += 1; // 四光
+        if (light == 4 && rain == 1 ) now_yaku[ 3] += 1; // 雨四光
+        if (light == 3 && rain == 0 ) now_yaku[ 4] += 1; // 三光
+        if (game.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 5]++; // 飲み
+        if (game.flower_sake      && hanamideippai                  == 2) now_yaku[ 6]++; // 花見で一杯
+        if (game.moon_sake        && tsukimideippai                 == 2) now_yaku[ 7]++; // 月見で一杯
+        if (inoshikacho        == 3 ) now_yaku[ 8] += 1; // 猪鹿蝶
+        if (akatan             == 3 ) now_yaku[ 9] += 1; // 赤短
+        if (aotan              == 3 ) now_yaku[10] += 1; // 青短
+        if (game.grass            && kusa                           == 3) now_yaku[11]++; // 草
+        if (game.month_yaku       && getsusatsu                     == 4) now_yaku[12]++; // 月札
+        if (dross              >= 10) now_yaku[13] += dross  - 9; // カス
+        if (ribbon             >= 5 ) now_yaku[14] += ribbon - 4; // 短冊
+        if (seed               >= 5 ) now_yaku[15] += seed   - 4; // タネ
 
         this.score = 0;
         let get_new_yaku = false;
@@ -318,6 +319,7 @@ class Button {
         this.borderColor = bordercolor;
         this.fillColor = fillcolor;
         this.textColor = textcolor;
+        this.vertical = false;
     }
 
     draw() {
@@ -328,7 +330,11 @@ class Button {
         if (this.fontsize > 0 || text != '') {
             context.fillStyle = this.textColor;
             context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-            context.fillText(this.text, (this.x + this.w/2) * R, (this.y + this.h/2) * R);
+            if (this.vertical)
+                for (let i = 0; i < this.text.length; i++)
+                    context.fillText(this.text[i], (this.x + this.w/2) * R, (this.y + this.h/2 + (i + 0.5 - this.text.length/2) * this.fontsize) * R);
+            else
+                context.fillText(this.text, (this.x + this.w/2) * R, (this.y + this.h/2) * R);
         }
         if (this.borderColor != '') {
             context.lineWidth = 3 * R;

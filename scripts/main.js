@@ -46,7 +46,6 @@ function hide_menu(e) {
 
 function resize_menu() {
     const ratio = originR / window.devicePixelRatio;
-    console.log(ratio);
     menu.style.fontSize = 16 * ratio + 'px';
 }
 
@@ -236,21 +235,11 @@ function draw_gaming() {
     
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
     // 幾月
-    context.lineWidth = 2 * R;
-    context.fillStyle = 'black';
-    context.strokeStyle = 'black';
-    if (game.MAXMONTH >= 10)
-        context.fillText(NUMBER[10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*3 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText(NUMBER[game.MAXMONTH%10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText("月"                 , (FONT_SIZE/2+1) * R, (SCREEN_H/2 - FONT_SIZE*2 + (FONT_SIZE * (1+0.5))) * R);
-    context.strokeRect(0, (SCREEN_H/2 - FONT_SIZE*3) * R, (FONT_SIZE+2) * R, (FONT_SIZE*3) * R);
-    // 幾戰目
-    if (game.month >= 10)
-        context.fillText(NUMBER[10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (0+0.5))) * R);
-    context.fillText(NUMBER[game.month%10], (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (1+0.5))) * R);
-    context.fillText("戦"              , (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (2+0.5))) * R);
-    context.fillText("目"              , (FONT_SIZE/2+1) * R, (SCREEN_H/2 + (FONT_SIZE * (3+0.5))) * R);
-    context.strokeRect(0, SCREEN_H/2 * R, (FONT_SIZE+2) * R, (FONT_SIZE * 4) * R);
+    if (game.month_yaku)
+        month_panel.text = `${NUMBER[game.month]}月` + ` ${tuki_name[game.month-1]}`;
+    else
+        month_panel.text = `${NUMBER[game.month]}月`;
+    month_panel.draw();
 
     // 親
     const circleY = (game.first == CPU) ? 30 : SCREEN_H - 30;
@@ -343,6 +332,13 @@ function start_game() {
 
     // init moving cards array
     movingCard = new Array();
+
+    // UI
+    // 月份
+    const w = FONT_SIZE + 10;
+    const h = FONT_SIZE * (game.month_yaku ? 6 : 3) + 10;
+    month_panel = new Button(5, SCREEN_H/2-h/2, w, h, 5);
+    month_panel.vertical = true;
 
     /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
