@@ -268,10 +268,8 @@ function init_game() {
     guessing = false;
 
     /* Card Imgs */
-    for (let i = 0; i < CARD_NUM+1; i++) {
-        cardImg[i] = new Image();
-        cardImg[i].src = `imgs/${i}.webp`;
-    }
+    for (let i = 0; i < CARD_NUM+1; i++)
+        cardImg[loadingOrder[i]].src = `imgs/${i}.webp`;
 
     /* init game data */
     game = new Game();
