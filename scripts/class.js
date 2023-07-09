@@ -1,3 +1,46 @@
+class Data {
+    constructor() {
+        const obj = localStorage.getItem('Data');
+        if (!obj) {
+            this.init();
+            this.store();
+        } else {
+            Object.assign(this, JSON.parse(obj));
+        }
+    }
+
+    init() {
+        this.battleTime = [0, 0, 0, 0]; // 對戰回數(1/3/6/12月玩法)
+        this.totalMonth = 0; // 總對局數
+        this.maxTotalMoney = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 最高獲得總文數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        this.maxMoney = [0, 0]; // 最高獲得文數(單月) [PLR, CPU]
+        this.totalMoney = [0, 0]; // 累計獲得文數 [PLR, CPU]
+        // 平均獲得文數 = totalMoney / totalMonth
+        this.totalWin = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 勝利數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        // 平手數[1/3/6/12月] = battleTime[i] - totalWin[PLR][i] - totalWin[CPU][i];
+        // 勝率 = totalWin[PLR][i] / battleTime[i];
+        this.totalWinMonth = [0, 0]; // 單月勝利數 [PLR, CPU]
+        // 勝率(月) = totalWinMonth[PLR] / totalMonth;
+        this.maxStreak = [[0, 0, 0, 0], [0, 0, 0, 0]]; // 最大連勝數 [PLR[1,3,6,12月], CPU[1,3,6,12月]]
+        this.maxStreakMonth = [0, 0]; // 最大連勝月數 [PLR, CPU]
+        this.canKoiTime = [0, 0]; // 可以Koi Koi的次數(除了最後一回合之外組成役的次數) [PLR, CPU]
+        this.totalKoiTime = [0, 0]; // koikoi總次數 [PLR, CPU]
+        this.koiSucessTime = [0, 0]; // koikoi之後又組成役的總次數(包括親權)
+        // Koi Koi 率 = totalKoiTime / canKoiTime
+        // Koi Koi 成功率 = koiSucessTime / totalKoiTime
+
+        // 組成yaku的次數(不論輸贏)(カス,短冊,タネ一月中最多只算一次) 參考yaku_name
+        this.yakuTime = new Array(YAKU_NUM);
+        for (let i = 0; i <  this.yakuTime.length; i++)
+            this.yakuTime[i] = 0;
+        // 出現率 = yakuTime[i] / totalMonth
+    }
+
+    store() {
+        localStorage.setItem('Data', JSON.stringify(this));
+    }
+}
+
 class Card {
     constructor(ID) {
         this.ID = ID;

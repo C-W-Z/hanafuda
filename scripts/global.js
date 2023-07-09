@@ -53,6 +53,7 @@ const gameState = {
 };
 
 /* local storage */
+let data;
 let originR = Number(localStorage.getItem('originR'));
 if (!originR) {
     originR = window.devicePixelRatio;

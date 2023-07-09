@@ -23,6 +23,9 @@ window.onload = function()
     window.onclick = hide_menu;
     window.addEventListener('resize', resize_menu);
 
+    /* load Data */
+    data = new Data();
+
     init_game();
     animate(startTime);
 }
