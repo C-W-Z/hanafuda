@@ -48,7 +48,7 @@ canvas {
     border: none;
     border-radius: 0;
     font-family: 'Microsoft YaHei', sans-serif;
-    font-size: 16px;
+    font-size: inherit;
 }
 .menu:hover {
     background: #ccc;

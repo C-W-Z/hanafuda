@@ -12,14 +12,16 @@ window.onload = function()
     /* get canvas */
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
-    resize();
+    resize_canvas();
     // control settings
     canvas.onmousedown = click_func;
     document.addEventListener('keydown', keydown_func);
     // right click menu
     menu = document.getElementById("menu");
-    document.getElementById('resize').onclick = resize;
+    resize_menu();
     window.oncontextmenu = right_click_menu;
+    window.onclick = hide_menu;
+    window.addEventListener('resize', resize_menu);
 
     init_game();
     animate(startTime);
@@ -29,19 +31,26 @@ window.onload = function()
 function right_click_menu(e) {
     // cancel default menu
     e.preventDefault();
-
     // move menu to mouse
-    menu.style.left = e.clientX + 'px';
-    menu.style.top  = e.clientY + 'px';
-
+    menu.style.left = 100 * e.clientX / self.innerWidth + '%';
+    menu.style.top = 100 * e.clientY / self.innerHeight + '%';
     // show
     menu.style.display='block';
 }
 
-function click_func(event) {
+function hide_menu(e) {
     /* not right click */
-    if (event.button != 2)
+    if (e.button != 2)
         menu.style.display = 'none'; // hide right click menu
+}
+
+function resize_menu() {
+    const ratio = originR / window.devicePixelRatio;
+    console.log(ratio);
+    menu.style.fontSize = 16 * ratio + 'px';
+}
+
+function click_func(event) {
     /* not left click */
     if (event.button != 0)
         return;
@@ -108,7 +117,7 @@ function keydown_func(e) {
     const key = e.key;
     switch (key) {
         case 'r':
-            resize();
+            resize_canvas();
             break;
 
         default:
@@ -116,8 +125,8 @@ function keydown_func(e) {
     }
 }
 
-/* resize screen */
-function resize() {
+/* resize canvas */
+function resize_canvas() {
     R = window.devicePixelRatio;
     canvas.width = SCREEN_W * R;
     canvas.height = SCREEN_H * R;

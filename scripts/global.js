@@ -53,6 +53,11 @@ const gameState = {
 };
 
 /* canvas & sources & control */
+let originR = Number(localStorage.getItem('originR'));
+if (!originR) {
+    originR = window.devicePixelRatio;
+    localStorage.setItem('originR', originR);
+}
 let R = window.devicePixelRatio;
 let scaleRate = 1; // the scale rate of canvas
 let canvas;
