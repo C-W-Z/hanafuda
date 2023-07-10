@@ -391,10 +391,12 @@ class Button {
     }
 
     draw() {
-        context.fillStyle = this.fillColor;
-        context.beginPath();
-        context.roundRect(this.x * R, this.y * R, this.w * R, this.h * R, this.r * R);
-        context.fill();
+        if (this.fillColor != '') {
+            context.fillStyle = this.fillColor;
+            context.beginPath();
+            context.roundRect(this.x * R, this.y * R, this.w * R, this.h * R, this.r * R);
+            context.fill();
+        }
         if (this.fontsize > 0 || text != '') {
             context.fillStyle = this.textColor;
             context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
@@ -407,6 +409,7 @@ class Button {
         if (this.borderColor != '') {
             context.lineWidth = 3 * R;
             context.strokeStyle = this.borderColor;
+            context.roundRect(this.x * R, this.y * R, this.w * R, this.h * R, this.r * R);
             context.stroke();
         }
     }

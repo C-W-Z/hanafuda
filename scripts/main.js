@@ -16,42 +16,12 @@ window.onload = function()
     // control settings
     canvas.onmousedown = click_func;
     document.addEventListener('keydown', keydown_func);
-    // right click menu
-    menu = document.getElementById("menu");
-    resize_menu();
-    window.oncontextmenu = right_click_menu;
-    window.onclick = hide_menu;
-    window.addEventListener('resize', resize_menu);
-    // set menu options
-    document.getElementById("resize").onclick = resize_canvas;
 
     /* load Data */
     data = new Data();
 
     init_game();
     animate(startTime);
-}
-
-/* 自訂右鍵選單 */
-function right_click_menu(e) {
-    // cancel default menu
-    e.preventDefault();
-    // move menu to mouse
-    menu.style.left = 100 * e.clientX / self.innerWidth + '%';
-    menu.style.top = 100 * e.clientY / self.innerHeight + '%';
-    // show
-    menu.style.display='block';
-}
-
-function hide_menu(e) {
-    /* not right click */
-    if (e.button != 2)
-        menu.style.display = 'none'; // hide right click menu
-}
-
-function resize_menu() {
-    const ratio = originR / window.devicePixelRatio;
-    menu.style.fontSize = 16 * ratio + 'px';
 }
 
 function click_func(event) {
@@ -149,6 +119,7 @@ function updateMouseXY(event) {
         mouse.x = (event.clientX - rect.left) / scaleRate;
         mouse.y = (event.clientY - rect.top ) / scaleRate;
     }
+    //console.log(mouse);
 }
 
 function animate(time) {
@@ -173,7 +144,7 @@ function animate(time) {
 }
 
 function draw_title() {
-    // draw Images
+    // draw Card Images
     const gap = 120, h = 200;
     draw_rotate_card_large( 0, SCREEN_W/2 - gap * 1.8, h      , -Math.PI/ 8);
     draw_rotate_card_large( 8, SCREEN_W/2 - gap      , h - 30 , -Math.PI/16);
@@ -181,6 +152,7 @@ function draw_title() {
     draw_rotate_card_large(40, SCREEN_W/2 + gap      , h - 30 ,  Math.PI/16);
     draw_rotate_card_large(28, SCREEN_W/2            , h - 45, 0);
 
+    // draw Title
     context.strokeStyle = 'gold';
     context.lineWidth = 5 * R;
     context.fillStyle = 'black';
@@ -192,12 +164,11 @@ function draw_title() {
     context.strokeText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
     context.fillText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
     
-    context.fillStyle = 'black';
-    context.font = 40.5 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText("開始", (200) * R, (SCREEN_H/2 + 60 * 1) * R);
-    context.fillText("設定", (200) * R, (SCREEN_H/2 + 60 * 2) * R);
-    context.fillText("紀録", (200) * R, (SCREEN_H/2 + 60 * 3) * R);
-    context.fillText("成就", (200) * R, (SCREEN_H/2 + 60 * 4) * R);
+    // draw Buttons
+    start_button.draw();
+    options_button.draw();
+    statistics_button.draw();
+    achievement_button.draw();
 }
 
 /* draw canvas when gaming */
@@ -295,7 +266,18 @@ function init_game() {
     game = new Game();
 
     /* init UI in game */
+    create_UI();
+}
+
+function create_UI() {
     let w, h;
+    /* title */
+    start_button       = new Button(150, SCREEN_H/2 + 60 * 1, 100, 50, 0, '開始', 40, null, '', '', 'black');
+    options_button     = new Button(150, SCREEN_H/2 + 60 * 2, 100, 50, 0, '設定', 40, null, '', '', 'black');
+    statistics_button  = new Button(150, SCREEN_H/2 + 60 * 3, 100, 50, 0, '紀録', 40, null, '', '', 'black');
+    achievement_button = new Button(150, SCREEN_H/2 + 60 * 4, 100, 50, 0, '成就', 40, null, '', '', 'black');
+
+    /* in game */
     // 文
     w = 60, h = 35;
     score_panel[CPU] = new Button(5, 5, w, h, 5, '0文', 20);

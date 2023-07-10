@@ -76,7 +76,6 @@ let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
-let menu; // right click menu
 let cardImg = new Array(CARD_NUM+1);
 for (let i = 0; i < CARD_NUM+1; i++)
     cardImg[i] = new Image();
@@ -109,6 +108,10 @@ next_func = null;
 let movingCard;
 
 /* UI */
+let start_button;
+let options_button;
+let statistics_button;
+let achievement_button;
 // 月
 let month_panel;
 // 文
