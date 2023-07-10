@@ -1,3 +1,11 @@
+/**
+ * @title 花札Hanafuda
+ * @author C-W-Z
+ * @contact chenweizhang3021@gmail.com
+ * @language 繁體中文, 日本語
+ * @repo https://github.com/C-W-Z/hanafuda.git
+ */
+
 class Data {
     constructor() {
         const obj = localStorage.getItem('Data');
