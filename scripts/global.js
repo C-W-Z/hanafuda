@@ -49,19 +49,27 @@ const fastMoveTime = 250; // ms
 const noticeColor = 'gold';
 const fieldNoticeColor = 'darkred';
 const gameState = {
+    /* home page */
     title: 0,
-    decide_first: 1,
-    deal: 2,
-    player_select_hand: 3,
-    player_select_field: 4,
-    player_play_card: 5,
-    player_choose_card: 6, // when draw a card with two cards on field can be paired
-    player_end_round: 7,
-    player_decide_koi: 8,
-    cpu_play: 9,
-    koikoi_animation: 10,
-    month_end: 11,
-    game_result: 12
+    setting: 1,
+    choose_difficulty: 2,
+    statistic: 3,
+    achievement: 4,
+    /* in game */
+    ingame: 100, // > game.state > gameState.ingame means in game
+    decide_first: 101,
+    deal: 102,
+    player_select_hand: 103,
+    player_select_field: 104,
+    player_play_card: 105,
+    player_choose_card: 106, // when draw a card with two cards on field can be paired
+    player_end_round: 107,
+    player_decide_koi: 108,
+    cpu_play: 109,
+    show_yaku_animation: 110,
+    koikoi_animation: 111,
+    month_end: 112,
+    game_result: 113
 };
 
 /* local storage */
@@ -117,7 +125,7 @@ let score_panel = new Array(2);
 let koi_panel;
 let end_button;
 let koi_button;
-let koikoi_banner;
+let banner;
 // when game end -> show yaku and score
 let yaku_panel;
 let next_month_button;

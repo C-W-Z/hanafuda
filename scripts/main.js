@@ -138,15 +138,15 @@ function animate(time) {
     // 重畫整個畫面
     if (guessing)
         draw_guess_card();
-    else if (game.state == gameState.title)
-        draw_title();
-    else
+    else if (game.state > gameState.ingame)
         draw_gaming();
+    else
+        draw_home_page();
 
     requestAnimationFrame(animate);
 }
 
-function draw_title() {
+function draw_home_page() {
     // draw Card Images
     const gap = 120, h = 200;
     draw_rotate_card_large( 0, SCREEN_W/2 - gap * 1.8, h      , -Math.PI/ 8);
@@ -175,10 +175,6 @@ function draw_title() {
 
 /* draw canvas when gaming */
 function draw_gaming() {
-    // draw field background
-    //context.fillStyle = 'darkred';
-    //context.fillRect((Field.X(0) - (CARD_IMG_W - CARD_W) / 2) * R, (Field.Y(0) - (CARD_IMG_H - CARD_H) / 2) * R, (CARD_IMG_W + Field.X(FIELD_SPACE-1) - Field.X(0)) * R, (CARD_IMG_H + Field.Y(FIELD_SPACE-1) - Field.Y(0)) * R);
-
     // draw the deck at center
     draw_card(CARD_BACK_ID, DECK_P.x, DECK_P.y);
 
@@ -243,8 +239,12 @@ function draw_gaming() {
         case gameState.player_decide_koi:
             draw_decide_koi();
             break;
+        case gameState.show_yaku_animation:
+            banner.draw();
+            break;
         case gameState.koikoi_animation:
-            draw_koikoi();
+            banner.text = 'こいこい';
+            banner.draw();
             break;
         case gameState.month_end:
             draw_show_yaku();
@@ -277,10 +277,11 @@ function init_game() {
 function create_UI() {
     let w, h;
     /* title */
-    title_button[0] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 1, 100, 50, 0, title_button_text[0], 40, start_game, '', '', 'black');
-    title_button[1] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 2, 100, 50, 0, title_button_text[1], 40, null, '', '', 'black');
-    title_button[2] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 3, 100, 50, 0, title_button_text[2], 40, null, '', '', 'black');
-    title_button[3] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 4, 100, 50, 0, title_button_text[3], 40, null, '', '', 'black');
+    w = 150, h = 50;
+    title_button[0] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*1, w, h, 0, title_button_text[0], 40, start_game, '', '', 'black');
+    title_button[1] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*2, w, h, 0, title_button_text[1], 40, null, '', '', 'black');
+    title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, null, '', '', 'black');
+    title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, null, '', '', 'black');
 
     /* 開發者 */
     w = FONT_SIZE*6, h = FONT_SIZE * 2;
@@ -296,9 +297,9 @@ function create_UI() {
     koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
     end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win_month(PLR);}, 'lightgray');
     koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
-    // the size of banner of koi koi
+    // the size of banner
     w = SCREEN_W + 20, h = 100;
-    koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 52, null);
+    banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, '', 52, null);
     // the size of the panel of showing yaku and score
     w = 400, h = 400;
     yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
@@ -405,11 +406,9 @@ function guess_click_func(e) {
         return;
     updateMouseXY(e);
     let i = pointedGuessIndex();
-    //console.log(i);
     if (i >= 0)
     {
         guess_result = (guess_card[i].ID < guess_card[Number(!i)].ID);
-        //console.log(guess_result);
         startTime = performance.now();
         time_func = flip_guess_card(i);
         next_func = function (time) {
@@ -426,7 +425,7 @@ function guess_click_func(e) {
             context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
             context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_LARGE_W/2) * R, (guess_card[0].py + CARD_LARGE_H + 36) * R);
             context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_LARGE_W/2) * R, (guess_card[1].py + CARD_LARGE_H + 36) * R);
-            
+
             const smaller = (guess_card[0].ID < guess_card[1].ID) ? 0 : 1;
             if (time - startTime >= GUESS_WAIT) {
                 guess_card[smaller].noticed = true;

@@ -107,6 +107,7 @@ class Player {
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
         this.yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.new_yaku = new Array();
         this.selected_handID = -1;
         this.selected_fieldID = 0;
         this.needToThrow = false;
@@ -226,7 +227,7 @@ class Player {
         let tsukimideippai = 0; // 月見酒
         let kusa = 0; // 草短
 
-        for (const arr of this.collect) {
+        for (const arr of this.collect)
             for (const c of arr) {
                 if (c == 40) rain++;
                 if (c == 20 || c == 24 || c == 36) inoshikacho++;
@@ -237,7 +238,6 @@ class Player {
 				if (c == 28 || c == 32) tsukimideippai++;
 				if (c == 13 || c == 17 || c == 25) kusa++;
             }
-        }
 
         yaku_name;
         if (light              == 5 ) now_yaku[ 1] += 1; // 五光
@@ -256,12 +256,17 @@ class Player {
         if (ribbon             >= 5 ) now_yaku[14] += ribbon - 4; // 短冊
         if (seed               >= 5 ) now_yaku[15] += seed   - 4; // タネ
 
+        while (this.new_yaku.length > 0)
+            this.new_yaku.pop();
+
         this.score = 0;
         let get_new_yaku = false;
         for (let i = 0; i < YAKU_NUM; i++) {
             // check is there new yaku
-            if (now_yaku[i] > this.yaku[i])
+            if (now_yaku[i] > this.yaku[i]) {
                 get_new_yaku = true;
+                this.new_yaku.push(i);
+            }
             // copy now yaku to old yaku
             this.yaku[i] = now_yaku[i];
             // calculate new score

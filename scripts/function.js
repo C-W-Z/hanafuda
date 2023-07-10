@@ -270,7 +270,7 @@ function check_win(playerID) {
     {
         // end this month
         if (win)
-            player_win_month(playerID);
+            start_show_yaku(playerID, 0);
         else if (game.koi != -1)
             player_win_month(game.koi);
         else {
@@ -283,15 +283,35 @@ function check_win(playerID) {
         // 若是最後一回合 => 強制結束
         if (player[playerID].hand.length == 0)
             player_win_month(playerID);
+        // show yaku
+        start_show_yaku(playerID, 0);
+    } else {
+        // next round
+        game.round++;
+        (game.round % 2 == game.first) ? player_play() : cpu_play();
+    }
+}
+
+function start_show_yaku(playerID, yakuID) {
+    if (yakuID == player[playerID].new_yaku.length) {
+        if (player[playerID].hand.length == 0)
+            player_win_month(playerID);
         // ask koi koi or not
         else if (playerID == PLR)
             start_ask_koikoi();
         else // CPU
             cpu_decide_koi();
-    } else {
-        // next round
-        game.round++;
-        (game.round % 2 == game.first) ? player_play() : cpu_play();
+        return;
+    }
+    banner.text = yaku_name[player[playerID].new_yaku[yakuID]];
+    game.state = gameState.show_yaku_animation;
+    // animation
+    startTime = performance.now();
+    time_func = banner_step();
+    next_func = function (time) {
+        endAnimation();
+        // next yaku
+        start_show_yaku(playerID, yakuID + 1)
     }
 }
 
@@ -368,7 +388,7 @@ function koikoi(playerID) {
 
     // animation
     startTime = performance.now();
-    time_func = koi_step();
+    time_func = banner_step();
     next_func = function (time) {
         endAnimation();
         // next round
@@ -377,46 +397,42 @@ function koikoi(playerID) {
     }
 }
 
-function draw_koikoi() {
-    koikoi_banner.draw();
-}
-
-// show koikoi UI
-function koi_step() {
+// show banner UI
+function banner_step() {
     return function (time) {
         const duration = (7 * MOVE_TIME);
         const deltaTime = (time - startTime) / duration;
         const open_speed = 6;
         if (deltaTime >= 1) {
             // end
-            koikoi_banner.fillColor = 'rgba(0,0,0,0)';
-            koikoi_banner.borderColor = 'rgba(0,0,0,0)';
-            koikoi_banner.textColor = 'rgba(0,0,0,0)';
+            banner.fillColor = 'rgba(0,0,0,0)';
+            banner.borderColor = 'rgba(0,0,0,0)';
+            banner.textColor = 'rgba(0,0,0,0)';
             startTime = null;
             time_func = next_func;
         } else if (deltaTime > 0.6) {
             // fade
             const alpha = easeInQuad(time-startTime, 1, -2*(deltaTime-0.6), duration*0.4);
-            koikoi_banner.fillColor = `rgba(255,215,0,${alpha})`;
-            koikoi_banner.borderColor = `rgba(255,255,255,${alpha})`;
-            koikoi_banner.textColor = `rgba(255,0,0,${alpha})`;
+            banner.fillColor = `rgba(255,215,0,${alpha})`;
+            banner.borderColor = `rgba(255,255,255,${alpha})`;
+            banner.textColor = `rgba(255,0,0,${alpha})`;
         } else if (deltaTime > 0.4) {
             // show 0.2*duration ms
-            koikoi_banner.fillColor = 'gold';
-            koikoi_banner.borderColor = 'white';
-            koikoi_banner.textColor = 'red';
+            banner.fillColor = 'gold';
+            banner.borderColor = 'white';
+            banner.textColor = 'red';
         } else {
             // emerge
             const alpha = easeOutQuad(time-startTime, 0, 4*deltaTime, duration*0.4);
-            //koikoi_banner.fillColor = `rgba(255,215,0,${alpha})`;
-            //koikoi_banner.borderColor = `rgba(255,255,255,${alpha})`;
-            koikoi_banner.fillColor = 'gold';
-            koikoi_banner.borderColor = 'white';
-            koikoi_banner.textColor = `rgba(255,0,0,${alpha})`;
+            //banner.fillColor = `rgba(255,215,0,${alpha})`;
+            //banner.borderColor = `rgba(255,255,255,${alpha})`;
+            banner.fillColor = 'gold';
+            banner.borderColor = 'white';
+            banner.textColor = `rgba(255,0,0,${alpha})`;
             if (deltaTime <= 1/open_speed) {
                 const width = easeInOutQuad(time-startTime, 0, open_speed*(deltaTime), duration/open_speed) * 100;
-                koikoi_banner.y = SCREEN_H/2 - width/2;
-                koikoi_banner.h = width;
+                banner.y = SCREEN_H/2 - width/2;
+                banner.h = width;
             }
         }
     }
