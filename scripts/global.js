@@ -85,6 +85,7 @@ let guess_card  = new Array(2);
 let guessing = false;
 let guess_text;
 let guess_result;
+const twinkleTime = 3; // twinkling time of smaller card
 const GUESS_WAIT = 1500; // ms
 let after_guess = new Function();
 after_guess = null;
@@ -218,4 +219,18 @@ function shuffle(deck) {
         }
         shuffle_end = flag;
     }
+}
+
+// 畫旋轉圖
+// cx, cy : 圖的中心點
+// angleInRadians : 角度
+function draw_rotate_card_large(ID, cx, cy, angleInRadians) {
+    //context.save();
+    context.translate(cx * R, cy * R);
+    context.rotate(angleInRadians);
+    context.drawImage(cardImg[ID], (-CARD_LARGE_W / 2) * R, (-CARD_LARGE_H / 2) * R, CARD_LARGE_W * R, CARD_LARGE_H * R);
+    //context.rotate(-angleInRadians);
+    //context.translate(-cx * R, -cy * R);
+    //context.restore();
+    context.setTransform(1, 0, 0, 1, 0, 0);
 }
