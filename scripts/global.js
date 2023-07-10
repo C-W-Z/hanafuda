@@ -13,14 +13,14 @@ const CARD_IMG_W = 976; // width of card in imgs
 const CARD_IMG_H = 1600; // height of card in imgs
 const CARD_W = 75; // the size of cards display in game
 const CARD_H = CARD_W * 1600/976;
-const CARD_GAP = 5;
-const CARD_SHOW_W = 150; // the size of cards special displayed
-const CARD_SHOW_H = CARD_SHOW_W * 1600/976;
+const CARD_GAP = 5; // space between two cards in game
+const CARD_LARGE_W = 150; // the size of cards special displayed
+const CARD_LARGE_H = CARD_LARGE_W * 1600/976;
 const CARD_NUM = 48; // num of total cards
 const HAND_NUM = 8; // num of cards be distributed to a player when game starts
 const FIELD_SPACE = 12; // max num of cards can be place on the field
-const PLR = 0; // player
-const CPU = 1; // computer
+const PLR = 0; // player ID
+const CPU = 1; // computer ID
 // cardID = 0 ~ 47
 const CARD_BACK_ID = 48; // 牌背
 const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
@@ -63,7 +63,7 @@ const gameState = {
 };
 
 /* local storage */
-let data;
+let data; // player data storage
 let originR = Number(localStorage.getItem('originR'));
 if (!originR) {
     originR = window.devicePixelRatio;
@@ -93,6 +93,7 @@ let guess_card  = new Array(2);
 let guessing = false;
 let guess_text;
 let guess_result;
+const twinkleTime = 3; // twinkling time of smaller card
 const GUESS_WAIT = 1500; // ms
 let after_guess = new Function();
 after_guess = null;
@@ -226,4 +227,18 @@ function shuffle(deck) {
         }
         shuffle_end = flag;
     }
+}
+
+// 畫旋轉圖
+// cx, cy : 圖的中心點
+// angleInRadians : 角度
+function draw_rotate_card_large(ID, cx, cy, angleInRadians) {
+    //context.save();
+    context.translate(cx * R, cy * R);
+    context.rotate(angleInRadians);
+    context.drawImage(cardImg[ID], (-CARD_LARGE_W / 2) * R, (-CARD_LARGE_H / 2) * R, CARD_LARGE_W * R, CARD_LARGE_H * R);
+    //context.rotate(-angleInRadians);
+    //context.translate(-cx * R, -cy * R);
+    //context.restore();
+    context.setTransform(1, 0, 0, 1, 0, 0);
 }

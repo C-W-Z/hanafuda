@@ -173,13 +173,31 @@ function animate(time) {
 }
 
 function draw_title() {
-    context.fillStyle = 'rgb(0,0,0)';
+    // draw Images
+    const gap = 120, h = 200;
+    draw_rotate_card_large( 0, SCREEN_W/2 - gap * 1.8, h      , -Math.PI/ 8);
+    draw_rotate_card_large( 8, SCREEN_W/2 - gap      , h - 30 , -Math.PI/16);
+    draw_rotate_card_large(44, SCREEN_W/2 + gap * 1.8, h      ,  Math.PI/ 8);
+    draw_rotate_card_large(40, SCREEN_W/2 + gap      , h - 30 ,  Math.PI/16);
+    draw_rotate_card_large(28, SCREEN_W/2            , h - 45, 0);
+
+    context.strokeStyle = 'gold';
+    context.lineWidth = 5 * R;
+    context.fillStyle = 'black';
     context.font = 108 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText("花札", SCREEN_W/2 * R, (SCREEN_H/2 - 108/2) * R);
+    context.strokeText("花札", SCREEN_W/2 * R, (150) * R);
+    context.fillText("花札", SCREEN_W/2 * R, (150) * R);
+    context.strokeStyle = 'pink';
     context.font = 81 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText("こいこい", SCREEN_W/2 * R, (SCREEN_H/2 + 81/2) * R);
+    context.strokeText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
+    context.fillText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
+    
+    context.fillStyle = 'black';
     context.font = 40.5 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText("クリックして開始", SCREEN_W/2 * R, (SCREEN_H/2 + 108) * R);
+    context.fillText("開始", (200) * R, (SCREEN_H/2 + 60 * 1) * R);
+    context.fillText("設定", (200) * R, (SCREEN_H/2 + 60 * 2) * R);
+    context.fillText("紀録", (200) * R, (SCREEN_H/2 + 60 * 3) * R);
+    context.fillText("成就", (200) * R, (SCREEN_H/2 + 60 * 4) * R);
 }
 
 /* draw canvas when gaming */
@@ -273,7 +291,7 @@ function init_game() {
     for (let i = 0; i < CARD_NUM+1; i++)
         cardImg[i].src = `imgs/${i}.webp`;
 
-    /* init game data */
+    /* init game obj */
     game = new Game();
 
     /* init UI in game */
@@ -285,7 +303,7 @@ function init_game() {
     // the size of panel of decide koi
     w = 400, h = 200;
     koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
-    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win(PLR);}, 'lightgray');
+    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win_month(PLR);}, 'lightgray');
     koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
     // the size of banner of koi koi
     w = SCREEN_W + 20, h = 100;
@@ -327,10 +345,12 @@ function start_game() {
     month_panel = new Button(5, SCREEN_H/2-h/2, w, h, 5);
     month_panel.vertical = true;
 
+    // update data
+    data.battleTime[game.MAXMONTH-1]++;
+
     /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
     choose_first();
-    game.first = Math.floor(Math.random() * 2);
 }
 
 function choose_first() {
@@ -353,10 +373,10 @@ function start_guess() {
     shuffle(month);
     guess_card[0] = new Card(month[0] * 4);
     guess_card[1] = new Card(month[11] * 4);
-    guess_card[0].px = SCREEN_W/2 - CARD_SHOW_W * 2;
-    guess_card[0].py = SCREEN_H/2-CARD_SHOW_H/2;
-    guess_card[1].px = SCREEN_W/2 + CARD_SHOW_W;
-    guess_card[1].py = SCREEN_H/2-CARD_SHOW_H/2;
+    guess_card[0].px = SCREEN_W/2 - CARD_LARGE_W * 2;
+    guess_card[0].py = SCREEN_H/2-CARD_LARGE_H/2;
+    guess_card[1].px = SCREEN_W/2 + CARD_LARGE_W;
+    guess_card[1].py = SCREEN_H/2-CARD_LARGE_H/2;
     guess_text = '札を一枚選んでください';
 
     canvas.onmousedown = guess_click_func;
@@ -368,27 +388,17 @@ function draw_guess_card() {
 
     context.fillStyle = 'black';
     context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_SHOW_H/2 - 36) * R);
+    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_LARGE_H/2 - 36) * R);
 }
 
 function pointedGuessIndex() {
-    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_LARGE_H)
         return 0;
-    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_LARGE_H)
         return 1;
     return -1;
-}
-
-function check_guess_result(mouse) {
-    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_SHOW_H)
-        return (guess_card[0].ID < guess_card[1].ID);
-    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_SHOW_W &&
-        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_SHOW_H)
-        return (guess_card[1].ID < guess_card[0].ID);
-    return false;
 }
 
 function guess_click_func(e) {
@@ -397,11 +407,11 @@ function guess_click_func(e) {
         return;
     updateMouseXY(e);
     let i = pointedGuessIndex();
-    console.log(i);
+    //console.log(i);
     if (i >= 0)
     {
-        guess_result = check_guess_result(mouse);
-        console.log(guess_result);
+        guess_result = (guess_card[i].ID < guess_card[Number(!i)].ID);
+        //console.log(guess_result);
         startTime = performance.now();
         time_func = flip_guess_card(i);
         next_func = function (time) {
@@ -416,12 +426,21 @@ function guess_click_func(e) {
             /* draw month under the two guess cards */
             context.fillStyle = 'black';
             context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_SHOW_W/2) * R, (guess_card[0].py + CARD_SHOW_H + 36) * R);
-            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_SHOW_W/2) * R, (guess_card[1].py + CARD_SHOW_H + 36) * R);
+            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_LARGE_W/2) * R, (guess_card[0].py + CARD_LARGE_H + 36) * R);
+            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_LARGE_W/2) * R, (guess_card[1].py + CARD_LARGE_H + 36) * R);
             
+            const smaller = (guess_card[0].ID < guess_card[1].ID) ? 0 : 1;
             if (time - startTime >= GUESS_WAIT) {
+                guess_card[smaller].noticed = true;
                 startTime = null;
                 time_func = next_func;
+            } else {
+                let flag = false;
+                for (let t = 0; t < twinkleTime; t++)
+                    if (time - startTime >= GUESS_WAIT * t / twinkleTime &&
+                        time - startTime <  GUESS_WAIT * (2*t+1) / (2 * twinkleTime))
+                        flag = true;
+                guess_card[smaller].noticed = flag;
             }
         }
 
@@ -451,35 +470,3 @@ function flip_guess_card(i) {
 }
 
 //#endregion
-
-function start_month() {
-    /* init month */
-    // init deck
-    deck = new Array(CARD_NUM);
-    for (let i = 0; i < CARD_NUM; i++)
-        deck[i] = i;
-
-    // reset cards
-    for (let i = 0; i < CARD_NUM; i++)
-        card[i].reset_month();
-    
-    // reset field
-    field.reset_month();;
-
-    // reset players
-    player[PLR].reset_month();
-    player[CPU].reset_month();
-
-    // reset game info
-    game.reset_month();
-    game.month++;
-    game.first = Number(!game.first);
-
-    // reset animation
-    endAnimation();
-
-    // shuffle
-    shuffle(deck);
-    // 發牌
-    deal_cards(game.first);
-}
