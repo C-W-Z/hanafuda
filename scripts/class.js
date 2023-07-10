@@ -20,9 +20,9 @@ class Data {
     init() {
         this.battleTime = [0,0,0,0,0,0,0,0,0,0,0,0]; // 對戰回數 [1~12月]
         this.totalMonth = 0; // 總對局數
-        this.maxTotalMoney = [0,0,0,0,0,0,0,0,0,0,0,0]; // 最高獲得總文數 [1~12月]
-        this.maxMoneyMonth = 0; // 最高獲得文數(單月) [PLR, CPU]
-        this.totalMoney = 0; // 累計獲得文數 [PLR, CPU]
+        this.maxTotalMoney = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 最高獲得總文數 [PLR, CPU][1~12月]
+        this.maxMoneyMonth = [0, 0]; // 最高獲得文數(單月) [PLR, CPU]
+        this.totalMoney = [0, 0]; // 累計獲得文數 [PLR, CPU]
         // 平均獲得文數 = totalMoney / totalMonth
         this.totalWin = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 勝利數 [PLR, CPU][1~12月]
         // 平手數[1/3/6/12月] = battleTime[i] - totalWin[PLR][i] - totalWin[CPU][i];
@@ -42,9 +42,11 @@ class Data {
         // Koi Koi 成功率 = koiSucessTime / totalKoiTime
 
         // 組成yaku的次數(不論輸贏)(カス,短冊,タネ一月中最多只算一次) 參考yaku_name
-        this.yakuTime = new Array(YAKU_NUM);
+        this.yakuTime = new Array(2); // [PLR, CPU]
+        this.yakuTime[PLR] = new Array(YAKU_NUM);
+        this.yakuTime[CPU] = new Array(YAKU_NUM);
         for (let i = 0; i <  this.yakuTime.length; i++)
-            this.yakuTime[i] = 0;
+            this.yakuTime[PLR][i] = this.yakuTime[CPU][i] = 0;
         // 出現率 = yakuTime[i] / totalMonth
     }
 

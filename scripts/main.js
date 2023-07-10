@@ -148,7 +148,7 @@ function animate(time) {
 
 function draw_home_page() {
     // draw Card Images
-    const gap = 120, h = 200;
+    const gap = 120, h = 225;
     draw_rotate_card_large( 0, SCREEN_W/2 - gap * 1.8, h      , -Math.PI/ 8);
     draw_rotate_card_large( 8, SCREEN_W/2 - gap      , h - 30 , -Math.PI/16);
     draw_rotate_card_large(44, SCREEN_W/2 + gap * 1.8, h      ,  Math.PI/ 8);
@@ -156,16 +156,17 @@ function draw_home_page() {
     draw_rotate_card_large(28, SCREEN_W/2            , h - 45, 0);
 
     // draw Title
+    const title_h = 200;
     context.strokeStyle = 'gold';
     context.lineWidth = 5 * R;
     context.fillStyle = 'black';
     context.font = 108 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.strokeText("花札", SCREEN_W/2 * R, (150) * R);
-    context.fillText("花札", SCREEN_W/2 * R, (150) * R);
+    context.strokeText("花札", SCREEN_W/2 * R, title_h * R);
+    context.fillText("花札", SCREEN_W/2 * R, title_h * R);
     context.strokeStyle = 'pink';
     context.font = 81 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.strokeText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
-    context.fillText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
+    context.strokeText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
+    context.fillText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
     
     // draw Buttons
     for (let i = 0; i < title_button.length; i++)

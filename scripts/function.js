@@ -341,8 +341,8 @@ function player_win_month(playerID) {
     // update data
     if (game.koi == playerID)
         data.koiSucessTime[playerID]++;
-    data.maxMoneyMonth = Math.max(data.maxMoneyMonth, player[PLR].money[game.month-1]);
-    data.totalMoney += player[PLR].money[game.month-1];
+    data.maxMoneyMonth[playerID] = Math.max(data.maxMoneyMonth[playerID], player[playerID].money[game.month-1]);
+    data.totalMoney[playerID] += player[playerID].money[game.month-1];
     data.totalWinMonth[playerID]++;
     // 連勝月
     if (data.lastWinMonth[playerID] > 0) {
@@ -355,7 +355,7 @@ function player_win_month(playerID) {
     // yaku
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[playerID].yaku[i] > 0)
-            data.yakuTime[i]++;
+            data.yakuTime[playerID][i]++;
 }
 
 function draw_decide_koi() {
@@ -487,7 +487,8 @@ function result_game() {
     game.state = gameState.game_result;
 
     // update data
-    data.maxTotalMoney[game.MAXMONTH-1] = Math.max(player[PLR].total_money, data.maxTotalMoney[game.MAXMONTH-1]);
+    data.maxTotalMoney[PLR][game.MAXMONTH-1] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR][game.MAXMONTH-1]);
+    data.maxTotalMoney[CPU][game.MAXMONTH-1] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU][game.MAXMONTH-1]);
     data.totalWin[game.winner][game.MAXMONTH-1]++;
     // data.maxStreak
     // 對戰連勝
