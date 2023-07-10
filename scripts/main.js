@@ -15,6 +15,7 @@ window.onload = function()
     resize_canvas();
     // control settings
     canvas.onmousedown = click_func;
+    window.onmousemove  = updateMouseXY;
     document.addEventListener('keydown', keydown_func);
 
     /* load Data */
@@ -34,7 +35,9 @@ function click_func(event) {
     if (game == null) return;
     switch (game.state) {
         case gameState.title:
-            start_game();
+            for (let i = 0; i < title_button.length; i++)
+                title_button[i].check_press();
+            devSource.check_press();
             break;
         case gameState.player_select_hand:
             player[PLR].selected_handID = pointedPlayerHandIndex();
@@ -165,10 +168,9 @@ function draw_title() {
     context.fillText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
     
     // draw Buttons
-    start_button.draw();
-    options_button.draw();
-    statistics_button.draw();
-    achievement_button.draw();
+    for (let i = 0; i < title_button.length; i++)
+        title_button[i].draw();
+    devSource.draw();
 }
 
 /* draw canvas when gaming */
@@ -264,18 +266,25 @@ function init_game() {
 
     /* init game obj */
     game = new Game();
+    game.state = gameState.title;
 
     /* init UI in game */
     create_UI();
+
+    time_func = check_hover_title_button;
 }
 
 function create_UI() {
     let w, h;
     /* title */
-    start_button       = new Button(150, SCREEN_H/2 + 60 * 1, 100, 50, 0, '開始', 40, null, '', '', 'black');
-    options_button     = new Button(150, SCREEN_H/2 + 60 * 2, 100, 50, 0, '設定', 40, null, '', '', 'black');
-    statistics_button  = new Button(150, SCREEN_H/2 + 60 * 3, 100, 50, 0, '紀録', 40, null, '', '', 'black');
-    achievement_button = new Button(150, SCREEN_H/2 + 60 * 4, 100, 50, 0, '成就', 40, null, '', '', 'black');
+    title_button[0] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 1, 100, 50, 0, title_button_text[0], 40, start_game, '', '', 'black');
+    title_button[1] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 2, 100, 50, 0, title_button_text[1], 40, null, '', '', 'black');
+    title_button[2] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 3, 100, 50, 0, title_button_text[2], 40, null, '', '', 'black');
+    title_button[3] = new Button(SCREEN_W/2-50, SCREEN_H/2 + 60 * 4, 100, 50, 0, title_button_text[3], 40, null, '', '', 'black');
+
+    /* 開發者 */
+    w = FONT_SIZE*6, h = FONT_SIZE * 2;
+    devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '@C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda','blank')}, '', '', 'black');
 
     /* in game */
     // 文
@@ -302,8 +311,16 @@ function create_UI() {
     result_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
 }
 
+function check_hover_title_button(time) {
+    for (let i = 0; i < title_button.length; i++)
+        title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
+    devSource.textColor = devSource.include(mouse) ? 'gold' : 'black';
+}
+
 /* init new game */
 function start_game() {
+    time_func = null;
+
     // init all cards
     card = new Array(CARD_NUM);
     for (let i = 0; i < CARD_NUM; i++)
@@ -330,7 +347,6 @@ function start_game() {
     // update data
     data.battleTime[game.MAXMONTH-1]++;
 
-    /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
     choose_first();
 }

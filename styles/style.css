@@ -23,8 +23,8 @@ canvas {
     padding: 0;
     margin: auto;
     display: block;
-    background: rgb(144,128,96);
-	background-size: cover;
+    background: url('../imgs/bg.webp'), rgb(144,128,96);
+    background-size: 5%;
+	background-repeat: repeat;
     border-radius: 5px;
-    box-shadow: 0 0 5px 2px;
 }

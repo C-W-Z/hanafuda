@@ -84,7 +84,7 @@ class Card {
                           CARD_LARGE_W * this.scaleX * R,
                           CARD_LARGE_H * R);
         if (this.noticed) {
-            context.strokeStyle = "gold";
+            context.strokeStyle = noticeColor;
             context.lineWidth = 2 * R;
             context.strokeRect(this.px * R, this.py * R, CARD_LARGE_W * R, CARD_LARGE_H * R);
         }

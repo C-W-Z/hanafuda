@@ -46,6 +46,8 @@ const cardPlace = {
 const FONT_SIZE = 24;
 const normalMoveTime = 400; // ms
 const fastMoveTime = 250; // ms
+const noticeColor = 'gold';
+const fieldNoticeColor = 'darkred';
 const gameState = {
     title: 0,
     decide_first: 1,
@@ -64,11 +66,6 @@ const gameState = {
 
 /* local storage */
 let data; // player data storage
-let originR = Number(localStorage.getItem('originR'));
-if (!originR) {
-    originR = window.devicePixelRatio;
-    localStorage.setItem('originR', originR);
-}
 
 /* canvas & sources & control */
 let R = window.devicePixelRatio;
@@ -108,10 +105,10 @@ next_func = null;
 let movingCard;
 
 /* UI */
-let start_button;
-let options_button;
-let statistics_button;
-let achievement_button;
+/* home page */
+let title_button = new Array(4);
+const title_button_text = ['開始', '設定', '統計', '成就'];
+let devSource;
 // 月
 let month_panel;
 // 文
@@ -138,14 +135,14 @@ let result_panel;
 function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
     context.drawImage(cardImg[cardID], (px + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
     if (noticed) {
-        context.strokeStyle = "gold";
+        context.strokeStyle = noticeColor;
         context.lineWidth = 2 * R;
         context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
     }
 }
 // draw card outline on field
 function draw_noticed(px, py) {
-    context.strokeStyle = "darkred";
+    context.strokeStyle = fieldNoticeColor;
     context.lineWidth = 2 * R;
     context.setLineDash([5]);
     context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
