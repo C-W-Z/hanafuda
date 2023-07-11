@@ -40,6 +40,12 @@ function click_func(event) {
                 title_button[i].check_press();
             devSource.check_press();
             break;
+        case gameState.settings:
+            back_button.check_press();
+            for (let i = 0; i < settings_button.length; i++)
+                settings_button[i].check_press();
+            devSource.check_press();
+            break;
         case gameState.player_select_hand:
             player[PLR].selected_handID = pointedPlayerHandIndex();
             if (player[PLR].selected_handID >= 0) {
@@ -80,10 +86,13 @@ function click_func(event) {
             koi_button.check_press();
             break;
         case gameState.month_end:
-            if (game.month == game.MAXMONTH)
+            if (game.month == data.MAXMONTH)
                 to_result_button.check_press();
             else
                 next_month_button.check_press();
+            break;
+        case gameState.game_result:
+            home_button.check_press();
             break;
         default:
             break;
@@ -148,6 +157,27 @@ function animate(time) {
 }
 
 function draw_home_page() {
+    switch (game.state) {
+        case gameState.title:
+            drawTitle();
+            // draw Buttons
+            for (let i = 0; i < title_button.length; i++)
+                title_button[i].draw();
+            break;
+    
+        case gameState.settings:
+            setting_panel.draw();
+            for (let i = 0; i < settings_button.length; i++)
+                settings_button[i].draw();
+            back_button.draw();
+            break;
+        default:
+            break;
+    }
+    devSource.draw();
+}
+
+function drawTitle() {
     // draw Card Images
     const gap = 120, h = 225;
     draw_rotate_card_large( 0, SCREEN_W/2 - gap * 1.8, h      , -Math.PI/ 8);
@@ -161,18 +191,13 @@ function draw_home_page() {
     context.strokeStyle = 'gold';
     context.lineWidth = 5 * R;
     context.fillStyle = 'black';
-    context.font = 108 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = 108 * R + "px 'Yuji Syuku', sans-serif";
     context.strokeText("花札", SCREEN_W/2 * R, title_h * R);
     context.fillText("花札", SCREEN_W/2 * R, title_h * R);
     context.strokeStyle = 'pink';
-    context.font = 81 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = 81 * R + "px 'Yuji Syuku', sans-serif";
     context.strokeText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
     context.fillText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
-    
-    // draw Buttons
-    for (let i = 0; i < title_button.length; i++)
-        title_button[i].draw();
-    devSource.draw();
 }
 
 /* draw canvas when gaming */
@@ -204,14 +229,14 @@ function draw_gaming() {
 
     // draw moving cards
     for (let i = 0; i < movingCard.length; i++)
-        //if (card[c].px != DECK_P.x && card[c].py != DECK_P.y)
-        card[movingCard[i]].draw();
+        if (game.state != gameState.deal || (game.state == gameState.deal && card[movingCard[i]].px != DECK_P.x && card[movingCard[i]].py != DECK_P.y))
+            card[movingCard[i]].draw();
 
     /* draw the information of this game */
     
-    context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = FONT_SIZE * R + "px 'Yuji Syuku', sans-serif";
     // 幾月
-    if (game.month_yaku)
+    if (data.month_yaku)
         month_panel.text = `${NUMBER[game.month]}月` + ` ${tuki_name[game.month-1]}`;
     else
         month_panel.text = `${NUMBER[game.month]}月`;
@@ -227,7 +252,7 @@ function draw_gaming() {
     context.lineWidth = 3 * R;
     context.stroke();
     context.fillStyle = 'black';
-    context.font = FONT_SIZE * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = FONT_SIZE * R + "px 'Yuji Syuku', sans-serif";
     context.fillText("親", (SCREEN_W - 30) * R, circleY * R);
 
     // 文
@@ -273,7 +298,7 @@ function init_game() {
     /* init UI in game */
     create_UI();
 
-    time_func = check_hover_title_button;
+    time_func = check_hover_home_buttons;
 }
 
 function create_UI() {
@@ -283,11 +308,21 @@ function create_UI() {
     title_button[0] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*1, w, h, 0, title_button_text[0], 40, start_game, '', '', 'black');
     title_button[1] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*2, w, h, 0, title_button_text[1], 40, null, '', '', 'black');
     title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, null, '', '', 'black');
-    title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, null, '', '', 'black');
+    title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, show_settings, '', '', 'black');
+
+    back_button = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, '返回', 40, back_to_title, '', '', 'black');
 
     /* 開發者 */
     w = FONT_SIZE*6, h = FONT_SIZE * 2;
-    devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '@C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda','blank')}, '', '', 'black');
+    devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '©C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda/','blank')}, '', '', 'black');
+
+    w = 500, h = 450;
+    setting_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
+    w = 300, h = 50;
+    settings_button[0] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*3.5, w, h, 10, settings_button_text[0], FONT_SIZE, resize_canvas, 'lightgray');
+    settings_button[1] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*1.5, w, h, 10, settings_button_text[1], FONT_SIZE, uploadData, 'lightgray');
+    settings_button[2] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*0.5, w, h, 10, settings_button_text[2], FONT_SIZE, downloadData, 'lightgray');
+    settings_button[3] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*2.5, w, h, 10, settings_button_text[3], FONT_SIZE, deleteData, 'red','black','red');
 
     /* in game */
     // 文
@@ -307,16 +342,27 @@ function create_UI() {
     yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
     // the size of restart button
     w = 400, h = 50;
-    next_month_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '次の対局へ', 24, start_month);
-    to_result_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '対局結果へ', 24, result_game);
+    next_month_button = new Button(yaku_panel.x, yaku_panel.y+yaku_panel.h + 5, yaku_panel.w, h, 10, '次の対局へ', FONT_SIZE, start_month);
+    to_result_button = new Button(yaku_panel.x, yaku_panel.y+yaku_panel.h + 5, yaku_panel.w, h, 10, '対局結果へ', FONT_SIZE, result_game);
     // the size of  result panel
     w = 400, h = 480;
     result_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
+    w = 400, h = 50;
+    home_button = new Button(result_panel.x, result_panel.y+result_panel.h + 5, result_panel.w, h, 10, '回首頁', FONT_SIZE, back_to_title);
 }
 
-function check_hover_title_button(time) {
-    for (let i = 0; i < title_button.length; i++)
-        title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
+function check_hover_home_buttons(time) {
+    switch (game.state) {
+        case gameState.title:
+            for (let i = 0; i < title_button.length; i++)
+                title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
+            break;
+        case gameState.settings:
+            back_button.text = back_button.include(mouse) ? ('>  返回  <') : '返回';
+            break;
+        default:
+            break;
+    }
     devSource.textColor = devSource.include(mouse) ? 'gold' : 'black';
 }
 
@@ -343,12 +389,12 @@ function start_game() {
     // UI
     // 月份
     const w = FONT_SIZE + 10;
-    const h = FONT_SIZE * (game.month_yaku ? 6 : 3) + 10;
+    const h = FONT_SIZE * (data.month_yaku ? 6 : 3) + 10;
     month_panel = new Button(5, SCREEN_H/2-h/2, w, h, 5);
     month_panel.vertical = true;
 
     // update data
-    data.battleTime[game.MAXMONTH-1]++;
+    data.battleTime[data.MAXMONTH-1]++;
 
     // 決定親權 (0:player, 1:cpu)
     choose_first();
@@ -365,107 +411,11 @@ function after_choose_first() {
     start_month();
 }
 
-//#region Guess Smaller Card from Two Cards
-
-function start_guess() {
-    guessing = true;
-
-    let month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-    shuffle(month);
-    guess_card[0] = new Card(month[0] * 4);
-    guess_card[1] = new Card(month[11] * 4);
-    guess_card[0].px = SCREEN_W/2 - CARD_LARGE_W * 2;
-    guess_card[0].py = SCREEN_H/2-CARD_LARGE_H/2;
-    guess_card[1].px = SCREEN_W/2 + CARD_LARGE_W;
-    guess_card[1].py = SCREEN_H/2-CARD_LARGE_H/2;
-    guess_text = '札を一枚選んでください';
-
-    canvas.onmousedown = guess_click_func;
+function back_to_title() {
+    game.state = gameState.title;
+    time_func = check_hover_home_buttons;
 }
 
-function draw_guess_card() {
-    guess_card[0].draw_large();
-    guess_card[1].draw_large();
-
-    context.fillStyle = 'black';
-    context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_LARGE_H/2 - 36) * R);
+function show_settings() {
+    game.state = gameState.settings;
 }
-
-function pointedGuessIndex() {
-    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_LARGE_W &&
-        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_LARGE_H)
-        return 0;
-    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_LARGE_W &&
-        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_LARGE_H)
-        return 1;
-    return -1;
-}
-
-function guess_click_func(e) {
-    /* not left click */
-    if (e.button != 0)
-        return;
-    updateMouseXY(e);
-    let i = pointedGuessIndex();
-    if (i >= 0)
-    {
-        guess_result = (guess_card[i].ID < guess_card[Number(!i)].ID);
-        startTime = performance.now();
-        time_func = flip_guess_card(i);
-        next_func = function (time) {
-            guess_text = (guess_result ? 'あなた' : '相手') + 'が親になりました';
-            
-            next_func = function (time) {
-                endAnimation();
-                guessing = false;
-                after_guess();
-            }
-
-            /* draw month under the two guess cards */
-            context.fillStyle = 'black';
-            context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_LARGE_W/2) * R, (guess_card[0].py + CARD_LARGE_H + 36) * R);
-            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_LARGE_W/2) * R, (guess_card[1].py + CARD_LARGE_H + 36) * R);
-
-            const smaller = (guess_card[0].ID < guess_card[1].ID) ? 0 : 1;
-            if (time - startTime >= GUESS_WAIT) {
-                guess_card[smaller].noticed = true;
-                startTime = null;
-                time_func = next_func;
-            } else {
-                let flag = false;
-                for (let t = 0; t < twinkleTime; t++)
-                    if (time - startTime >= GUESS_WAIT * t / twinkleTime &&
-                        time - startTime <  GUESS_WAIT * (2*t+1) / (2 * twinkleTime))
-                        flag = true;
-                guess_card[smaller].noticed = flag;
-            }
-        }
-
-        canvas.onmousedown = click_func;
-    }
-}
-
-function flip_guess_card(i) {
-    return function(time) {
-        const deltaTime = (time - startTime) / FLIP_TIME;
-        if (deltaTime >= 1) {
-            guess_card[i].scaleX = 1;
-            guess_card[Number(!i)].scaleX = 1;
-            startTime = null;
-            time_func = next_func;
-        } else if (deltaTime >= 0.5) {
-            guess_card[i].scaleX = 1;
-            guess_card[Number(!i)].scaleX = Math.abs(easeOutQuad(time-startTime-FLIP_TIME*0.5, 1, -4*(deltaTime-0.5), FLIP_TIME*0.5));
-            if (deltaTime >= 0.75)
-                guess_card[Number(!i)].back = false;
-        } else {
-            guess_card[i].scaleX = Math.abs(easeOutQuad(time-startTime, 1, -4*deltaTime, FLIP_TIME*0.5));
-            if (deltaTime >= 0.25)
-                guess_card[i].back = false;
-        }
-    }
-}
-
-//#endregion

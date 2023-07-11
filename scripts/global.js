@@ -52,8 +52,8 @@ const fieldNoticeColor = 'darkred';
 const gameState = {
     /* home page */
     title: 0,
-    setting: 1,
-    choose_difficulty: 2,
+    choose_difficulty: 1,
+    settings: 2,
     statistic: 3,
     achievement: 4,
     /* in game */
@@ -116,8 +116,12 @@ let movingCard;
 /* UI */
 /* home page */
 let title_button = new Array(4);
-const title_button_text = ['開始', '設定', '統計', '成就'];
+const title_button_text = ['開始', '統計', '成就', '設定'];
 let devSource;
+let back_button;
+let setting_panel;
+let settings_button = new Array(4);
+const settings_button_text = ["画面調整","資料継承","資料下載","資料削除"];
 // 月
 let month_panel;
 // 文
@@ -132,6 +136,7 @@ let yaku_panel;
 let next_month_button;
 let to_result_button;
 let result_panel;
+let home_button;
 
 /* draw card */
 /**
@@ -191,7 +196,6 @@ function endAnimation() {
 }
 
 // 一張牌在一幀內的移動
-// 回傳結束了沒
 function step_move(cardID, sX, sY, dX, dY, flip = false) {
     return function(time) {
         const deltaTime = (time - startTime) / MOVE_TIME;
@@ -201,26 +205,23 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
             card[cardID].scaleX = 1;
             startTime = null;
             time_func = next_func;
-            return true;
         } else {
             // moving animation
             card[cardID].px = easeInOutQuad(time-startTime, sX, (dX-sX)*deltaTime, MOVE_TIME);// sX + (dX - sX) * deltaTime;
             card[cardID].py = easeInOutQuad(time-startTime, sY, (dY-sY)*deltaTime, MOVE_TIME);// sY + (dY - sY) * deltaTime;
             // flip
-            if (flip == true) {
+            if (flip) {
                 card[cardID].scaleX = Math.abs(0.5 - deltaTime) + 0.5;
                 if (deltaTime >= 0.5)
                     card[cardID].back = false;
             }
         }
-        return false;
     }
 }
 
 /* shuffle deck */
 function shuffle(deck) {
-    let shuffle_end = false;
-    while (!shuffle_end) {
+    while (true) {
         // shuffle
         for (let i = deck.length - 1; i > 0; i--) {
             const r = Math.floor(Math.random() * (i + 1));
@@ -231,10 +232,39 @@ function shuffle(deck) {
         let flag = true;
         for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
             month[Math.floor(deck[i] / 4)]++;
-            if (month[Math.floor(deck[i] / 4)] >= 3)
+            if (month[Math.floor(deck[i] / 4)] >= 3) {
                 flag = false;
+                break;
+            }
         }
-        shuffle_end = flag;
+        if (!flag) continue;
+        // 檢查手牌(deck[8...15,16...23])會不會出現4張同月分的牌(防止手四)或4組配對的月份牌(防止喰付)
+        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let count = 0;
+        for (let i = CARD_NUM - HAND_NUM - 1; i >= CARD_NUM - HAND_NUM * 2; i--)
+            month[Math.floor(deck[i] / 4)]++;
+        for (const m of month) {
+            if (m == 4) {
+                flag = false;
+                break;
+            } else if (m == 2)
+                count++;
+        }
+        if (!flag || count == 4) continue;
+        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        count = 0;
+        for (let i = CARD_NUM - HAND_NUM * 2 - 1; i >= CARD_NUM - HAND_NUM * 3; i--)
+            month[Math.floor(deck[i] / 4)]++;
+        for (const m of month) {
+            if (m == 4) {
+                flag = false;
+                break;
+            } else if (m == 2)
+                count++;
+        }
+        if (!flag || count == 4) continue;
+
+        break;
     }
 }
 
@@ -250,4 +280,37 @@ function draw_rotate_card_large(ID, cx, cy, angleInRadians) {
     //context.translate(-cx * R, -cy * R);
     //context.restore();
     context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function isArray(obj) {
+    if (typeof Array.isArray === "function")
+        return Array.isArray(obj); // 如果瀏覽器支援就用 isArray() 方法
+    else  // 否則就使用 toString 方法
+        return (Object.prototype.toString.call(obj) === "[object Array]");
+}
+
+function compareArrFormat(a, b) {
+    if (a.length != b.length)
+        return false;
+    for (let i = 0; i < a.length; i++) {
+        const ia = isArray(a[i]);
+        const ib = isArray(b[i]);
+        if (ia != ib)
+            return false;
+        if (ia && !compareArrFormat(a[i], b[i]))
+            return false
+    }
+    return true;
+}
+
+/* compare whether two objs have same format */
+function equalObjFormat(o1, o2) {
+    const a = Object.entries(o1);
+    const b = Object.entries(o2);
+    if (a.length != b.length)
+        return false;
+    for (let i = 0; i < a.length; i++)
+        if (a[i][0] != b[i][0])
+            return false;
+    return compareArrFormat(a, b)
 }

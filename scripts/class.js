@@ -9,13 +9,12 @@
 
 class Data {
     constructor() {
-        const obj = localStorage.getItem('Data');
-        if (!obj) {
-            this.init();
+        this.init();
+        const obj = JSON.parse(localStorage.getItem('Data'));
+        if (obj && equalObjFormat(this, obj))
+            Object.assign(this, obj);
+        else
             this.store();
-        } else {
-            Object.assign(this, JSON.parse(obj));
-        }
     }
 
     init() {
@@ -49,6 +48,21 @@ class Data {
         for (let i = 0; i <  YAKU_NUM; i++)
             this.yakuTime[PLR][i] = this.yakuTime[CPU][i] = 0;
         // 出現率 = yakuTime[i] / totalMonth
+
+        // rules
+        this.MAXMONTH = 12; // 預設12月玩法
+        this.matsukiribozu = false; // 啟用松桐坊主
+        this.sugawara = false; // 啟用表菅原
+        this.flower_sake = false; // 啟用花見酒
+        this.moon_sake = false; // 啟用花見酒
+        this.flower_moon_sake = true; // 啟用花月見
+        this.five_bird = false; // 啟用五鳥
+        this.seven_tan = false;
+        this.six_tan = false;
+        this.akatan_aotan = false;
+        this.grass = false; // 啟用草短
+        this.month_yaku = true; // 啟用月札
+        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
     }
 
     store() {
@@ -222,7 +236,7 @@ class Player {
             now_yaku[i] = 0;
 
         let rain = 0; // 雨
-        let matsukiribōzu = 0; // 松桐坊主
+        let matsukiribozu = 0; // 松桐坊主
         let sugawara = 0; // 表菅原
         let inoshikacho = 0; // 猪鹿蝶
         let gotori = 0; // 五鳥
@@ -240,7 +254,7 @@ class Player {
                 if (c == 41) yanaginitanzaku++;
                 if (c ==  8 || c == 32) hanamideippai++;
 				if (c == 28 || c == 32) tsukimideippai++;
-                if (c ==  0 || c == 28 || c == 44) matsukiribōzu++;
+                if (c ==  0 || c == 28 || c == 44) matsukiribozu++;
                 if (c ==  0 || c ==  4 || c ==  8) sugawara++;
                 if (c == 20 || c == 24 || c == 36) inoshikacho++;
                 if (c ==  4 || c == 12 || c == 29) gotori++;
@@ -254,20 +268,20 @@ class Player {
         if (light == 4 && rain == 0 ) now_yaku[ 2] += 1; // 四光
         if (light == 4 && rain == 1 ) now_yaku[ 3] += 1; // 雨四光
         if (light == 3 && rain == 0 ) now_yaku[ 4] += 1; // 三光
-        if (game.matsukiribōzu    && matsukiribōzu                  == 3) now_yaku[ 5]++; // 松桐坊主
-        if (game.sugawara         && sugawara                       == 3) now_yaku[ 6]++; // 表菅原
-        if (game.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 7]++; // 飲み
-        if (game.flower_sake      && hanamideippai                  == 2) now_yaku[ 8]++; // 花見で一杯
-        if (game.moon_sake        && tsukimideippai                 == 2) now_yaku[ 9]++; // 月見で一杯
+        if (data.matsukiribozu    && matsukiribozu                  == 3) now_yaku[ 5]++; // 松桐坊主
+        if (data.sugawara         && sugawara                       == 3) now_yaku[ 6]++; // 表菅原
+        if (data.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 7]++; // 飲み
+        if (data.flower_sake      && hanamideippai                  == 2) now_yaku[ 8]++; // 花見で一杯
+        if (data.moon_sake        && tsukimideippai                 == 2) now_yaku[ 9]++; // 月見で一杯
         if (inoshikacho        == 3 ) now_yaku[10] += 1; // 猪鹿蝶
-        if (game.five_bird        && gotori                         == 3) now_yaku[11]++; // 五鳥
-        if (game.seven_tan        && ribbon - yanaginitanzaku       >= 7) now_yaku[12]++; // 七短
-        if (game.six_tan          && ribbon - yanaginitanzaku       == 6) now_yaku[13]++; // 六短
-        if (game.akatan_aotan     && akatan + aotan                 == 6) now_yaku[14]++; // 赤短・青短の重複役
+        if (data.five_bird        && gotori                         == 3) now_yaku[11]++; // 五鳥
+        if (data.seven_tan        && ribbon - yanaginitanzaku       >= 7) now_yaku[12]++; // 七短
+        if (data.six_tan          && ribbon - yanaginitanzaku       == 6) now_yaku[13]++; // 六短
+        if (data.akatan_aotan     && akatan + aotan                 == 6) now_yaku[14]++; // 赤短・青短の重複役
         if (akatan             == 3 ) now_yaku[15] += 1; // 赤短
         if (aotan              == 3 ) now_yaku[16] += 1; // 青短
-        if (game.grass            && kusa                           == 3) now_yaku[17]++; // 草
-        if (game.month_yaku       && getsusatsu                     == 4) now_yaku[18]++; // 月札
+        if (data.grass            && kusa                           == 3) now_yaku[17]++; // 草
+        if (data.month_yaku       && getsusatsu                     == 4) now_yaku[18]++; // 月札
         if (dross              >= 10) now_yaku[19] += dross  - 9; // カス
         if (ribbon             >= 5 ) now_yaku[20] += ribbon - 4; // 短冊
         if (seed               >= 5 ) now_yaku[21] += seed   - 4; // タネ
@@ -354,28 +368,13 @@ class Field {
 }
 
 class Game {
-    constructor(maxMonth = 12) {
+    constructor() {
         this.state = gameState.title; // 整個網頁現在的狀態(畫面)
-        this.MAXMONTH = maxMonth; // 預設12月玩法
         this.month = 0; // 月份
         this.first = 0; // 誰先手
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.koi = -1; // whether player/cpu is doing koi koi
         this.winner = -1; // 贏家
-
-        // rules
-        this.matsukiribōzu = false; // 啟用松桐坊主
-        this.sugawara = false; // 啟用表菅原
-        this.flower_sake = false; // 啟用花見酒
-        this.moon_sake = false; // 啟用花見酒
-        this.flower_moon_sake = true; // 啟用花月見
-        this.five_bird = false; // 啟用五鳥
-        this.seven_tan = false;
-        this.six_tan = false;
-        this.akatan_aotan = false;
-        this.grass = false; // 啟用草短
-        this.month_yaku = true; // 啟用月札
-        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
 
         this.op = false; // look cpu's hand cards
     }
@@ -426,7 +425,7 @@ class Button {
         }
         if (this.fontsize > 0 || text != '') {
             context.fillStyle = this.textColor;
-            context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+            context.font = this.fontsize * R + "px 'Yuji Syuku', sans-serif";
             if (this.vertical)
                 for (let i = 0; i < this.text.length; i++)
                     context.fillText(this.text[i], (this.x + this.w/2) * R, (this.y + this.h/2 + (i + 0.5 - this.text.length/2) * this.fontsize) * R);
