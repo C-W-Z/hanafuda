@@ -27,8 +27,8 @@ const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
 // 牌的種類（カス・短冊・タネ・五光）
 const card_type = [3,1,0,0, 2,1,0,0, 3,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 3,2,0,0, 2,1,0,0, 2,1,0,0, 3,2,1,0, 3,0,0,0];
 // 役(yaku)
-const yaku_score = [   6  ,  10 ,  8   ,   7   ,   5  ,  5  ,    3     ,     3     ,   5   ,  5  ,  5   ,  5 ,  4  ,    1 ,  1  , 1 ];
-const yaku_name  = ["親権","五光","四光","雨四光","三光","飲み","花見で一杯","月見で一杯","猪鹿蝶","赤短","青短","草","月札","カス","短冊","タネ"];
+const yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 6, 10, 5, 5, 5., 4, 1, 1, 1];
+const yaku_name  = ["親権","五光","四光","雨四光","三光","松桐坊主","表菅原","飲み","花見で一杯","月見で一杯","猪鹿蝶","ごとり","七短","六短","赤短・青短の重複役","赤短","青短","草","月札","カス","短冊","タネ"];
 const YAKU_NUM = yaku_name.length;
 const tuki_name  = ["松","梅","桜","藤","菖蒲","牡丹","萩","芒","菊","紅葉","雨","桐"];
 // 數字
@@ -46,29 +46,34 @@ const cardPlace = {
 const FONT_SIZE = 24;
 const normalMoveTime = 400; // ms
 const fastMoveTime = 250; // ms
+const noticeColor = 'gold';
+const fieldNoticeColor = 'darkred';
 const gameState = {
+    /* home page */
     title: 0,
-    decide_first: 1,
-    deal: 2,
-    player_select_hand: 3,
-    player_select_field: 4,
-    player_play_card: 5,
-    player_choose_card: 6, // when draw a card with two cards on field can be paired
-    player_end_round: 7,
-    player_decide_koi: 8,
-    cpu_play: 9,
-    koikoi_animation: 10,
-    month_end: 11,
-    game_result: 12
+    setting: 1,
+    choose_difficulty: 2,
+    statistic: 3,
+    achievement: 4,
+    /* in game */
+    ingame: 100, // > game.state > gameState.ingame means in game
+    decide_first: 101,
+    deal: 102,
+    player_select_hand: 103,
+    player_select_field: 104,
+    player_play_card: 105,
+    player_choose_card: 106, // when draw a card with two cards on field can be paired
+    player_end_round: 107,
+    player_decide_koi: 108,
+    cpu_play: 109,
+    show_yaku_animation: 110,
+    koikoi_animation: 111,
+    month_end: 112,
+    game_result: 113
 };
 
 /* local storage */
 let data; // player data storage
-let originR = Number(localStorage.getItem('originR'));
-if (!originR) {
-    originR = window.devicePixelRatio;
-    localStorage.setItem('originR', originR);
-}
 
 /* canvas & sources & control */
 let R = window.devicePixelRatio;
@@ -76,7 +81,6 @@ let scaleRate = 1; // the scale rate of canvas
 let canvas;
 let context;
 let mouse = { x: 0, y: 0 }; // the mouse coordinates
-let menu; // right click menu
 let cardImg = new Array(CARD_NUM+1);
 for (let i = 0; i < CARD_NUM+1; i++)
     cardImg[i] = new Image();
@@ -109,6 +113,10 @@ next_func = null;
 let movingCard;
 
 /* UI */
+/* home page */
+let title_button = new Array(4);
+const title_button_text = ['開始', '設定', '統計', '成就'];
+let devSource;
 // 月
 let month_panel;
 // 文
@@ -117,7 +125,7 @@ let score_panel = new Array(2);
 let koi_panel;
 let end_button;
 let koi_button;
-let koikoi_banner;
+let banner;
 // when game end -> show yaku and score
 let yaku_panel;
 let next_month_button;
@@ -135,14 +143,14 @@ let result_panel;
 function draw_card(cardID, px, py, noticed = false, scaleX = 1) {
     context.drawImage(cardImg[cardID], (px + (1 - scaleX) * CARD_W / 2) * R, py * R, CARD_W * scaleX * R, CARD_H * R);
     if (noticed) {
-        context.strokeStyle = "gold";
+        context.strokeStyle = noticeColor;
         context.lineWidth = 2 * R;
         context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);
     }
 }
 // draw card outline on field
 function draw_noticed(px, py) {
-    context.strokeStyle = "darkred";
+    context.strokeStyle = fieldNoticeColor;
     context.lineWidth = 2 * R;
     context.setLineDash([5]);
     context.strokeRect(px * R, py * R, CARD_W * R, CARD_H * R);

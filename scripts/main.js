@@ -15,43 +15,14 @@ window.onload = function()
     resize_canvas();
     // control settings
     canvas.onmousedown = click_func;
+    window.onmousemove  = updateMouseXY;
     document.addEventListener('keydown', keydown_func);
-    // right click menu
-    menu = document.getElementById("menu");
-    resize_menu();
-    window.oncontextmenu = right_click_menu;
-    window.onclick = hide_menu;
-    window.addEventListener('resize', resize_menu);
-    // set menu options
-    document.getElementById("resize").onclick = resize_canvas;
 
     /* load Data */
     data = new Data();
 
     init_game();
     animate(startTime);
-}
-
-/* 自訂右鍵選單 */
-function right_click_menu(e) {
-    // cancel default menu
-    e.preventDefault();
-    // move menu to mouse
-    menu.style.left = 100 * e.clientX / self.innerWidth + '%';
-    menu.style.top = 100 * e.clientY / self.innerHeight + '%';
-    // show
-    menu.style.display='block';
-}
-
-function hide_menu(e) {
-    /* not right click */
-    if (e.button != 2)
-        menu.style.display = 'none'; // hide right click menu
-}
-
-function resize_menu() {
-    const ratio = originR / window.devicePixelRatio;
-    menu.style.fontSize = 16 * ratio + 'px';
 }
 
 function click_func(event) {
@@ -64,7 +35,9 @@ function click_func(event) {
     if (game == null) return;
     switch (game.state) {
         case gameState.title:
-            start_game();
+            for (let i = 0; i < title_button.length; i++)
+                title_button[i].check_press();
+            devSource.check_press();
             break;
         case gameState.player_select_hand:
             player[PLR].selected_handID = pointedPlayerHandIndex();
@@ -149,6 +122,7 @@ function updateMouseXY(event) {
         mouse.x = (event.clientX - rect.left) / scaleRate;
         mouse.y = (event.clientY - rect.top ) / scaleRate;
     }
+    //console.log(mouse);
 }
 
 function animate(time) {
@@ -164,48 +138,44 @@ function animate(time) {
     // 重畫整個畫面
     if (guessing)
         draw_guess_card();
-    else if (game.state == gameState.title)
-        draw_title();
-    else
+    else if (game.state > gameState.ingame)
         draw_gaming();
+    else
+        draw_home_page();
 
     requestAnimationFrame(animate);
 }
 
-function draw_title() {
-    // draw Images
-    const gap = 120, h = 200;
+function draw_home_page() {
+    // draw Card Images
+    const gap = 120, h = 225;
     draw_rotate_card_large( 0, SCREEN_W/2 - gap * 1.8, h      , -Math.PI/ 8);
     draw_rotate_card_large( 8, SCREEN_W/2 - gap      , h - 30 , -Math.PI/16);
     draw_rotate_card_large(44, SCREEN_W/2 + gap * 1.8, h      ,  Math.PI/ 8);
     draw_rotate_card_large(40, SCREEN_W/2 + gap      , h - 30 ,  Math.PI/16);
     draw_rotate_card_large(28, SCREEN_W/2            , h - 45, 0);
 
+    // draw Title
+    const title_h = 200;
     context.strokeStyle = 'gold';
     context.lineWidth = 5 * R;
     context.fillStyle = 'black';
     context.font = 108 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.strokeText("花札", SCREEN_W/2 * R, (150) * R);
-    context.fillText("花札", SCREEN_W/2 * R, (150) * R);
+    context.strokeText("花札", SCREEN_W/2 * R, title_h * R);
+    context.fillText("花札", SCREEN_W/2 * R, title_h * R);
     context.strokeStyle = 'pink';
     context.font = 81 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.strokeText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
-    context.fillText("こいこい", SCREEN_W/2 * R, (150+108/2+81/2) * R);
+    context.strokeText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
+    context.fillText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
     
-    context.fillStyle = 'black';
-    context.font = 40.5 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
-    context.fillText("開始", (200) * R, (SCREEN_H/2 + 60 * 1) * R);
-    context.fillText("設定", (200) * R, (SCREEN_H/2 + 60 * 2) * R);
-    context.fillText("紀録", (200) * R, (SCREEN_H/2 + 60 * 3) * R);
-    context.fillText("成就", (200) * R, (SCREEN_H/2 + 60 * 4) * R);
+    // draw Buttons
+    for (let i = 0; i < title_button.length; i++)
+        title_button[i].draw();
+    devSource.draw();
 }
 
 /* draw canvas when gaming */
 function draw_gaming() {
-    // draw field background
-    //context.fillStyle = 'darkred';
-    //context.fillRect((Field.X(0) - (CARD_IMG_W - CARD_W) / 2) * R, (Field.Y(0) - (CARD_IMG_H - CARD_H) / 2) * R, (CARD_IMG_W + Field.X(FIELD_SPACE-1) - Field.X(0)) * R, (CARD_IMG_H + Field.Y(FIELD_SPACE-1) - Field.Y(0)) * R);
-
     // draw the deck at center
     draw_card(CARD_BACK_ID, DECK_P.x, DECK_P.y);
 
@@ -270,8 +240,12 @@ function draw_gaming() {
         case gameState.player_decide_koi:
             draw_decide_koi();
             break;
+        case gameState.show_yaku_animation:
+            banner.draw();
+            break;
         case gameState.koikoi_animation:
-            draw_koikoi();
+            banner.text = 'こいこい';
+            banner.draw();
             break;
         case gameState.month_end:
             draw_show_yaku();
@@ -293,9 +267,28 @@ function init_game() {
 
     /* init game obj */
     game = new Game();
+    game.state = gameState.title;
 
     /* init UI in game */
+    create_UI();
+
+    time_func = check_hover_title_button;
+}
+
+function create_UI() {
     let w, h;
+    /* title */
+    w = 150, h = 50;
+    title_button[0] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*1, w, h, 0, title_button_text[0], 40, start_game, '', '', 'black');
+    title_button[1] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*2, w, h, 0, title_button_text[1], 40, null, '', '', 'black');
+    title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, null, '', '', 'black');
+    title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, null, '', '', 'black');
+
+    /* 開發者 */
+    w = FONT_SIZE*6, h = FONT_SIZE * 2;
+    devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '@C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda','blank')}, '', '', 'black');
+
+    /* in game */
     // 文
     w = 60, h = 35;
     score_panel[CPU] = new Button(5, 5, w, h, 5, '0文', 20);
@@ -305,9 +298,9 @@ function init_game() {
     koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
     end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win_month(PLR);}, 'lightgray');
     koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
-    // the size of banner of koi koi
+    // the size of banner
     w = SCREEN_W + 20, h = 100;
-    koikoi_banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, "こいこい", 52, null);
+    banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, '', 52, null);
     // the size of the panel of showing yaku and score
     w = 400, h = 400;
     yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
@@ -320,8 +313,16 @@ function init_game() {
     result_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
 }
 
+function check_hover_title_button(time) {
+    for (let i = 0; i < title_button.length; i++)
+        title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
+    devSource.textColor = devSource.include(mouse) ? 'gold' : 'black';
+}
+
 /* init new game */
 function start_game() {
+    time_func = null;
+
     // init all cards
     card = new Array(CARD_NUM);
     for (let i = 0; i < CARD_NUM; i++)
@@ -348,7 +349,6 @@ function start_game() {
     // update data
     data.battleTime[game.MAXMONTH-1]++;
 
-    /* 正式開始 */
     // 決定親權 (0:player, 1:cpu)
     choose_first();
 }
@@ -407,11 +407,9 @@ function guess_click_func(e) {
         return;
     updateMouseXY(e);
     let i = pointedGuessIndex();
-    //console.log(i);
     if (i >= 0)
     {
         guess_result = (guess_card[i].ID < guess_card[Number(!i)].ID);
-        //console.log(guess_result);
         startTime = performance.now();
         time_func = flip_guess_card(i);
         next_func = function (time) {
@@ -428,7 +426,7 @@ function guess_click_func(e) {
             context.font = 36 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
             context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_LARGE_W/2) * R, (guess_card[0].py + CARD_LARGE_H + 36) * R);
             context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_LARGE_W/2) * R, (guess_card[1].py + CARD_LARGE_H + 36) * R);
-            
+
             const smaller = (guess_card[0].ID < guess_card[1].ID) ? 0 : 1;
             if (time - startTime >= GUESS_WAIT) {
                 guess_card[smaller].noticed = true;
