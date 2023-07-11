@@ -410,7 +410,7 @@ function banner_step() {
             banner.textColor = 'rgba(0,0,0,0)';
             startTime = null;
             time_func = next_func;
-        } else if (deltaTime > 0.6) {
+        } else if (deltaTime > 0.7) {
             // fade
             const alpha = easeInQuad(time-startTime, 1, -2*(deltaTime-0.6), duration*0.4);
             banner.fillColor = `rgba(255,215,0,${alpha})`;
