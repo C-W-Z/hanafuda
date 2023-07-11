@@ -211,7 +211,7 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
             card[cardID].py = easeInOutQuad(time-startTime, sY, (dY-sY)*deltaTime, MOVE_TIME);// sY + (dY - sY) * deltaTime;
             // flip
             if (flip) {
-                card[cardID].scaleX = Math.abs(0.5 - deltaTime) + 0.5;
+                card[cardID].scaleX = Math.abs(easeOutQuad(time-startTime, 1, -2*deltaTime, FLIP_TIME*0.5));
                 if (deltaTime >= 0.5)
                     card[cardID].back = false;
             }

@@ -39,7 +39,7 @@ class Data {
         // Koi Koi 率 = totalKoiTime / canKoiTime
         // Koi Koi 成功率 = koiSucessTime[PLR] / totalKoiTime[PLR]
         // Koi Koi 阻止率 = 1 - koiSucessTime[CPU] / totalKoiTime[CPU]
-        this.sevenUpTime = [0,0]; // 7文以上確率 [PLR, CPU]
+        this.sevenUpTime = [0,0]; // 原始分7文以上月數 [PLR, CPU]
 
         // 組成yaku的次數(不論輸贏)(カス,短冊,タネ一月中最多只算一次) 參考yaku_name
         this.yakuTime = new Array(2); // [PLR, CPU]
@@ -63,7 +63,7 @@ class Data {
         this.moon_sake = true; // 啟用月見酒
         this.flower_moon_sake = false; // 啟用花月見
         this.flower_moon_sake_accumulate = false; // 累計花見酒+月見酒+飲分數
-        this.flower_moon_sake_koi = false; // 花見酒、月見酒無法koikoi和結束
+        this.flower_moon_sake_koi = true; // 花見酒、月見酒可以koikoi和結束，false代表不行
         this.rain_rule = false; // 啟用雨流：有柳間小野道風的玩家無法成立花見酒、花見酒、飲(花月見)
         this.fog_rule = false; // 啟用霧流：有桐上鳳凰的玩家無法成立花見酒、花見酒、飲(花月見)
         this.five_bird = false; // 啟用五鳥
@@ -319,9 +319,10 @@ class Player {
         for (let i = 0; i < YAKU_NUM; i++) {
             // check is there new yaku
             if (now_yaku[i] > this.yaku[i]) {
-                if (!(!data.flower_moon_sake_koi && (i == 8 || i == 9)))
+                if (!(data.flower_moon_sake_koi && (i == 8 || i == 9)))
                     get_new_yaku = true;
                 this.new_yaku.push(i);
+                //console.log(yaku_name[i]);
             }
             // copy now yaku to old yaku
             this.yaku[i] = now_yaku[i];
@@ -409,6 +410,11 @@ class Game {
         this.state = gameState.start; // 整個網頁現在的狀態(畫面)
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.koi = -1; // whether player/cpu is doing koi koi
+        this.winner = -1; // 贏家
+    }
+    
+    reset_game() {
+        this.month = 0; // 月份
         this.winner = -1; // 贏家
     }
 }

@@ -131,12 +131,13 @@ function start_month() {
     player[CPU].reset_month();
 
     // reset game info
+    const winner = game.winner;
     game.reset_month();
     game.month++;
-    if (data.first_change)
+    if (!data.first_change && winner != -1)
+        game.first = winner;
+    else
         game.first = Number(!game.first);
-    else if (game.winner != -1)
-        game.first = game.winner;
 
     // reset animation
     endAnimation();
@@ -310,8 +311,7 @@ function draw_new_card(playerID) {
         if (Math.floor(field.card[i] / 4) == Math.floor(new_card / 4))
             pairFieldID.push(i);
 
-    if (pairFieldID.length == 0)
-    {
+    if (pairFieldID.length == 0) {
         // find space on field
         for (let i = 0; i < FIELD_SPACE; i++)
             if (field.card[i] == -1) {
@@ -320,23 +320,25 @@ function draw_new_card(playerID) {
             }
         draw_card_animation(playerID, new_card, fieldID, -1);
     }
-    else if (pairFieldID.length >= 2)
-    {
+    else if (pairFieldID.length >= 2) {
         if (playerID == PLR) {
             // wait for player choose
             game.state = gameState.player_choose_card;
             field.update_noticed(Math.floor(new_card/4));
         } else /* CPU */ {
             // 未完成
-            fieldID = pairFieldID[0];
+            fieldID = cpu_decide_collect_card(pairFieldID);
             draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
         }
-    }
-    else // only one card can pair
-    {
+    } else {
+        // only one card can pair
         fieldID = pairFieldID[0];
         draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
     }
+}
+
+function cpu_decide_collect_card(pairFieldID) {
+    return pairFieldID[Math.floor(Math.random() * 2)];
 }
 
 function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
@@ -373,9 +375,9 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
     }
 }
 
-function check_win(playerID) {
-    const win = player[playerID].check_yaku();
-
+async function check_win(playerID) {
+    const win = await player[playerID].check_yaku();
+    //console.log(win);
     if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
     {
         // end this month
@@ -417,7 +419,7 @@ function start_show_yaku(playerID, yakuID) {
     game.state = gameState.show_yaku_animation;
     // animation
     startTime = performance.now();
-    time_func = banner_step();
+    time_func = banner_step;
     next_func = function (time) {
         endAnimation();
         // next yaku
@@ -436,7 +438,7 @@ function cpu_decide_koi() {
     // update data
     data.canKoiTime[CPU]++;
 
-    if (Math.floor(Math.random() * 2))
+    if (Math.floor(Math.random() * 2) == 1)
         koikoi(CPU);
     else
         player_win_month(CPU);
@@ -456,6 +458,8 @@ function player_win_month(playerID) {
     // update data
     if (game.koi == playerID)
         data.koiSucessTime[playerID]++;
+    if (player[playerID].score >= 7)
+        data.sevenUpTime[playerID]++;
     data.maxMoneyMonth[playerID] = Math.max(data.maxMoneyMonth[playerID], player[playerID].money[game.month-1]);
     data.totalMoney[playerID] += player[playerID].money[game.month-1];
     data.winMonth[playerID]++;
@@ -503,7 +507,7 @@ function koikoi(playerID) {
 
     // animation
     startTime = performance.now();
-    time_func = banner_step();
+    time_func = banner_step;
     next_func = function (time) {
         endAnimation();
         // next round
@@ -513,42 +517,40 @@ function koikoi(playerID) {
 }
 
 // show banner UI
-function banner_step() {
-    return function (time) {
-        const duration = (7 * MOVE_TIME);
-        const deltaTime = (time - startTime) / duration;
-        const open_speed = 6;
-        if (deltaTime >= 1) {
-            // end
-            banner.fillColor = 'rgba(0,0,0,0)';
-            banner.borderColor = 'rgba(0,0,0,0)';
-            banner.textColor = 'rgba(0,0,0,0)';
-            startTime = null;
-            time_func = next_func;
-        } else if (deltaTime > 0.7) {
-            // fade
-            const alpha = easeInQuad(time-startTime, 1, -2*(deltaTime-0.6), duration*0.4);
-            banner.fillColor = `rgba(255,215,0,${alpha})`;
-            banner.borderColor = `rgba(255,255,255,${alpha})`;
-            banner.textColor = `rgba(255,0,0,${alpha})`;
-        } else if (deltaTime > 0.4) {
-            // show 0.2*duration ms
-            banner.fillColor = 'gold';
-            banner.borderColor = 'white';
-            banner.textColor = 'red';
-        } else {
-            // emerge
-            const alpha = easeOutQuad(time-startTime, 0, 4*deltaTime, duration*0.4);
-            //banner.fillColor = `rgba(255,215,0,${alpha})`;
-            //banner.borderColor = `rgba(255,255,255,${alpha})`;
-            banner.fillColor = 'gold';
-            banner.borderColor = 'white';
-            banner.textColor = `rgba(255,0,0,${alpha})`;
-            if (deltaTime <= 1/open_speed) {
-                const width = easeInOutQuad(time-startTime, 0, open_speed*(deltaTime), duration/open_speed) * 100;
-                banner.y = SCREEN_H/2 - width/2;
-                banner.h = width;
-            }
+function banner_step(time) {
+    const duration = (7 * MOVE_TIME);
+    const deltaTime = (time - startTime) / duration;
+    const open_speed = 6;
+    if (deltaTime >= 1) {
+        // end
+        banner.fillColor = 'rgba(0,0,0,0)';
+        banner.borderColor = 'rgba(0,0,0,0)';
+        banner.textColor = 'rgba(0,0,0,0)';
+        startTime = null;
+        time_func = next_func;
+    } else if (deltaTime > 0.7) {
+        // fade
+        const alpha = easeInQuad(time-startTime, 1, -2*(deltaTime-0.6), duration*0.4);
+        banner.fillColor = `rgba(255,215,0,${alpha})`;
+        banner.borderColor = `rgba(255,255,255,${alpha})`;
+        banner.textColor = `rgba(255,0,0,${alpha})`;
+    } else if (deltaTime > 0.4) {
+        // show 0.2*duration ms
+        banner.fillColor = 'gold';
+        banner.borderColor = 'white';
+        banner.textColor = 'red';
+    } else {
+        // emerge
+        const alpha = easeOutQuad(time-startTime, 0, 4*deltaTime, duration*0.4);
+        //banner.fillColor = `rgba(255,215,0,${alpha})`;
+        //banner.borderColor = `rgba(255,255,255,${alpha})`;
+        banner.fillColor = 'gold';
+        banner.borderColor = 'white';
+        banner.textColor = `rgba(255,0,0,${alpha})`;
+        if (deltaTime <= 1/open_speed) {
+            const width = easeInOutQuad(time-startTime, 0, open_speed*(deltaTime), duration/open_speed) * 100;
+            banner.y = SCREEN_H/2 - width/2;
+            banner.h = width;
         }
     }
 }

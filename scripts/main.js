@@ -369,6 +369,8 @@ function check_hover_home_buttons(time) {
 /* init new game */
 function start_game() {
     time_func = null;
+    // store data
+    data.store();
 
     // init all cards
     card = new Array(CARD_NUM);
@@ -392,6 +394,8 @@ function start_game() {
     const h = FONT_SIZE * (data.month_yaku ? 6 : 3) + 10;
     month_panel = new Button(5, SCREEN_H/2-h/2, w, h, 5);
     month_panel.vertical = true;
+
+    game.reset_game();
 
     // update data
     data.battleTime++;
