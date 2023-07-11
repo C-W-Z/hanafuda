@@ -85,7 +85,7 @@ function click_func(event) {
             koi_button.check_press();
             break;
         case gameState.month_end:
-            if (game.month == game.MAXMONTH)
+            if (game.month == data.MAXMONTH)
                 to_result_button.check_press();
             else
                 next_month_button.check_press();
@@ -225,8 +225,8 @@ function draw_gaming() {
 
     // draw moving cards
     for (let i = 0; i < movingCard.length; i++)
-        //if (card[c].px != DECK_P.x && card[c].py != DECK_P.y)
-        card[movingCard[i]].draw();
+        if (card[movingCard[i]].px != DECK_P.x && card[movingCard[i]].py != DECK_P.y)
+            card[movingCard[i]].draw();
 
     /* draw the information of this game */
     
@@ -306,7 +306,7 @@ function create_UI() {
     title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, null, '', '', 'black');
     title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, show_settings, '', '', 'black');
 
-    back_button = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, '戻る', 40, back_to_title, '', '', 'black');
+    back_button = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, '返回', 40, back_to_title, '', '', 'black');
 
     /* 開發者 */
     w = FONT_SIZE*6, h = FONT_SIZE * 2;
@@ -352,7 +352,7 @@ function check_hover_title_button(time) {
                 title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
             break;
         case gameState.settings:
-            back_button.text = back_button.include(mouse) ? ('>  戻る  <') : '戻る';
+            back_button.text = back_button.include(mouse) ? ('>  返回  <') : '返回';
             break;
         default:
             break;
@@ -388,7 +388,7 @@ function start_game() {
     month_panel.vertical = true;
 
     // update data
-    data.battleTime[game.MAXMONTH-1]++;
+    data.battleTime[data.MAXMONTH-1]++;
 
     // 決定親權 (0:player, 1:cpu)
     choose_first();

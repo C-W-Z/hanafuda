@@ -440,7 +440,7 @@ function cpu_decide_koi() {
 function player_win_month(playerID) {
     game.winner = playerID;
     game.state = gameState.month_end;
-    player[playerID].money[game.month-1] = player[playerID].score * (game.koi_bouns ? player[playerID].koi_time+1 : 1);
+    player[playerID].money[game.month-1] = player[playerID].score * (data.koi_bouns ? player[playerID].koi_time+1 : 1);
     player[playerID].total_money += player[playerID].money[game.month-1];
 
     // update data
@@ -556,7 +556,7 @@ function draw_show_yaku() {
     // draw yaku
     context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     let count = 0;
-    const max_show = (game.koi_bouns) ? 8 : 9;
+    const max_show = (data.koi_bouns) ? 8 : 9;
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[game.winner].yaku[i] > 0) {
             count++;
@@ -568,7 +568,7 @@ function draw_show_yaku() {
                 context.fillText('···', (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
             }
         }
-    if (game.koi_bouns) {
+    if (data.koi_bouns) {
         // draw koi koi time
         context.fillText(`こいこい${player[game.winner].koi_time}次`, (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
         context.fillText(`x${player[game.winner].koi_time+1}`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
@@ -581,7 +581,7 @@ function draw_show_yaku() {
     }
 
     // draw button
-    if (game.month < game.MAXMONTH)
+    if (game.month < data.MAXMONTH)
         next_month_button.draw();
     else
         to_result_button.draw();
@@ -592,17 +592,17 @@ function result_game() {
     game.state = gameState.game_result;
 
     // update data
-    data.maxTotalMoney[PLR][game.MAXMONTH-1] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR][game.MAXMONTH-1]);
-    data.maxTotalMoney[CPU][game.MAXMONTH-1] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU][game.MAXMONTH-1]);
-    data.totalWin[game.winner][game.MAXMONTH-1]++;
+    data.maxTotalMoney[PLR][data.MAXMONTH-1] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR][data.MAXMONTH-1]);
+    data.maxTotalMoney[CPU][data.MAXMONTH-1] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU][data.MAXMONTH-1]);
+    data.totalWin[game.winner][data.MAXMONTH-1]++;
     // data.maxStreak
     // 對戰連勝
-    if (data.lastWin[game.winner][game.MAXMONTH-1] > 0) {
-        data.lastWin[game.winner][game.MAXMONTH-1]++;
-        data.maxStreak[game.winner][game.MAXMONTH-1] = Math.max(data.lastWin[game.winner][game.MAXMONTH-1], data.maxStreak[game.winner][game.MAXMONTH-1]);
+    if (data.lastWin[game.winner][data.MAXMONTH-1] > 0) {
+        data.lastWin[game.winner][data.MAXMONTH-1]++;
+        data.maxStreak[game.winner][data.MAXMONTH-1] = Math.max(data.lastWin[game.winner][data.MAXMONTH-1], data.maxStreak[game.winner][data.MAXMONTH-1]);
     } else {
-        data.lastWin[game.winner][game.MAXMONTH-1] = 1;
-        data.lastWin[Number(!game.winner)][game.MAXMONTH-1] = 0;
+        data.lastWin[game.winner][data.MAXMONTH-1] = 1;
+        data.lastWin[Number(!game.winner)][data.MAXMONTH-1] = 0;
     }
     if (data.totalLastWin[game.winner] > 0) {
         data.totalLastWin[game.winner]++;
@@ -632,7 +632,7 @@ function draw_game_result() {
     context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     context.fillText('あなた', (SCREEN_W/2) * R, (py + title_h) * R);
     context.fillText('相手', (SCREEN_W/2 + w/4) * R, (py + title_h) * R);
-    for (let i = 1; i <= game.MAXMONTH; i++) {
+    for (let i = 1; i <= data.MAXMONTH; i++) {
         context.fillText(`${i}月`, (SCREEN_W/2 - w/4) * R, (py + title_h + i * 24) * R);
         context.fillText((player[PLR].money[i-1] > 0) ? `${player[PLR].money[i-1]}文` : '-',
                          (SCREEN_W/2) * R, (py + title_h + i * 24) * R);
