@@ -90,6 +90,9 @@ function click_func(event) {
             else
                 next_month_button.check_press();
             break;
+        case gameState.game_result:
+            home_button.check_press();
+            break;
         default:
             break;
     }
@@ -225,14 +228,14 @@ function draw_gaming() {
 
     // draw moving cards
     for (let i = 0; i < movingCard.length; i++)
-        if (card[movingCard[i]].px != DECK_P.x && card[movingCard[i]].py != DECK_P.y)
+        if (game.state != gameState.deal || (game.state == gameState.deal && card[movingCard[i]].px != DECK_P.x && card[movingCard[i]].py != DECK_P.y))
             card[movingCard[i]].draw();
 
     /* draw the information of this game */
     
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', sans-serif";
     // 幾月
-    if (game.month_yaku)
+    if (data.month_yaku)
         month_panel.text = `${NUMBER[game.month]}月` + ` ${tuki_name[game.month-1]}`;
     else
         month_panel.text = `${NUMBER[game.month]}月`;
@@ -294,7 +297,7 @@ function init_game() {
     /* init UI in game */
     create_UI();
 
-    time_func = check_hover_title_button;
+    time_func = check_hover_home_buttons;
 }
 
 function create_UI() {
@@ -338,14 +341,16 @@ function create_UI() {
     yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
     // the size of restart button
     w = 400, h = 50;
-    next_month_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '次の対局へ', 24, start_month);
-    to_result_button = new Button(SCREEN_W/2-w/2, yaku_panel.y+yaku_panel.h + 5, w, h, 10, '対局結果へ', 24, result_game);
+    next_month_button = new Button(yaku_panel.x, yaku_panel.y+yaku_panel.h + 5, yaku_panel.w, h, 10, '次の対局へ', FONT_SIZE, start_month);
+    to_result_button = new Button(yaku_panel.x, yaku_panel.y+yaku_panel.h + 5, yaku_panel.w, h, 10, '対局結果へ', FONT_SIZE, result_game);
     // the size of  result panel
     w = 400, h = 480;
     result_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
+    w = 400, h = 50;
+    home_button = new Button(result_panel.x, result_panel.y+result_panel.h + 5, result_panel.w, h, 10, '回首頁', FONT_SIZE, back_to_title);
 }
 
-function check_hover_title_button(time) {
+function check_hover_home_buttons(time) {
     switch (game.state) {
         case gameState.title:
             for (let i = 0; i < title_button.length; i++)
@@ -383,7 +388,7 @@ function start_game() {
     // UI
     // 月份
     const w = FONT_SIZE + 10;
-    const h = FONT_SIZE * (game.month_yaku ? 6 : 3) + 10;
+    const h = FONT_SIZE * (data.month_yaku ? 6 : 3) + 10;
     month_panel = new Button(5, SCREEN_H/2-h/2, w, h, 5);
     month_panel.vertical = true;
 
@@ -407,6 +412,7 @@ function after_choose_first() {
 
 function back_to_title() {
     game.state = gameState.title;
+    time_func = check_hover_home_buttons;
 }
 
 function show_settings() {

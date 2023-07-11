@@ -642,6 +642,9 @@ function draw_game_result() {
     context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[PLR].total_money}文`, (SCREEN_W/2) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[CPU].total_money}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+
+    // draw back to home button
+    home_button.draw();
 }
 
 /* AI的回合 */
