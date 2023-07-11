@@ -550,16 +550,13 @@ function cpu_play() {
     for (let i = 0; i < player[CPU].hand.length; i++)
         for (let j = 0; j < FIELD_SPACE; j++) {
             if (field.card[j] < 0) continue;
-            if (Math.floor(player[CPU].hand[i]/4) == Math.floor(field.card[j]/4))
-            {
-                if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) 
-                {
+            if (Math.floor(player[CPU].hand[i]/4) == Math.floor(field.card[j]/4)) {
+                if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) {
                     player[CPU].selected_handID = i;
                     player[CPU].selected_fieldID = j;
                 }
                 else if (card_type[player[CPU].hand[i]] + card_type[field.card[j]] > 
-                    card_type[player[CPU].hand[player[CPU].selected_handID]] + card_type[field.card[player[CPU].selected_fieldID]])
-                {
+                    card_type[player[CPU].hand[player[CPU].selected_handID]] + card_type[field.card[player[CPU].selected_fieldID]]) {
                     player[CPU].selected_handID = i;
                     player[CPU].selected_fieldID = j;
                 }
@@ -592,3 +589,53 @@ function player_unselect_hand(handID) {
     field.update_noticed(-1);
     player[PLR].selected_handID = -1;
 }
+
+//#region Data Upload/Download
+
+/* https://stackoverflow.com/questions/19721439/download-json-object-as-a-file-from-browser */
+function downloadObjectAsJson(exportObj, exportName) {
+	const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+	const downloadAnchorNode = document.createElement('a');
+	downloadAnchorNode.setAttribute("href", dataStr);
+	downloadAnchorNode.setAttribute("download", exportName + ".json");
+	document.body.appendChild(downloadAnchorNode); // required for firefox
+	downloadAnchorNode.click();
+	downloadAnchorNode.remove();
+}
+/* https://stackoverflow.com/questions/36127648/uploading-a-json-file-and-using-it */
+const getJsonUpload = () =>
+    new Promise(resolve => {
+        const inputFileElement = document.createElement('input');
+        inputFileElement.setAttribute('type', 'file');
+        inputFileElement.setAttribute('multiple', 'false');
+        inputFileElement.setAttribute('accept', '.json');
+
+        inputFileElement.addEventListener(
+            'change',
+            async (event) => {
+                const { files } = event.target;
+                if (!files)
+                    return;
+                const filePromises = [...files].map(file => file.text());
+                resolve(await Promise.all(filePromises));
+            },
+            false,
+        );
+        inputFileElement.click();
+    });
+async function uploadData() {
+    const jsonFiles = await getJsonUpload();
+    const obj = JSON.parse(jsonFiles[0]);
+    const dataKeys = Object.keys(data);
+    const objKeys = Object.keys(obj);
+    const same = (JSON.stringify(dataKeys) == JSON.stringify(objKeys));
+    if (same)
+        Object.assign(data, obj);
+    else
+        console.log('not a data file');
+}
+function downloadData() {
+    downloadObjectAsJson(data, 'HanafudaData');
+}
+
+//#endregion
