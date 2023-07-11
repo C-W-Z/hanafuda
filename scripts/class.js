@@ -50,20 +50,31 @@ class Data {
         // 出現率 = yakuTime[i] / totalMonth
 
         // rules
+        this.yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 6, 10, 5, 5, 5., 4, 1, 1, 1];
         this.cpuLevel = 1; // AI策略等級 (0:隨機出牌,1:會根據牌的類型判斷價值,2:會判斷能組成役的特定牌更有價值,3:根據當前情況判斷目標是組成什麼役)
         this.MAXMONTH = 12; // 預設12月玩法
+        this.first_change = false; // 親の回転 雙方親輪流當親，否則贏家當下回合親
+        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
+        this.seven_bonus = false; // 7點倍
+        this.light_accumulate = false; // 累計光牌的役分數
         this.matsukiribozu = false; // 啟用松桐坊主
         this.sugawara = false; // 啟用表菅原
         this.flower_sake = true; // 啟用花見酒
-        this.moon_sake = true; // 啟用花見酒
-        this.flower_moon_sake = true; // 啟用花月見
+        this.moon_sake = true; // 啟用月見酒
+        this.flower_moon_sake = false; // 啟用花月見
+        this.flower_moon_sake_accumulate = false; // 累計花見酒+月見酒+飲分數
+        this.flower_moon_sake_koi = false; // 花見酒、月見酒無法koikoi和結束
+        this.rain_rule = false; // 啟用雨流：有柳間小野道風的玩家無法成立花見酒、花見酒、飲(花月見)
+        this.fog_rule = false; // 啟用霧流：有桐上鳳凰的玩家無法成立花見酒、花見酒、飲(花月見)
         this.five_bird = false; // 啟用五鳥
         this.seven_tan = false; // 啟用七短
         this.six_tan = false; // 啟用六短
+        this.tan_accumulate = false; // 累計七短+六短+短冊分數
         this.akatan_aotan = false; // 啟用赤短・青短
+        this.akatan_aotan_accumulate = false; // 累計赤短・青短+赤短+青短分數
         this.grass = false; // 啟用草短
         this.month_yaku = true; // 啟用月札
-        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
+        this.kiku_dross = false; // 菊上盃可以當作粕（滓）牌來計算カス
     }
 
     store() {
@@ -124,7 +135,9 @@ class Player {
         this.noticed = new Array();
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
-        this.yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.yaku = new Array(YAKU_NUM);
+        for (let i = 0; i < YAKU_NUM; i++)
+            this.yaku[i] = 0;
         this.new_yaku = new Array();
         this.selected_handID = -1;
         this.selected_fieldID = 0;
@@ -237,6 +250,8 @@ class Player {
             now_yaku[i] = 0;
 
         let rain = 0; // 雨
+        let fog = 0; // 霧(桐上鳳凰)
+        let kiku = 0; // 菊上杯
         let matsukiribozu = 0; // 松桐坊主
         let sugawara = 0; // 表菅原
         let inoshikacho = 0; // 猪鹿蝶
@@ -252,6 +267,7 @@ class Player {
         for (const arr of this.collect)
             for (const c of arr) {
                 if (c == 40) rain++;
+                if (c == 44) fog++;
                 if (c == 41) yanaginitanzaku++;
                 if (c ==  8 || c == 32) hanamideippai++;
 				if (c == 28 || c == 32) tsukimideippai++;
@@ -285,14 +301,15 @@ class Player {
         if (data.month_yaku       && getsusatsu                     == 4) now_yaku[18]++; // 月札
         if (dross              >= 10) now_yaku[19] += dross  - 9; // カス
         if (ribbon             >= 5 ) now_yaku[20] += ribbon - 4; // 短冊
-        if (seed               >= 5 ) now_yaku[21] += seed   - 4; // タネ
+        if (seed + Number(data.kiku_dross && kiku == 1) >= 5) now_yaku[21] += seed - 4; // タネ
 
         // 不能同時出現的役
-        if (now_yaku[ 1] > 0) now_yaku[ 2] = now_yaku[ 3] = now_yaku[ 4] = 0; // 五光
-        if (now_yaku[ 2] > 0 || now_yaku[ 3] > 0) now_yaku[ 4] = 0; // 四光 雨四光
-        if (now_yaku[12] > 0 || now_yaku[13] > 0) now_yaku[20] = 0; // 七短 六短
-        if (now_yaku[ 7] > 0) now_yaku[ 8] = now_yaku[ 9] = 0; // 飲み
-        if (now_yaku[14] > 0) now_yaku[15] = now_yaku[16] = 0; // 赤短・青短の重複役
+        if (!data.light_accumulate &&  now_yaku[ 1] > 0) now_yaku[ 2] = now_yaku[ 3] = now_yaku[ 4] = 0; // 五光
+        if (!data.light_accumulate && (now_yaku[ 2] > 0 || now_yaku[ 3] > 0)) now_yaku[ 4] = 0; // 四光 雨四光
+        if (!data.tan_accumulate   && (now_yaku[12] > 0 || now_yaku[13] > 0)) now_yaku[20] = 0; // 七短 六短
+        if (now_yaku[12] > 0) now_yaku[13] = 0; // 七短
+        if ((data.rain_rule && rain > 0) || (data.fog_rule && fog > 0) || (!data.flower_moon_sake_accumulate && now_yaku[ 7] > 0)) now_yaku[ 8] = now_yaku[ 9] = 0; // 飲み
+        if (!data.akatan_aotan_accumulate && now_yaku[14] > 0) now_yaku[15] = now_yaku[16] = 0; // 赤短・青短の重複役
 
         while (this.new_yaku.length > 0)
             this.new_yaku.pop();
@@ -302,13 +319,14 @@ class Player {
         for (let i = 0; i < YAKU_NUM; i++) {
             // check is there new yaku
             if (now_yaku[i] > this.yaku[i]) {
-                get_new_yaku = true;
+                if (!(!data.flower_moon_sake_koi && (i == 8 || i == 9)))
+                    get_new_yaku = true;
                 this.new_yaku.push(i);
             }
             // copy now yaku to old yaku
             this.yaku[i] = now_yaku[i];
             // calculate new score
-            this.score += yaku_score[i] * now_yaku[i];
+            this.score += data.yaku_score[i] * now_yaku[i];
         }
 
         return get_new_yaku;

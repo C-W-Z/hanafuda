@@ -133,7 +133,10 @@ function start_month() {
     // reset game info
     game.reset_month();
     game.month++;
-    game.first = Number(!game.first);
+    if (data.first_change)
+        game.first = Number(!game.first);
+    else if (game.winner != -1)
+        game.first = game.winner;
 
     // reset animation
     endAnimation();
@@ -383,7 +386,7 @@ function check_win(playerID) {
         else {
             // 親權
             player[game.first].yaku[0] = 1;
-            player[game.first].score += yaku_score[0];
+            player[game.first].score += data.yaku_score[0];
             player_win_month(game.first);
         }
     } else if (win) {
@@ -442,7 +445,12 @@ function cpu_decide_koi() {
 function player_win_month(playerID) {
     game.winner = playerID;
     game.state = gameState.month_end;
-    player[playerID].money[game.month-1] = player[playerID].score * (data.koi_bouns ? player[playerID].koi_time+1 : 1);
+    if (data.seven_bonus && player[playerID].score >= 7)
+        player[playerID].money[game.month-1] = player[playerID].score * 2;
+    else if (data.koi_bouns)
+        player[playerID].money[game.month-1] = player[playerID].score * (player[PLR].koi_time + player[CPU].koi_time + 1);
+    else
+        player[playerID].money[game.month-1] = player[playerID].score;
     player[playerID].total_money += player[playerID].money[game.month-1];
 
     // update data
@@ -558,13 +566,13 @@ function draw_show_yaku() {
     // draw yaku
     context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     let count = 0;
-    const max_show = (data.koi_bouns) ? 8 : 9;
+    const max_show = (data.koi_bouns || (data.seven_bonus && player[game.winner].score >= 7)) ? 8 : 9;
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[game.winner].yaku[i] > 0) {
             count++;
             if (count <= max_show) {
                 context.fillText(yaku_name[i], (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
-                context.fillText(`${player[game.winner].yaku[i] * yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
+                context.fillText(`${player[game.winner].yaku[i] * data.yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
             } else if (count == max_show+1) {
                 context.fillText('···', (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
                 context.fillText('···', (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
@@ -572,11 +580,18 @@ function draw_show_yaku() {
         }
     if (data.koi_bouns) {
         // draw koi koi time
-        context.fillText(`こいこい${player[game.winner].koi_time}次`, (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
-        context.fillText(`x${player[game.winner].koi_time+1}`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        context.fillText(`こいこい${player[PLR].koi_time+player[CPU].koi_time}次`, (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        context.fillText(`x${player[PLR].koi_time+player[CPU].koi_time+1}`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
         // draw total score
         context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
-        context.fillText(`${player[game.winner].score * (player[game.winner].koi_time+1)}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+        context.fillText(`${player[game.winner].score * (player[PLR].koi_time+player[CPU].koi_time+1)}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+    } else if (data.seven_bonus && player[game.winner].score >= 7) {
+        // draw koi koi time
+        context.fillText('7点倍', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        context.fillText(`x2`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        // draw total score
+        context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
+        context.fillText(`${player[game.winner].score * 2}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
     } else {
         context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
         context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
