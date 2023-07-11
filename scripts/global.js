@@ -115,7 +115,7 @@ let movingCard;
 /* UI */
 /* home page */
 let title_button = new Array(4);
-const title_button_text = ['開始', '設定', '統計', '成就'];
+const title_button_text = ['開始', '統計', '成就', '設定'];
 let devSource;
 // 月
 let month_panel;
@@ -190,7 +190,6 @@ function endAnimation() {
 }
 
 // 一張牌在一幀內的移動
-// 回傳結束了沒
 function step_move(cardID, sX, sY, dX, dY, flip = false) {
     return function(time) {
         const deltaTime = (time - startTime) / MOVE_TIME;
@@ -200,19 +199,17 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
             card[cardID].scaleX = 1;
             startTime = null;
             time_func = next_func;
-            return true;
         } else {
             // moving animation
             card[cardID].px = easeInOutQuad(time-startTime, sX, (dX-sX)*deltaTime, MOVE_TIME);// sX + (dX - sX) * deltaTime;
             card[cardID].py = easeInOutQuad(time-startTime, sY, (dY-sY)*deltaTime, MOVE_TIME);// sY + (dY - sY) * deltaTime;
             // flip
-            if (flip == true) {
+            if (flip) {
                 card[cardID].scaleX = Math.abs(0.5 - deltaTime) + 0.5;
                 if (deltaTime >= 0.5)
                     card[cardID].back = false;
             }
         }
-        return false;
     }
 }
 
@@ -249,4 +246,37 @@ function draw_rotate_card_large(ID, cx, cy, angleInRadians) {
     //context.translate(-cx * R, -cy * R);
     //context.restore();
     context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function isArray(obj) {
+    if (typeof Array.isArray === "function")
+        return Array.isArray(obj); // 如果瀏覽器支援就用 isArray() 方法
+    else  // 否則就使用 toString 方法
+        return (Object.prototype.toString.call(obj) === "[object Array]");
+}
+
+function compareArrFormat(a, b) {
+    if (a.length != b.length)
+        return false;
+    for (let i = 0; i < a.length; i++) {
+        const ia = isArray(a[i]);
+        const ib = isArray(b[i]);
+        if (ia != ib)
+            return false;
+        if (ia && !compareArrFormat(a[i], b[i]))
+            return false
+    }
+    return true;
+}
+
+/* compare whether two objs have same format */
+function equalObjFormat(o1, o2) {
+    const a = Object.entries(o1);
+    const b = Object.entries(o2);
+    if (a.length != b.length)
+        return false;
+    for (let i = 0; i < a.length; i++)
+        if (a[i][0] != b[i][0])
+            return false;
+    return compareArrFormat(a, b)
 }

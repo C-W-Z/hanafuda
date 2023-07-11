@@ -626,13 +626,14 @@ const getJsonUpload = () =>
 async function uploadData() {
     const jsonFiles = await getJsonUpload();
     const obj = JSON.parse(jsonFiles[0]);
-    const dataKeys = Object.keys(data);
-    const objKeys = Object.keys(obj);
-    const same = (JSON.stringify(dataKeys) == JSON.stringify(objKeys));
-    if (same)
+    if (equalObjFormat(data, obj)) {
         Object.assign(data, obj);
-    else
-        console.log('not a data file');
+        data.store();
+        return true;
+    } else {
+        console.log('json format error');
+        return false;
+    }
 }
 function downloadData() {
     downloadObjectAsJson(data, 'HanafudaData');

@@ -286,7 +286,7 @@ function create_UI() {
 
     /* 開發者 */
     w = FONT_SIZE*6, h = FONT_SIZE * 2;
-    devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '@C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda','blank')}, '', '', 'black');
+    devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '©C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda','blank')}, '', '', 'black');
 
     /* in game */
     // 文

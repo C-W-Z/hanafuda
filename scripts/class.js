@@ -8,13 +8,12 @@
 
 class Data {
     constructor() {
-        const obj = localStorage.getItem('Data');
-        if (!obj) {
-            this.init();
+        this.init();
+        const obj = JSON.parse(localStorage.getItem('Data'));
+        if (!obj)
             this.store();
-        } else {
-            Object.assign(this, JSON.parse(obj));
-        }
+        else if (equalObjFormat(this, obj))
+            Object.assign(this, obj);
     }
 
     init() {
