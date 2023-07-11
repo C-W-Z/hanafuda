@@ -45,7 +45,7 @@ class Data {
         this.yakuTime = new Array(2); // [PLR, CPU]
         this.yakuTime[PLR] = new Array(YAKU_NUM);
         this.yakuTime[CPU] = new Array(YAKU_NUM);
-        for (let i = 0; i <  this.yakuTime.length; i++)
+        for (let i = 0; i <  YAKU_NUM; i++)
             this.yakuTime[PLR][i] = this.yakuTime[CPU][i] = 0;
         // 出現率 = yakuTime[i] / totalMonth
     }
@@ -221,42 +221,55 @@ class Player {
             now_yaku[i] = 0;
 
         let rain = 0; // 雨
+        let matsukiribōzu = 0; // 松桐坊主
+        let sugawara = 0; // 表菅原
         let inoshikacho = 0; // 猪鹿蝶
+        let gotori = 0; // 五鳥
         let akatan = 0; // 赤短
         let aotan = 0; // 青短
         let getsusatsu = 0; // 月札
         let hanamideippai = 0; // 花見酒
         let tsukimideippai = 0; // 月見酒
         let kusa = 0; // 草短
+        let yanaginitanzaku = 0; // 柳上短冊
 
         for (const arr of this.collect)
             for (const c of arr) {
                 if (c == 40) rain++;
+                if (c == 41) yanaginitanzaku++;
+                if (c ==  8 || c == 32) hanamideippai++;
+				if (c == 28 || c == 32) tsukimideippai++;
+                if (c ==  0 || c == 28 || c == 44) matsukiribōzu++;
+                if (c ==  0 || c ==  4 || c ==  8) sugawara++;
                 if (c == 20 || c == 24 || c == 36) inoshikacho++;
+                if (c ==  4 || c == 12 || c == 29) gotori++;
                 if (c ==  1 || c ==  5 || c ==  9) akatan++;
                 if (c == 21 || c == 33 || c == 37) aotan++;
+                if (c == 13 || c == 17 || c == 25) kusa++;
                 if (Math.floor(c/4) == game.month-1) getsusatsu++;
-				if (c ==  8 || c == 32) hanamideippai++;
-				if (c == 28 || c == 32) tsukimideippai++;
-				if (c == 13 || c == 17 || c == 25) kusa++;
             }
 
-        yaku_name;
         if (light              == 5 ) now_yaku[ 1] += 1; // 五光
         if (light == 4 && rain == 0 ) now_yaku[ 2] += 1; // 四光
         if (light == 4 && rain == 1 ) now_yaku[ 3] += 1; // 雨四光
         if (light == 3 && rain == 0 ) now_yaku[ 4] += 1; // 三光
-        if (game.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 5]++; // 飲み
-        if (game.flower_sake      && hanamideippai                  == 2) now_yaku[ 6]++; // 花見で一杯
-        if (game.moon_sake        && tsukimideippai                 == 2) now_yaku[ 7]++; // 月見で一杯
-        if (inoshikacho        == 3 ) now_yaku[ 8] += 1; // 猪鹿蝶
-        if (akatan             == 3 ) now_yaku[ 9] += 1; // 赤短
-        if (aotan              == 3 ) now_yaku[10] += 1; // 青短
-        if (game.grass            && kusa                           == 3) now_yaku[11]++; // 草
-        if (game.month_yaku       && getsusatsu                     == 4) now_yaku[12]++; // 月札
-        if (dross              >= 10) now_yaku[13] += dross  - 9; // カス
-        if (ribbon             >= 5 ) now_yaku[14] += ribbon - 4; // 短冊
-        if (seed               >= 5 ) now_yaku[15] += seed   - 4; // タネ
+        if (game.matsukiribōzu    && matsukiribōzu                  == 3) now_yaku[ 5]++; // 松桐坊主
+        if (game.sugawara         && sugawara                       == 3) now_yaku[ 6]++; // 表菅原
+        if (game.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 7]++; // 飲み
+        if (game.flower_sake      && hanamideippai                  == 2) now_yaku[ 8]++; // 花見で一杯
+        if (game.moon_sake        && tsukimideippai                 == 2) now_yaku[ 9]++; // 月見で一杯
+        if (inoshikacho        == 3 ) now_yaku[10] += 1; // 猪鹿蝶
+        if (game.five_bird        && gotori                         == 3) now_yaku[11]++; // 五鳥
+        if (game.seven_tan        && ribbon - yanaginitanzaku       >= 7) now_yaku[12]++; // 七短
+        if (game.six_tan          && ribbon - yanaginitanzaku       == 6) now_yaku[13]++; // 六短
+        if (game.akatan_aotan     && akatan + aotan                 == 6) now_yaku[14]++; // 赤短・青短の重複役
+        if (akatan             == 3 ) now_yaku[15] += 1; // 赤短
+        if (aotan              == 3 ) now_yaku[16] += 1; // 青短
+        if (game.grass            && kusa                           == 3) now_yaku[17]++; // 草
+        if (game.month_yaku       && getsusatsu                     == 4) now_yaku[18]++; // 月札
+        if (dross              >= 10) now_yaku[19] += dross  - 9; // カス
+        if (ribbon             >= 5 ) now_yaku[20] += ribbon - 4; // 短冊
+        if (seed               >= 5 ) now_yaku[21] += seed   - 4; // タネ
 
         while (this.new_yaku.length > 0)
             this.new_yaku.pop();
@@ -350,11 +363,17 @@ class Game {
         this.winner = -1; // 贏家
 
         // rules
-        this.month_yaku = true; // 啟用月札
+        this.matsukiribōzu = false; // 啟用松桐坊主
+        this.sugawara = false; // 啟用表菅原
         this.flower_sake = false; // 啟用花見酒
         this.moon_sake = false; // 啟用花見酒
         this.flower_moon_sake = true; // 啟用花月見
-        this.grass = false; // 啟用草上短冊
+        this.five_bird = false; // 啟用五鳥
+        this.seven_tan = false;
+        this.six_tan = false;
+        this.akatan_aotan = false;
+        this.grass = false; // 啟用草短
+        this.month_yaku = true; // 啟用月札
         this.koi_bouns = true; // koikoi bonus (score * koikoi time)
 
         this.op = false; // look cpu's hand cards
