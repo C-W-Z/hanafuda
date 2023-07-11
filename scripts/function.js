@@ -139,7 +139,7 @@ function start_month() {
     endAnimation();
 
     // update data
-    data.totalMonth++;
+    data.battleMonth++;
 
     // shuffle
     shuffle(deck);
@@ -372,6 +372,7 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
 
 function check_win(playerID) {
     const win = player[playerID].check_yaku();
+
     if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
     {
         // end this month
@@ -449,7 +450,7 @@ function player_win_month(playerID) {
         data.koiSucessTime[playerID]++;
     data.maxMoneyMonth[playerID] = Math.max(data.maxMoneyMonth[playerID], player[playerID].money[game.month-1]);
     data.totalMoney[playerID] += player[playerID].money[game.month-1];
-    data.totalWinMonth[playerID]++;
+    data.winMonth[playerID]++;
     // 連勝月
     if (data.lastWinMonth[playerID] > 0) {
         data.lastWinMonth[playerID]++;
@@ -593,21 +594,20 @@ function result_game() {
     game.state = gameState.game_result;
 
     // update data
-    data.maxTotalMoney[PLR][data.MAXMONTH-1] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR][data.MAXMONTH-1]);
-    data.maxTotalMoney[CPU][data.MAXMONTH-1] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU][data.MAXMONTH-1]);
-    data.totalWin[game.winner][data.MAXMONTH-1]++;
-    // data.maxStreak
+    data.maxTotalMoney[PLR] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR]);
+    data.maxTotalMoney[CPU] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU]);
+    data.totalWin[game.winner]++;
     // 對戰連勝
-    if (data.lastWin[game.winner][data.MAXMONTH-1] > 0) {
-        data.lastWin[game.winner][data.MAXMONTH-1]++;
-        data.maxStreak[game.winner][data.MAXMONTH-1] = Math.max(data.lastWin[game.winner][data.MAXMONTH-1], data.maxStreak[game.winner][data.MAXMONTH-1]);
+    if (data.totalLastWin[game.winner] > 0) {
+        data.totalLastWin[game.winner]++;
+        data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
     } else {
-        data.lastWin[game.winner][data.MAXMONTH-1] = 1;
-        data.lastWin[Number(!game.winner)][data.MAXMONTH-1] = 0;
+        data.totalLastWin[game.winner] = 1;
+        data.totalLastWin[Number(!game.winner)] = 0;
     }
     if (data.totalLastWin[game.winner] > 0) {
         data.totalLastWin[game.winner]++;
-        data.maxTotalStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.maxTotalStreak[game.winner]);
+        data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
     } else {
         data.totalLastWin[game.winner] = 1;
         data.totalLastWin[Number(!game.winner)] = 0;
