@@ -424,7 +424,7 @@ class Button {
         }
         if (this.fontsize > 0 || text != '') {
             context.fillStyle = this.textColor;
-            context.font = this.fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+            context.font = this.fontsize * R + "px 'Yuji Syuku', sans-serif";
             if (this.vertical)
                 for (let i = 0; i < this.text.length; i++)
                     context.fillText(this.text[i], (this.x + this.w/2) * R, (this.y + this.h/2 + (i + 0.5 - this.text.length/2) * this.fontsize) * R);

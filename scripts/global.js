@@ -51,8 +51,8 @@ const fieldNoticeColor = 'darkred';
 const gameState = {
     /* home page */
     title: 0,
-    setting: 1,
-    choose_difficulty: 2,
+    choose_difficulty: 1,
+    settings: 2,
     statistic: 3,
     achievement: 4,
     /* in game */
@@ -117,6 +117,10 @@ let movingCard;
 let title_button = new Array(4);
 const title_button_text = ['開始', '統計', '成就', '設定'];
 let devSource;
+let back_button;
+let setting_panel;
+let settings_button = new Array(4);
+const settings_button_text = ["画面調整","資料継承","資料下載","資料削除"];
 // 月
 let month_panel;
 // 文

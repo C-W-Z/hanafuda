@@ -6,6 +6,111 @@
  * @repo https://github.com/C-W-Z/hanafuda.git
  */
 
+//#region Guess Smaller Card from Two Cards
+
+function start_guess() {
+    guessing = true;
+
+    let month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    shuffle(month);
+    guess_card[0] = new Card(month[0] * 4);
+    guess_card[1] = new Card(month[11] * 4);
+    guess_card[0].px = SCREEN_W/2 - CARD_LARGE_W * 2;
+    guess_card[0].py = SCREEN_H/2-CARD_LARGE_H/2;
+    guess_card[1].px = SCREEN_W/2 + CARD_LARGE_W;
+    guess_card[1].py = SCREEN_H/2-CARD_LARGE_H/2;
+    guess_text = '札を一枚選んでください';
+
+    canvas.onmousedown = guess_click_func;
+}
+
+function draw_guess_card() {
+    guess_card[0].draw_large();
+    guess_card[1].draw_large();
+
+    context.fillStyle = 'black';
+    context.font = 36 * R + "px 'Yuji Syuku', sans-serif";
+    context.fillText(guess_text, (SCREEN_W/2) * R, (SCREEN_H/2 - CARD_LARGE_H/2 - 36) * R);
+}
+
+function pointedGuessIndex() {
+    if (mouse.x >= guess_card[0].px && mouse.x <= guess_card[0].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[0].py && mouse.y <= guess_card[0].py + CARD_LARGE_H)
+        return 0;
+    if (mouse.x >= guess_card[1].px && mouse.x <= guess_card[1].px + CARD_LARGE_W &&
+        mouse.y >= guess_card[1].py && mouse.y <= guess_card[1].py + CARD_LARGE_H)
+        return 1;
+    return -1;
+}
+
+function guess_click_func(e) {
+    /* not left click */
+    if (e.button != 0)
+        return;
+    updateMouseXY(e);
+    let i = pointedGuessIndex();
+    if (i >= 0)
+    {
+        guess_result = (guess_card[i].ID < guess_card[Number(!i)].ID);
+        startTime = performance.now();
+        time_func = flip_guess_card(i);
+        next_func = function (time) {
+            guess_text = (guess_result ? 'あなた' : '相手') + 'が親になりました';
+            
+            next_func = function (time) {
+                endAnimation();
+                guessing = false;
+                after_guess();
+            }
+
+            /* draw month under the two guess cards */
+            context.fillStyle = 'black';
+            context.font = 36 * R + "px 'Yuji Syuku', sans-serif";
+            context.fillText(NUMBER[Math.floor(guess_card[0].ID / 4)+1]+'月', (guess_card[0].px + CARD_LARGE_W/2) * R, (guess_card[0].py + CARD_LARGE_H + 36) * R);
+            context.fillText(NUMBER[Math.floor(guess_card[1].ID / 4)+1]+'月', (guess_card[1].px + CARD_LARGE_W/2) * R, (guess_card[1].py + CARD_LARGE_H + 36) * R);
+
+            const smaller = (guess_card[0].ID < guess_card[1].ID) ? 0 : 1;
+            if (time - startTime >= GUESS_WAIT) {
+                guess_card[smaller].noticed = true;
+                startTime = null;
+                time_func = next_func;
+            } else {
+                let flag = false;
+                for (let t = 0; t < twinkleTime; t++)
+                    if (time - startTime >= GUESS_WAIT * t / twinkleTime &&
+                        time - startTime <  GUESS_WAIT * (2*t+1) / (2 * twinkleTime))
+                        flag = true;
+                guess_card[smaller].noticed = flag;
+            }
+        }
+
+        canvas.onmousedown = click_func;
+    }
+}
+
+function flip_guess_card(i) {
+    return function(time) {
+        const deltaTime = (time - startTime) / FLIP_TIME;
+        if (deltaTime >= 1) {
+            guess_card[i].scaleX = 1;
+            guess_card[Number(!i)].scaleX = 1;
+            startTime = null;
+            time_func = next_func;
+        } else if (deltaTime >= 0.5) {
+            guess_card[i].scaleX = 1;
+            guess_card[Number(!i)].scaleX = Math.abs(easeOutQuad(time-startTime-FLIP_TIME*0.5, 1, -4*(deltaTime-0.5), FLIP_TIME*0.5));
+            if (deltaTime >= 0.75)
+                guess_card[Number(!i)].back = false;
+        } else {
+            guess_card[i].scaleX = Math.abs(easeOutQuad(time-startTime, 1, -4*deltaTime, FLIP_TIME*0.5));
+            if (deltaTime >= 0.25)
+                guess_card[i].back = false;
+        }
+    }
+}
+
+//#endregion
+
 function start_month() {
     /* init month */
     // init deck
@@ -16,7 +121,7 @@ function start_month() {
     // reset cards
     for (let i = 0; i < CARD_NUM; i++)
         card[i].reset_month();
-    
+
     // reset field
     field.reset_month();;
 
@@ -366,9 +471,9 @@ function draw_decide_koi() {
     const w = koi_panel.w, h = koi_panel.h;
     // draw texts
     context.fillStyle = 'white';
-    context.font = 32 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = 32 * R + "px 'Yuji Syuku', sans-serif";
     context.fillText("こいこいしますか？", (SCREEN_W/2) * R, (SCREEN_H/2 - h/4) * R);
-    context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     context.fillText(`現在の獲得文数：${player[PLR].score}文`, (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
 
     // draw buttons
@@ -444,12 +549,12 @@ function draw_show_yaku() {
     // draw who win
     context.fillStyle = 'white';
     const fontsize = 32;
-    context.font = fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
     const text = (game.winner == PLR) ? '勝利' : '敗北';
     const title_h = 100;
     context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
     // draw yaku
-    context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     let count = 0;
     const max_show = (game.koi_bouns) ? 8 : 9;
     for (let i = 0; i < YAKU_NUM; i++)
@@ -518,13 +623,13 @@ function draw_game_result() {
     // draw who win
     context.fillStyle = 'white';
     const fontsize = 32;
-    context.font = fontsize * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
     const text = (game.winner == PLR) ? '勝利' : '敗北';
     const title_h = 100;
     context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
 
     // draw scores
-    context.font = 20 * R + "px 'Yuji Syuku', 'Microsoft YaHei', sans-serif";
+    context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     context.fillText('あなた', (SCREEN_W/2) * R, (py + title_h) * R);
     context.fillText('相手', (SCREEN_W/2 + w/4) * R, (py + title_h) * R);
     for (let i = 1; i <= game.MAXMONTH; i++) {
@@ -625,18 +730,30 @@ const getJsonUpload = () =>
     });
 async function uploadData() {
     const jsonFiles = await getJsonUpload();
-    const obj = JSON.parse(jsonFiles[0]);
+    let obj;
+    try {
+        obj = JSON.parse(jsonFiles[0]);
+    } catch (error) {
+        alert('This is not a JSON file');
+        return;
+    }
     if (equalObjFormat(data, obj)) {
         Object.assign(data, obj);
         data.store();
-        return true;
+        alert('Upload Sucess');
     } else {
-        console.log('json format error');
-        return false;
+        alert('Data Format Error!');
     }
 }
 function downloadData() {
     downloadObjectAsJson(data, 'HanafudaData');
+}
+
+function deleteData() {
+    if (confirm("Are you sure to DELETE the Data?")) {
+        data.init();
+        data.store();
+    }
 }
 
 //#endregion
