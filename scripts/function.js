@@ -378,23 +378,25 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
 async function check_win(playerID) {
     const win = await player[playerID].check_yaku();
     //console.log(win);
-    if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
-    {
+    // update data
+    if (win && game.koi == playerID)
+        data.koiSucessTime[playerID] += 1;
+
+    if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0) {
         // end this month
         if (win)
             start_show_yaku(playerID, 0);
         else if (game.koi != -1)
             player_win_month(game.koi);
         else {
+            // update data
+            data.koiSucessTime[game.first] += 1;
             // 親權
             player[game.first].yaku[0] = 1;
             player[game.first].score += data.yaku_score[0];
             player_win_month(game.first);
         }
     } else if (win) {
-        // 若是最後一回合 => 強制結束
-        if (player[playerID].hand.length == 0)
-            player_win_month(playerID);
         // show yaku
         start_show_yaku(playerID, 0);
     } else {
@@ -406,6 +408,7 @@ async function check_win(playerID) {
 
 function start_show_yaku(playerID, yakuID) {
     if (yakuID == player[playerID].new_yaku.length) {
+        // 若是最後一回合 => 強制結束
         if (player[playerID].hand.length == 0)
             player_win_month(playerID);
         // ask koi koi or not
@@ -429,14 +432,14 @@ function start_show_yaku(playerID, yakuID) {
 
 function start_ask_koikoi() {
     // update data
-    data.canKoiTime[PLR]++;
+    data.canKoiTime[PLR] += 1;
     // start draw UI
     game.state = gameState.player_decide_koi;
 }
 
 function cpu_decide_koi() {
     // update data
-    data.canKoiTime[CPU]++;
+    data.canKoiTime[CPU] += 1;
 
     if (Math.floor(Math.random() * 2) == 1)
         koikoi(CPU);
@@ -456,16 +459,14 @@ function player_win_month(playerID) {
     player[playerID].total_money += player[playerID].money[game.month-1];
 
     // update data
-    if (game.koi == playerID)
-        data.koiSucessTime[playerID]++;
     if (player[playerID].score >= 7)
-        data.sevenUpTime[playerID]++;
+        data.sevenUpTime[playerID] += 1;
     data.maxMoneyMonth[playerID] = Math.max(data.maxMoneyMonth[playerID], player[playerID].money[game.month-1]);
     data.totalMoney[playerID] += player[playerID].money[game.month-1];
-    data.winMonth[playerID]++;
+    data.winMonth[playerID] += 1;
     // 連勝月
     if (data.lastWinMonth[playerID] > 0) {
-        data.lastWinMonth[playerID]++;
+        data.lastWinMonth[playerID] += 1;
         data.maxStreakMonth[playerID] = Math.max(data.lastWinMonth[playerID], data.maxStreakMonth[playerID]);
     } else {
         data.lastWinMonth[playerID] = 1;
@@ -474,7 +475,7 @@ function player_win_month(playerID) {
     // yaku
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[playerID].yaku[i] > 0)
-            data.yakuTime[playerID][i]++;
+            data.yakuTime[playerID][i] += 1;
 }
 
 function draw_decide_koi() {
@@ -497,9 +498,7 @@ function draw_decide_koi() {
 
 function koikoi(playerID) {
     // update data
-    data.totalKoiTime[playerID]++;
-    if (game.koi == playerID)
-        data.koiSucessTime[playerID]++;
+    data.totalKoiTime[playerID] += 1;
 
     game.state = gameState.koikoi_animation;
     game.koi = playerID;
@@ -613,17 +612,17 @@ function result_game() {
     // update data
     data.maxTotalMoney[PLR] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR]);
     data.maxTotalMoney[CPU] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU]);
-    data.totalWin[game.winner]++;
+    data.totalWin[game.winner] += 1;
     // 對戰連勝
     if (data.totalLastWin[game.winner] > 0) {
-        data.totalLastWin[game.winner]++;
+        data.totalLastWin[game.winner] += 1;
         data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
     } else {
         data.totalLastWin[game.winner] = 1;
         data.totalLastWin[Number(!game.winner)] = 0;
     }
     if (data.totalLastWin[game.winner] > 0) {
-        data.totalLastWin[game.winner]++;
+        data.totalLastWin[game.winner] += 1;
         data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
     } else {
         data.totalLastWin[game.winner] = 1;

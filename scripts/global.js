@@ -231,7 +231,7 @@ function shuffle(deck) {
         let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let flag = true;
         for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
-            month[Math.floor(deck[i] / 4)]++;
+            month[Math.floor(deck[i] / 4)] += 1;
             if (month[Math.floor(deck[i] / 4)] >= 3) {
                 flag = false;
                 break;
@@ -242,7 +242,7 @@ function shuffle(deck) {
         month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let count = 0;
         for (let i = CARD_NUM - HAND_NUM - 1; i >= CARD_NUM - HAND_NUM * 2; i--)
-            month[Math.floor(deck[i] / 4)]++;
+            month[Math.floor(deck[i] / 4)] += 1;
         for (const m of month) {
             if (m == 4) {
                 flag = false;
@@ -254,7 +254,7 @@ function shuffle(deck) {
         month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         count = 0;
         for (let i = CARD_NUM - HAND_NUM * 2 - 1; i >= CARD_NUM - HAND_NUM * 3; i--)
-            month[Math.floor(deck[i] / 4)]++;
+            month[Math.floor(deck[i] / 4)] += 1;
         for (const m of month) {
             if (m == 4) {
                 flag = false;

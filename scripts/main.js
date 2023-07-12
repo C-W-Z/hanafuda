@@ -46,6 +46,10 @@ function click_func(event) {
                 settings_button[i].check_press();
             devSource.check_press();
             break;
+        case gameState.statistic:
+            back_button.check_press();
+            devSource.check_press();
+            break;
         case gameState.player_select_hand:
             player[PLR].selected_handID = pointedPlayerHandIndex();
             if (player[PLR].selected_handID >= 0) {
@@ -171,6 +175,12 @@ function draw_home_page() {
                 settings_button[i].draw();
             back_button.draw();
             break;
+
+        case gameState.statistic:
+            draw_statistics();
+            back_button.draw();
+            break;
+
         default:
             break;
     }
@@ -306,7 +316,7 @@ function create_UI() {
     /* title */
     w = 150, h = 50;
     title_button[0] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*1, w, h, 0, title_button_text[0], 40, start_game, '', '', 'black');
-    title_button[1] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*2, w, h, 0, title_button_text[1], 40, null, '', '', 'black');
+    title_button[1] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*2, w, h, 0, title_button_text[1], 40, show_statistics, '', '', 'black');
     title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, null, '', '', 'black');
     title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, show_settings, '', '', 'black');
 
@@ -358,6 +368,7 @@ function check_hover_home_buttons(time) {
                 title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
             break;
         case gameState.settings:
+        case gameState.statistic:
             back_button.text = back_button.include(mouse) ? ('>  戻る  <') : '戻る';
             break;
         default:
@@ -422,4 +433,67 @@ function back_to_title() {
 
 function show_settings() {
     game.state = gameState.settings;
+}
+
+function show_statistics() {
+    game.state = gameState.statistic;
+}
+
+function draw_statistics() {
+    context.fillStyle = 'black';
+
+    const fontsize = 30;
+    context.textAlign = 'left';
+    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
+    const lx = SCREEN_W/4+SCREEN_W/16, rx = SCREEN_W*3/4-SCREEN_W/16, y = 120, xgap = 200, ygap = fontsize + 10;
+
+    context.fillText("対戦回数"    , (lx-xgap)*R, (y+ygap*0)*R);
+    context.fillText("総月数"      , (lx-xgap)*R, (y+ygap*1)*R);
+    context.fillText("総獲得文数"   , (lx-xgap)*R, (y+ygap*2)*R);
+    context.fillText("最高獲得総文数", (lx-xgap)*R, (y+ygap*3)*R);
+    context.fillText("月最高獲得文数", (lx-xgap)*R, (y+ygap*4)*R);
+    context.fillText("月平均獲得文数", (lx-xgap)*R, (y+ygap*5)*R);
+    context.fillText("7文以上確率"   , (lx-xgap)*R, (y+ygap*6)*R);
+    context.fillText("被7文以上率"    , (lx-xgap)*R, (y+ygap*7)*R);
+    context.fillText("こいこい率"     , (lx-xgap)*R, (y+ygap*8)*R);
+    context.fillText("こいこい成功率"  , (lx-xgap)*R, (y+ygap*9)*R);
+    context.fillText("こいこい阻止率"  , (lx-xgap)*R, (y+ygap*10)*R);
+
+    context.fillText("勝利数"  , (rx-xgap)*R, (y+ygap*0)*R);
+    context.fillText("敗北数"  , (rx-xgap)*R, (y+ygap*1)*R);
+    context.fillText("勝率"    , (rx-xgap)*R, (y+ygap*2)*R);
+    context.fillText("勝利月数" , (rx-xgap)*R, (y+ygap*3)*R);
+    context.fillText("敗北月数" , (rx-xgap)*R, (y+ygap*4)*R);
+    context.fillText("月勝率"   , (rx-xgap)*R, (y+ygap*5)*R);
+    context.fillText("最大連勝数", (rx-xgap)*R, (y+ygap*6)*R);
+    context.fillText("最大連敗数", (rx-xgap)*R, (y+ygap*7)*R);
+    context.fillText("最大連勝月数", (rx-xgap)*R, (y+ygap*8)*R);
+    context.fillText("最大連敗月数", (rx-xgap)*R, (y+ygap*9)*R);
+
+    context.textAlign = 'right';
+
+    context.fillText(`${data.battleTime}回`        , (lx+xgap)*R, (y+ygap*0)*R);
+    context.fillText(`${data.battleMonth}月`       , (lx+xgap)*R, (y+ygap*1)*R);
+    context.fillText(`${data.totalMoney[PLR]}文`   , (lx+xgap)*R, (y+ygap*2)*R);
+    context.fillText(`${data.maxTotalMoney[PLR]}文`, (lx+xgap)*R, (y+ygap*3)*R);
+    context.fillText(`${data.maxMoneyMonth[PLR]}文`, (lx+xgap)*R, (y+ygap*4)*R);
+    context.fillText(`${data.battleMonth>0?(data.totalMoney[PLR]/data.battleMonth).toFixed(1):0}文`    , (lx+xgap)*R, (y+ygap*5)*R);
+    context.fillText(`${data.battleMonth>0?(100*data.sevenUpTime[PLR]/data.battleMonth).toFixed(1):0}%`, (lx+xgap)*R, (y+ygap*6)*R);
+    context.fillText(`${data.battleMonth>0?(100*data.sevenUpTime[CPU]/data.battleMonth).toFixed(1):0}%`, (lx+xgap)*R, (y+ygap*7)*R);
+    context.fillText(`${data.canKoiTime[PLR]>0?(100*data.totalKoiTime[PLR]/data.canKoiTime[PLR]).toFixed(1):0}%`, (lx+xgap)*R, (y+ygap*8)*R);
+    context.fillText(`${data.totalKoiTime[PLR]>0?(100*data.koiSucessTime[PLR]/data.totalKoiTime[PLR]).toFixed(1):0}%`, (lx+xgap)*R, (y+ygap*9)*R);
+    context.fillText(`${data.totalKoiTime[CPU]>0?(100*(1-data.koiSucessTime[CPU]/data.totalKoiTime[CPU])).toFixed(1):0}%`, (lx+xgap)*R, (y+ygap*10)*R);
+
+    context.fillText(`${data.totalWin[PLR]}回`, (rx+xgap)*R, (y+ygap*0)*R);
+    context.fillText(`${data.totalWin[CPU]}回`, (rx+xgap)*R, (y+ygap*1)*R);
+    context.fillText(`${data.battleTime>0?(100*data.totalWin[PLR]/data.battleTime).toFixed(1):0}%`, (rx+xgap)*R, (y+ygap*2)*R);
+    context.fillText(`${data.winMonth[PLR]}月`, (rx+xgap)*R, (y+ygap*3)*R);
+    context.fillText(`${data.winMonth[CPU]}月`, (rx+xgap)*R, (y+ygap*4)*R);
+    context.fillText(`${data.battleMonth>0?(100*data.winMonth[PLR]/data.battleMonth).toFixed(1):0}%`, (rx+xgap)*R, (y+ygap*5)*R);
+    context.fillText(`${data.totalMaxStreak[PLR]}回`, (rx+xgap)*R, (y+ygap*6)*R);
+    context.fillText(`${data.totalMaxStreak[CPU]}回`, (rx+xgap)*R, (y+ygap*7)*R);
+    context.fillText(`${data.maxStreakMonth[PLR]}月`, (rx+xgap)*R, (y+ygap*8)*R);
+    context.fillText(`${data.maxStreakMonth[CPU]}月`, (rx+xgap)*R, (y+ygap*9)*R);
+
+    context.textAlign = 'center';
 }

@@ -23,12 +23,12 @@ class Data {
         this.totalMoney = [0,0]; // 累計獲得文數 [PLR, CPU]
         this.maxTotalMoney = [0,0]; // 最高獲得総文数 [PLR, CPU]
         this.maxMoneyMonth = [0,0]; // 月最高獲得文数 [PLR, CPU]
-        // 月平均獲得文数 = totalMoney / totalMonth
+        // 月平均獲得文数 = totalMoney / battleMonth
         this.totalWin = [0,0]; // 勝利數 [PLR, CPU]
         // 平手數 = battleTime - totalWin[PLR] - totalWin[CPU];
-        // 勝率 = totalWin[PLR][i] / battleTime[i];
+        // 勝率 = totalWin[PLR] / battleTime;
         this.winMonth = [0,0]; // 月勝利數 [PLR, CPU]
-        // 勝率(月) = winMonth[PLR] / totalMonth;
+        // 勝率(月) = winMonth[PLR] / battleMonth;
         this.totalLastWin = [0,0]; // 目前連勝數 [PLR, CPU]
         this.lastWinMonth = [0,0]; // 目前連勝月數 [PLR, CPU]
         this.totalMaxStreak = [0,0]; // 最大連勝數 [PLR, CPU]
@@ -47,7 +47,7 @@ class Data {
         this.yakuTime[CPU] = new Array(YAKU_NUM);
         for (let i = 0; i <  YAKU_NUM; i++)
             this.yakuTime[PLR][i] = this.yakuTime[CPU][i] = 0;
-        // 出現率 = yakuTime[i] / totalMonth
+        // 出現率 = yakuTime[i] / battleMonth
 
         // rules
         this.yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 6, 10, 5, 5, 5., 4, 1, 1, 1];
@@ -285,20 +285,20 @@ class Player {
         if (light == 4 && rain == 0 ) now_yaku[ 2] += 1; // 四光
         if (light == 4 && rain == 1 ) now_yaku[ 3] += 1; // 雨四光
         if (light == 3 && rain == 0 ) now_yaku[ 4] += 1; // 三光
-        if (data.matsukiribozu    && matsukiribozu                  == 3) now_yaku[ 5]++; // 松桐坊主
-        if (data.sugawara         && sugawara                       == 3) now_yaku[ 6]++; // 表菅原
-        if (data.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 7]++; // 飲み
-        if (data.flower_sake      && hanamideippai                  == 2) now_yaku[ 8]++; // 花見で一杯
-        if (data.moon_sake        && tsukimideippai                 == 2) now_yaku[ 9]++; // 月見で一杯
+        if (data.matsukiribozu    && matsukiribozu                  == 3) now_yaku[ 5] += 1; // 松桐坊主
+        if (data.sugawara         && sugawara                       == 3) now_yaku[ 6] += 1; // 表菅原
+        if (data.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 7] += 1; // 飲み
+        if (data.flower_sake      && hanamideippai                  == 2) now_yaku[ 8] += 1; // 花見で一杯
+        if (data.moon_sake        && tsukimideippai                 == 2) now_yaku[ 9] += 1; // 月見で一杯
         if (inoshikacho        == 3 ) now_yaku[10] += 1; // 猪鹿蝶
-        if (data.five_bird        && gotori                         == 3) now_yaku[11]++; // 五鳥
-        if (data.seven_tan        && ribbon - yanaginitanzaku       >= 7) now_yaku[12]++; // 七短
-        if (data.six_tan          && ribbon - yanaginitanzaku       == 6) now_yaku[13]++; // 六短
-        if (data.akatan_aotan     && akatan + aotan                 == 6) now_yaku[14]++; // 赤短・青短の重複役
+        if (data.five_bird        && gotori                         == 3) now_yaku[11] += 1; // 五鳥
+        if (data.seven_tan        && ribbon - yanaginitanzaku       >= 7) now_yaku[12] += 1; // 七短
+        if (data.six_tan          && ribbon - yanaginitanzaku       == 6) now_yaku[13] += 1; // 六短
+        if (data.akatan_aotan     && akatan + aotan                 == 6) now_yaku[14] += 1; // 赤短・青短の重複役
         if (akatan             == 3 ) now_yaku[15] += 1; // 赤短
         if (aotan              == 3 ) now_yaku[16] += 1; // 青短
-        if (data.grass            && kusa                           == 3) now_yaku[17]++; // 草
-        if (data.month_yaku       && getsusatsu                     == 4) now_yaku[18]++; // 月札
+        if (data.grass            && kusa                           == 3) now_yaku[17] += 1; // 草
+        if (data.month_yaku       && getsusatsu                     == 4) now_yaku[18] += 1; // 月札
         if (dross              >= 10) now_yaku[19] += dross  - 9; // カス
         if (ribbon             >= 5 ) now_yaku[20] += ribbon - 4; // 短冊
         if (seed + Number(data.kiku_dross && kiku == 1) >= 5) now_yaku[21] += seed - 4; // タネ
@@ -319,7 +319,7 @@ class Player {
         for (let i = 0; i < YAKU_NUM; i++) {
             // check is there new yaku
             if (now_yaku[i] > this.yaku[i]) {
-                if (!(data.flower_moon_sake_koi && (i == 8 || i == 9)))
+                if (!(!data.flower_moon_sake_koi && (i == 8 || i == 9)))
                     get_new_yaku = true;
                 this.new_yaku.push(i);
                 //console.log(yaku_name[i]);
