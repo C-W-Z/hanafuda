@@ -122,6 +122,9 @@ let back_button;
 let setting_panel;
 let settings_button = new Array(4);
 const settings_button_text = ["画面調整","資料継承","資料下載","資料削除"];
+let statistic_page = 0;
+let statistic_panel;
+let statistic_button = new Array(2);
 // 月
 let month_panel;
 // 文
