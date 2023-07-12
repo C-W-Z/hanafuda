@@ -18,28 +18,28 @@ class Data {
     }
 
     init() {
-        this.battleTime = [0,0,0,0,0,0,0,0,0,0,0,0]; // 對戰回數 [1~12月]
-        this.totalMonth = 0; // 總對局數
-        this.maxTotalMoney = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 最高獲得總文數 [PLR, CPU][1~12月]
-        this.maxMoneyMonth = [0, 0]; // 最高獲得文數(單月) [PLR, CPU]
-        this.totalMoney = [0, 0]; // 累計獲得文數 [PLR, CPU]
-        // 平均獲得文數 = totalMoney / totalMonth
-        this.totalWin = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 勝利數 [PLR, CPU][1~12月]
-        // 平手數[1/3/6/12月] = battleTime[i] - totalWin[PLR][i] - totalWin[CPU][i];
-        // 勝率 = totalWin[PLR][i] / battleTime[i];
-        this.totalWinMonth = [0, 0]; // 單月勝利數 [PLR, CPU]
-        // 勝率(月) = totalWinMonth[PLR] / totalMonth;
-        this.totalLastWin = [0, 0]; // 目前對戰連勝數 (不分幾月玩法) [PLR, CPU]
-        this.lastWin = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 目前對戰連勝數[PLR, CPU][1~12月]
-        this.lastWinMonth = [0, 0]; // 目前單月連勝數 [PLR, CPU]
-        this.maxTotalStreak = [0, 0]; // 不分幾月玩法的連勝數 [PLR, CPU]
-        this.maxStreak = [[0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0]]; // 最大連勝數 [PLR, CPU][1~12月]
-        this.maxStreakMonth = [0, 0]; // 最大連勝月數 [PLR, CPU]
-        this.canKoiTime = [0, 0]; // 可以Koi Koi的次數(除了最後一回合之外組成役的次數) [PLR, CPU]
-        this.totalKoiTime = [0, 0]; // koikoi總次數 [PLR, CPU]
-        this.koiSucessTime = [0, 0]; // koikoi之後又組成役的總次數(包括親權)
+        this.battleTime = 0; // 対戦回数
+        this.battleMonth = 0; // 総月数
+        this.totalMoney = [0,0]; // 累計獲得文數 [PLR, CPU]
+        this.maxTotalMoney = [0,0]; // 最高獲得総文数 [PLR, CPU]
+        this.maxMoneyMonth = [0,0]; // 月最高獲得文数 [PLR, CPU]
+        // 月平均獲得文数 = totalMoney / battleMonth
+        this.totalWin = [0,0]; // 勝利數 [PLR, CPU]
+        // 平手數 = battleTime - totalWin[PLR] - totalWin[CPU];
+        // 勝率 = totalWin[PLR] / battleTime;
+        this.winMonth = [0,0]; // 月勝利數 [PLR, CPU]
+        // 勝率(月) = winMonth[PLR] / battleMonth;
+        this.totalLastWin = [0,0]; // 目前連勝數 [PLR, CPU]
+        this.lastWinMonth = [0,0]; // 目前連勝月數 [PLR, CPU]
+        this.totalMaxStreak = [0,0]; // 最大連勝數 [PLR, CPU]
+        this.maxStreakMonth = [0,0]; // 最大連勝月數 [PLR, CPU]
+        this.canKoiTime = [0,0]; // 可以Koi Koi的次數(除了最後一回合之外組成役的次數) [PLR, CPU]
+        this.totalKoiTime = [0,0]; // koikoi總次數 [PLR, CPU]
+        this.koiSucessTime = [0,0]; // koikoi之後又組成役的總次數(包括親權) [PLR, CPU]
         // Koi Koi 率 = totalKoiTime / canKoiTime
-        // Koi Koi 成功率 = koiSucessTime / totalKoiTime
+        // Koi Koi 成功率 = koiSucessTime[PLR] / totalKoiTime[PLR]
+        // Koi Koi 阻止率 = 1 - koiSucessTime[CPU] / totalKoiTime[CPU]
+        this.sevenUpTime = [0,0]; // 原始分7文以上月數 [PLR, CPU]
 
         // 組成yaku的次數(不論輸贏)(カス,短冊,タネ一月中最多只算一次) 參考yaku_name
         this.yakuTime = new Array(2); // [PLR, CPU]
@@ -47,22 +47,34 @@ class Data {
         this.yakuTime[CPU] = new Array(YAKU_NUM);
         for (let i = 0; i <  YAKU_NUM; i++)
             this.yakuTime[PLR][i] = this.yakuTime[CPU][i] = 0;
-        // 出現率 = yakuTime[i] / totalMonth
+        // 出現率 = yakuTime[i] / battleMonth
 
         // rules
+        this.yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 6, 10, 5, 5, 5., 4, 1, 1, 1];
+        this.cpuLevel = 1; // AI策略等級 (0:隨機出牌,1:會根據牌的類型判斷價值,2:會判斷能組成役的特定牌更有價值,3:根據當前情況判斷目標是組成什麼役)
         this.MAXMONTH = 12; // 預設12月玩法
+        this.first_change = false; // 親の回転 雙方親輪流當親，否則贏家當下回合親
+        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
+        this.seven_bonus = false; // 7點倍
+        this.light_accumulate = false; // 累計光牌的役分數
         this.matsukiribozu = false; // 啟用松桐坊主
         this.sugawara = false; // 啟用表菅原
-        this.flower_sake = false; // 啟用花見酒
-        this.moon_sake = false; // 啟用花見酒
-        this.flower_moon_sake = true; // 啟用花月見
+        this.flower_sake = true; // 啟用花見酒
+        this.moon_sake = true; // 啟用月見酒
+        this.flower_moon_sake = false; // 啟用花月見
+        this.flower_moon_sake_accumulate = false; // 累計花見酒+月見酒+飲分數
+        this.flower_moon_sake_koi = true; // 花見酒、月見酒可以koikoi和結束，false代表不行
+        this.rain_rule = false; // 啟用雨流：有柳間小野道風的玩家無法成立花見酒、花見酒、飲(花月見)
+        this.fog_rule = false; // 啟用霧流：有桐上鳳凰的玩家無法成立花見酒、花見酒、飲(花月見)
         this.five_bird = false; // 啟用五鳥
-        this.seven_tan = false;
-        this.six_tan = false;
-        this.akatan_aotan = false;
+        this.seven_tan = false; // 啟用七短
+        this.six_tan = false; // 啟用六短
+        this.tan_accumulate = false; // 累計七短+六短+短冊分數
+        this.akatan_aotan = false; // 啟用赤短・青短
+        this.akatan_aotan_accumulate = false; // 累計赤短・青短+赤短+青短分數
         this.grass = false; // 啟用草短
         this.month_yaku = true; // 啟用月札
-        this.koi_bouns = true; // koikoi bonus (score * koikoi time)
+        this.kiku_dross = false; // 菊上盃可以當作粕（滓）牌來計算カス
     }
 
     store() {
@@ -123,7 +135,9 @@ class Player {
         this.noticed = new Array();
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
-        this.yaku = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.yaku = new Array(YAKU_NUM);
+        for (let i = 0; i < YAKU_NUM; i++)
+            this.yaku[i] = 0;
         this.new_yaku = new Array();
         this.selected_handID = -1;
         this.selected_fieldID = 0;
@@ -236,6 +250,8 @@ class Player {
             now_yaku[i] = 0;
 
         let rain = 0; // 雨
+        let fog = 0; // 霧(桐上鳳凰)
+        let kiku = 0; // 菊上杯
         let matsukiribozu = 0; // 松桐坊主
         let sugawara = 0; // 表菅原
         let inoshikacho = 0; // 猪鹿蝶
@@ -251,6 +267,7 @@ class Player {
         for (const arr of this.collect)
             for (const c of arr) {
                 if (c == 40) rain++;
+                if (c == 44) fog++;
                 if (c == 41) yanaginitanzaku++;
                 if (c ==  8 || c == 32) hanamideippai++;
 				if (c == 28 || c == 32) tsukimideippai++;
@@ -268,23 +285,31 @@ class Player {
         if (light == 4 && rain == 0 ) now_yaku[ 2] += 1; // 四光
         if (light == 4 && rain == 1 ) now_yaku[ 3] += 1; // 雨四光
         if (light == 3 && rain == 0 ) now_yaku[ 4] += 1; // 三光
-        if (data.matsukiribozu    && matsukiribozu                  == 3) now_yaku[ 5]++; // 松桐坊主
-        if (data.sugawara         && sugawara                       == 3) now_yaku[ 6]++; // 表菅原
-        if (data.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 7]++; // 飲み
-        if (data.flower_sake      && hanamideippai                  == 2) now_yaku[ 8]++; // 花見で一杯
-        if (data.moon_sake        && tsukimideippai                 == 2) now_yaku[ 9]++; // 月見で一杯
+        if (data.matsukiribozu    && matsukiribozu                  == 3) now_yaku[ 5] += 1; // 松桐坊主
+        if (data.sugawara         && sugawara                       == 3) now_yaku[ 6] += 1; // 表菅原
+        if (data.flower_moon_sake && hanamideippai + tsukimideippai == 4) now_yaku[ 7] += 1; // 飲み
+        if (data.flower_sake      && hanamideippai                  == 2) now_yaku[ 8] += 1; // 花見で一杯
+        if (data.moon_sake        && tsukimideippai                 == 2) now_yaku[ 9] += 1; // 月見で一杯
         if (inoshikacho        == 3 ) now_yaku[10] += 1; // 猪鹿蝶
-        if (data.five_bird        && gotori                         == 3) now_yaku[11]++; // 五鳥
-        if (data.seven_tan        && ribbon - yanaginitanzaku       >= 7) now_yaku[12]++; // 七短
-        if (data.six_tan          && ribbon - yanaginitanzaku       == 6) now_yaku[13]++; // 六短
-        if (data.akatan_aotan     && akatan + aotan                 == 6) now_yaku[14]++; // 赤短・青短の重複役
+        if (data.five_bird        && gotori                         == 3) now_yaku[11] += 1; // 五鳥
+        if (data.seven_tan        && ribbon - yanaginitanzaku       >= 7) now_yaku[12] += 1; // 七短
+        if (data.six_tan          && ribbon - yanaginitanzaku       == 6) now_yaku[13] += 1; // 六短
+        if (data.akatan_aotan     && akatan + aotan                 == 6) now_yaku[14] += 1; // 赤短・青短の重複役
         if (akatan             == 3 ) now_yaku[15] += 1; // 赤短
         if (aotan              == 3 ) now_yaku[16] += 1; // 青短
-        if (data.grass            && kusa                           == 3) now_yaku[17]++; // 草
-        if (data.month_yaku       && getsusatsu                     == 4) now_yaku[18]++; // 月札
+        if (data.grass            && kusa                           == 3) now_yaku[17] += 1; // 草
+        if (data.month_yaku       && getsusatsu                     == 4) now_yaku[18] += 1; // 月札
         if (dross              >= 10) now_yaku[19] += dross  - 9; // カス
         if (ribbon             >= 5 ) now_yaku[20] += ribbon - 4; // 短冊
-        if (seed               >= 5 ) now_yaku[21] += seed   - 4; // タネ
+        if (seed + Number(data.kiku_dross && kiku == 1) >= 5) now_yaku[21] += seed - 4; // タネ
+
+        // 不能同時出現的役
+        if (!data.light_accumulate &&  now_yaku[ 1] > 0) now_yaku[ 2] = now_yaku[ 3] = now_yaku[ 4] = 0; // 五光
+        if (!data.light_accumulate && (now_yaku[ 2] > 0 || now_yaku[ 3] > 0)) now_yaku[ 4] = 0; // 四光 雨四光
+        if (!data.tan_accumulate   && (now_yaku[12] > 0 || now_yaku[13] > 0)) now_yaku[20] = 0; // 七短 六短
+        if (now_yaku[12] > 0) now_yaku[13] = 0; // 七短
+        if ((data.rain_rule && rain > 0) || (data.fog_rule && fog > 0) || (!data.flower_moon_sake_accumulate && now_yaku[ 7] > 0)) now_yaku[ 8] = now_yaku[ 9] = 0; // 飲み
+        if (!data.akatan_aotan_accumulate && now_yaku[14] > 0) now_yaku[15] = now_yaku[16] = 0; // 赤短・青短の重複役
 
         while (this.new_yaku.length > 0)
             this.new_yaku.pop();
@@ -294,13 +319,15 @@ class Player {
         for (let i = 0; i < YAKU_NUM; i++) {
             // check is there new yaku
             if (now_yaku[i] > this.yaku[i]) {
-                get_new_yaku = true;
+                if (!(!data.flower_moon_sake_koi && (i == 8 || i == 9)))
+                    get_new_yaku = true;
                 this.new_yaku.push(i);
+                //console.log(yaku_name[i]);
             }
             // copy now yaku to old yaku
             this.yaku[i] = now_yaku[i];
             // calculate new score
-            this.score += yaku_score[i] * now_yaku[i];
+            this.score += data.yaku_score[i] * now_yaku[i];
         }
 
         return get_new_yaku;
@@ -383,6 +410,11 @@ class Game {
         this.state = gameState.start; // 整個網頁現在的狀態(畫面)
         this.round = 0; // 當前月份現在是第幾回合(start from 0)
         this.koi = -1; // whether player/cpu is doing koi koi
+        this.winner = -1; // 贏家
+    }
+    
+    reset_game() {
+        this.month = 0; // 月份
         this.winner = -1; // 贏家
     }
 }

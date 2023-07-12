@@ -18,6 +18,26 @@
 	unicode-range: U+814a, U+814c, U+8151-8153, U+8157, U+815f-8161, U+8165-8169, U+816d-816f, U+8171, U+8173-8174, U+8177, U+8180-8186, U+8188, U+818a-818b, U+818e, U+8190, U+8193, U+8195-8196, U+8198, U+819b, U+819e, U+81a0, U+81a2, U+81a4, U+81a9, U+81ae, U+81b0, U+81b2, U+81b4-81b5, U+81b8, U+81ba-81bb, U+81bd-81be, U+81c0-81c3, U+81c5-81c6, U+81c8-81cb, U+81cd-81cf, U+81d1, U+81d5-81db, U+81dd-81e1, U+81e4-81e5, U+81e7, U+81eb-81ec, U+81ef-81f2, U+81f5-81f6, U+81f8-81fb, U+81fd-8205, U+8209-820b, U+820d, U+820f, U+8212-8214, U+8216, U+8219-821d, U+8221-8222, U+8228-8229, U+822b, U+822e, U+8232-8235, U+8237-8238, U+823a, U+823c, U+8240, U+8243-8246, U+8249, U+824b, U+824e-824f, U+8251, U+8256-825a, U+825c-825d, U+825f-8260, U+8262-8264, U+8267-8268, U+826a-826b, U+826d-826e, U+8271, U+8274, U+8277, U+8279, U+827b, U+827d-8281, U+8283-8284, U+8287, U+8289-828a, U+828d-828e, U+8291, U+8292, U+8293-8294, U+8296, U+8298-829b, U+829f-82a1, U+82a3-82a4, U+82a7-82ac, U+82ae, U+82b0, U+82b2, U+82b4, U+82b7, U+82ba-82bc, U+82be-82bf, U+82c5-82c6, U+82d0, U+82d2-82d3, U+82d5, U+82d9-82da, U+82dc, U+82de-82e4, U+82e7;
 }
 
+/* [83] */
+@font-face {
+	font-family: 'Yuji Syuku';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url(https://fonts.gstatic.com/s/yujisyuku/v5/BngNUXdTV3vO6Lw5ApOPqPKI0qqRi3nyGpaNN6LpDCEAHKXKocaj.83.woff2) format('woff2');
+	unicode-range: U+2500, U+3008-3009, U+4ead, U+4f0f, U+4fca, U+53eb, U+543e, U+57a2, U+5cf0, U+5e8f, U+5fe0, U+61b2, U+62d8, U+6442, U+64b2, U+6589, U+659c, U+67f1, U+68c4, U+6cb8, U+6d12, U+6de1, U+6fe1, U+70c8, U+723d, U+73e0, U+7656, U+773a, U+7948, U+7b87, U+7c92, U+7d3a, U+7e1b, U+7e4a, U+819a, U+8358, U+83c5, U+84bc, U+864e, U+8912, U+8c9e, U+8d05, U+92fc, U+9396, U+98fd, U+99d2, U+ff64, U+ff7a, U+ff83;
+}
+
+/* [86] */
+@font-face {
+	font-family: 'Yuji Syuku';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url(https://fonts.gstatic.com/s/yujisyuku/v5/BngNUXdTV3vO6Lw5ApOPqPKI0qqRi3nyGpaNN6LpDCEAHKXKocaj.86.woff2) format('woff2');
+	unicode-range: U+24, U+2022, U+2212, U+221f, U+2665, U+4ecf, U+5100, U+51cd, U+52d8, U+5378, U+53f6, U+574a, U+5982, U+5996, U+5c1a, U+5e1d, U+5f84, U+609f, U+61a7, U+61f8, U+6398, U+63ee, U+6676, U+6691, U+6eb6, U+7126, U+71e5, U+7687, U+7965, U+7d17, U+80a1, U+8107, U+8266, U+85a6, U+8987, U+8ca2, U+8cab, U+8e0a, U+9042, U+95c7, U+9810, U+9867, U+98fc, U+ff52-ff54, U+ff61, U+ff77, U+ff98-ff99;
+}
+
 /* [73] */
 @font-face {
 	font-family: 'Yuji Syuku';
@@ -36,6 +56,16 @@
 	font-display: swap;
 	src: url(https://fonts.gstatic.com/s/yujisyuku/v5/BngNUXdTV3vO6Lw5ApOPqPKI0qqRi3nyGpaNN6LpDCEAHKXKocaj.69.woff2) format('woff2');
 	unicode-range: U+2003, U+2312, U+266c, U+4f86, U+51ea, U+5243, U+5256, U+541f, U+5841, U+59dc, U+5df3, U+601c, U+60e7, U+632b, U+638c, U+64ad, U+6881, U+697c, U+69cd, U+6c50, U+6d2a, U+6fc1, U+7027, U+7058, U+70f9, U+714e, U+7345, U+751a, U+760d, U+764c, U+77db, U+7d79, U+7e8f, U+80ce, U+814e, U+81fc, U+8247, U+8278, U+85a9, U+8a03, U+90ed, U+9784, U+9801, U+984e, U+99b3, U+9bc9, U+9bdb, U+9be8, U+9e78, U+ff6b;
+}
+
+/* [72] */
+@font-face {
+	font-family: 'Yuji Syuku';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url(https://fonts.gstatic.com/s/yujisyuku/v5/BngNUXdTV3vO6Lw5ApOPqPKI0qqRi3nyGpaNN6LpDCEAHKXKocaj.72.woff2) format('woff2');
+	unicode-range: U+4e91, U+508d, U+50e7, U+514e, U+51f6, U+5446, U+5504, U+584a, U+59a8, U+59d3, U+5a46, U+5ac9, U+6020, U+60a6, U+6148, U+621a, U+6234, U+64c1, U+6523, U+675c, U+67d1, U+6953, U+6ccc, U+6df5, U+6e13, U+6f06, U+723a, U+7325, U+74e6, U+758e, U+75ab, U+75d9, U+7a40, U+8096, U+82fa, U+8587, U+8594, U+8a6b, U+8ab9, U+8b17, U+8b83, U+937c, U+963b, U+9673, U+96db, U+9ce9, U+9f4b, U+ff67, U+ff82, U+ff93;
 }
 
 /* [74] */
@@ -206,6 +236,16 @@
 	font-display: swap;
 	src: url(https://fonts.gstatic.com/s/yujisyuku/v5/BngNUXdTV3vO6Lw5ApOPqPKI0qqRi3nyGpaNN6LpDCEAHKXKocaj.102.woff2) format('woff2');
 	unicode-range: U+3d, U+5e, U+25cf, U+4e0e, U+4e5d, U+4e73, U+4e94, U+4f3c, U+5009, U+5145, U+51ac, U+5238, U+524a, U+53f3, U+547c, U+5802, U+5922, U+5a66, U+5c0e, U+5de6, U+5fd8, U+5feb, U+6797, U+685c, U+6b7b, U+6c5f-6c60, U+6cc9, U+6ce2, U+6d17, U+6e21, U+7167, U+7642, U+76db, U+8001, U+821e, U+8857, U+89d2, U+8b1b, U+8b70, U+8cb4, U+8cde, U+8f03, U+8f2a, U+968e, U+9b54, U+9e7f, U+9ebb, U+ff05, U+ff33;
+}
+
+/* [103] */
+@font-face {
+	font-family: 'Yuji Syuku';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url(https://fonts.gstatic.com/s/yujisyuku/v5/BngNUXdTV3vO6Lw5ApOPqPKI0qqRi3nyGpaNN6LpDCEAHKXKocaj.103.woff2) format('woff2');
+	unicode-range: U+500d, U+5074, U+50cd, U+5175, U+52e2, U+5352, U+5354, U+53f2, U+5409, U+56fa, U+5a18, U+5b88, U+5bdd, U+5ca9, U+5f92, U+5fa9, U+60a9, U+623f, U+6483, U+653f, U+666f, U+66ae, U+66f2, U+6a21, U+6b66, U+6bcd, U+6d5c, U+796d, U+7a4d, U+7aef, U+7b56, U+7b97, U+7c4d, U+7e04, U+7fa9, U+8377, U+83dc, U+83ef, U+8535, U+8863, U+88cf, U+88dc, U+8907, U+8acb, U+90ce, U+91dd, U+ff0b, U+ff0d, U+ff19, U+ff65;
 }
 
 /* [104] */

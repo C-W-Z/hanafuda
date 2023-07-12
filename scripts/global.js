@@ -28,8 +28,8 @@ const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
 // 牌的種類（カス・短冊・タネ・五光）
 const card_type = [3,1,0,0, 2,1,0,0, 3,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 3,2,0,0, 2,1,0,0, 2,1,0,0, 3,2,1,0, 3,0,0,0];
 // 役(yaku)
-const yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 6, 10, 5, 5, 5., 4, 1, 1, 1];
-const yaku_name  = ["親権","五光","四光","雨四光","三光","松桐坊主","表菅原","飲み","花見で一杯","月見で一杯","猪鹿蝶","ごとり","七短","六短","赤短・青短の重複役","赤短","青短","草","月札","カス","短冊","タネ"];
+// const yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 6, 10, 5, 5, 5., 4, 1, 1, 1];
+const yaku_name  = ["親権","五光","四光","雨四光","三光","松桐坊主","表菅原","飲み","花見で一杯","月見で一杯","猪鹿蝶","ごとり","七短","六短","赤短・青短","赤短","青短","草","月札","カス","短冊","タネ"];
 const YAKU_NUM = yaku_name.length;
 const tuki_name  = ["松","梅","桜","藤","菖蒲","牡丹","萩","芒","菊","紅葉","雨","桐"];
 // 數字
@@ -122,6 +122,9 @@ let back_button;
 let setting_panel;
 let settings_button = new Array(4);
 const settings_button_text = ["画面調整","資料継承","資料下載","資料削除"];
+let statistic_page = 0;
+let statistic_panel;
+let statistic_button = new Array(2);
 // 月
 let month_panel;
 // 文
@@ -211,7 +214,7 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
             card[cardID].py = easeInOutQuad(time-startTime, sY, (dY-sY)*deltaTime, MOVE_TIME);// sY + (dY - sY) * deltaTime;
             // flip
             if (flip) {
-                card[cardID].scaleX = Math.abs(0.5 - deltaTime) + 0.5;
+                card[cardID].scaleX = Math.abs(easeOutQuad(time-startTime, 1, -2*deltaTime, FLIP_TIME*0.5));
                 if (deltaTime >= 0.5)
                     card[cardID].back = false;
             }
@@ -219,52 +222,11 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
     }
 }
 
-/* shuffle deck */
+/* pure shuffle */
 function shuffle(deck) {
-    while (true) {
-        // shuffle
-        for (let i = deck.length - 1; i > 0; i--) {
-            const r = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[r]] = [deck[r], deck[i]];
-        }
-        // 檢查場上(deck[0...7])會不會出現3張以上同月分的牌(會不會有牌永遠留在場上無法被吃掉)
-        let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let flag = true;
-        for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
-            month[Math.floor(deck[i] / 4)]++;
-            if (month[Math.floor(deck[i] / 4)] >= 3) {
-                flag = false;
-                break;
-            }
-        }
-        if (!flag) continue;
-        // 檢查手牌(deck[8...15,16...23])會不會出現4張同月分的牌(防止手四)或4組配對的月份牌(防止喰付)
-        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let count = 0;
-        for (let i = CARD_NUM - HAND_NUM - 1; i >= CARD_NUM - HAND_NUM * 2; i--)
-            month[Math.floor(deck[i] / 4)]++;
-        for (const m of month) {
-            if (m == 4) {
-                flag = false;
-                break;
-            } else if (m == 2)
-                count++;
-        }
-        if (!flag || count == 4) continue;
-        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        count = 0;
-        for (let i = CARD_NUM - HAND_NUM * 2 - 1; i >= CARD_NUM - HAND_NUM * 3; i--)
-            month[Math.floor(deck[i] / 4)]++;
-        for (const m of month) {
-            if (m == 4) {
-                flag = false;
-                break;
-            } else if (m == 2)
-                count++;
-        }
-        if (!flag || count == 4) continue;
-
-        break;
+    for (let i = deck.length - 1; i > 0; i--) {
+        const r = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[r]] = [deck[r], deck[i]];
     }
 }
 

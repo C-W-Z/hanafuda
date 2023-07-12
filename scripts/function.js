@@ -131,20 +131,70 @@ function start_month() {
     player[CPU].reset_month();
 
     // reset game info
+    const winner = game.winner;
     game.reset_month();
     game.month++;
-    game.first = Number(!game.first);
+    if (!data.first_change && winner != -1)
+        game.first = winner;
+    else
+        game.first = Number(!game.first);
 
     // reset animation
     endAnimation();
 
     // update data
-    data.totalMonth++;
+    data.battleMonth++;
 
     // shuffle
-    shuffle(deck);
+    shuffle_deck(deck);
     // 發牌
     deal_cards(game.first);
+}
+
+/* shuffle deck */
+function shuffle_deck(deck) {
+    while (true) {
+        // shuffle
+        shuffle(deck);
+        // 檢查場上(deck[0...7])會不會出現3張以上同月分的牌(會不會有牌永遠留在場上無法被吃掉)
+        let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let flag = true;
+        for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
+            month[Math.floor(deck[i] / 4)] += 1;
+            if (month[Math.floor(deck[i] / 4)] >= 3) {
+                flag = false;
+                break;
+            }
+        }
+        if (!flag) continue;
+        // 檢查手牌(deck[8...15,16...23])會不會出現4張同月分的牌(防止手四)或4組配對的月份牌(防止喰付)
+        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let count = 0;
+        for (let i = CARD_NUM - HAND_NUM - 1; i >= CARD_NUM - HAND_NUM * 2; i--)
+            month[Math.floor(deck[i] / 4)] += 1;
+        for (const m of month) {
+            if (m == 4) {
+                flag = false;
+                break;
+            } else if (m == 2)
+                count++;
+        }
+        if (!flag || count == 4) continue;
+        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        count = 0;
+        for (let i = CARD_NUM - HAND_NUM * 2 - 1; i >= CARD_NUM - HAND_NUM * 3; i--)
+            month[Math.floor(deck[i] / 4)] += 1;
+        for (const m of month) {
+            if (m == 4) {
+                flag = false;
+                break;
+            } else if (m == 2)
+                count++;
+        }
+        if (!flag || count == 4) continue;
+
+        break;
+    }
 }
 
 function pointedFieldIndex() {
@@ -290,6 +340,8 @@ function after_play(playerID, handCardID, fieldCardID, fieldID = -1) {
 }
 
 function draw_new_card(playerID) {
+    // shuffle
+    shuffle(deck);
     // draw card
     let new_card = deck.pop();
     player[playerID].draw_cardID = new_card;
@@ -307,8 +359,7 @@ function draw_new_card(playerID) {
         if (Math.floor(field.card[i] / 4) == Math.floor(new_card / 4))
             pairFieldID.push(i);
 
-    if (pairFieldID.length == 0)
-    {
+    if (pairFieldID.length == 0) {
         // find space on field
         for (let i = 0; i < FIELD_SPACE; i++)
             if (field.card[i] == -1) {
@@ -317,23 +368,25 @@ function draw_new_card(playerID) {
             }
         draw_card_animation(playerID, new_card, fieldID, -1);
     }
-    else if (pairFieldID.length >= 2)
-    {
+    else if (pairFieldID.length >= 2) {
         if (playerID == PLR) {
             // wait for player choose
             game.state = gameState.player_choose_card;
             field.update_noticed(Math.floor(new_card/4));
         } else /* CPU */ {
             // 未完成
-            fieldID = pairFieldID[0];
+            fieldID = cpu_decide_collect_card(pairFieldID);
             draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
         }
-    }
-    else // only one card can pair
-    {
+    } else {
+        // only one card can pair
         fieldID = pairFieldID[0];
         draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
     }
+}
+
+function cpu_decide_collect_card(pairFieldID) {
+    return pairFieldID[Math.floor(Math.random() * 2)];
 }
 
 function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
@@ -370,25 +423,28 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
     }
 }
 
-function check_win(playerID) {
-    const win = player[playerID].check_yaku();
-    if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0)
-    {
+async function check_win(playerID) {
+    const win = await player[playerID].check_yaku();
+    //console.log(win);
+    // update data
+    if (win && game.koi == playerID)
+        data.koiSucessTime[playerID] += 1;
+
+    if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0) {
         // end this month
         if (win)
             start_show_yaku(playerID, 0);
         else if (game.koi != -1)
             player_win_month(game.koi);
         else {
+            // update data
+            data.koiSucessTime[game.first] += 1;
             // 親權
             player[game.first].yaku[0] = 1;
-            player[game.first].score += yaku_score[0];
+            player[game.first].score += data.yaku_score[0];
             player_win_month(game.first);
         }
     } else if (win) {
-        // 若是最後一回合 => 強制結束
-        if (player[playerID].hand.length == 0)
-            player_win_month(playerID);
         // show yaku
         start_show_yaku(playerID, 0);
     } else {
@@ -400,6 +456,7 @@ function check_win(playerID) {
 
 function start_show_yaku(playerID, yakuID) {
     if (yakuID == player[playerID].new_yaku.length) {
+        // 若是最後一回合 => 強制結束
         if (player[playerID].hand.length == 0)
             player_win_month(playerID);
         // ask koi koi or not
@@ -413,7 +470,7 @@ function start_show_yaku(playerID, yakuID) {
     game.state = gameState.show_yaku_animation;
     // animation
     startTime = performance.now();
-    time_func = banner_step();
+    time_func = banner_step;
     next_func = function (time) {
         endAnimation();
         // next yaku
@@ -423,16 +480,16 @@ function start_show_yaku(playerID, yakuID) {
 
 function start_ask_koikoi() {
     // update data
-    data.canKoiTime[PLR]++;
+    data.canKoiTime[PLR] += 1;
     // start draw UI
     game.state = gameState.player_decide_koi;
 }
 
 function cpu_decide_koi() {
     // update data
-    data.canKoiTime[CPU]++;
+    data.canKoiTime[CPU] += 1;
 
-    if (Math.floor(Math.random() * 2))
+    if (Math.floor(Math.random() * 2) == 1)
         koikoi(CPU);
     else
         player_win_month(CPU);
@@ -441,18 +498,23 @@ function cpu_decide_koi() {
 function player_win_month(playerID) {
     game.winner = playerID;
     game.state = gameState.month_end;
-    player[playerID].money[game.month-1] = player[playerID].score * (data.koi_bouns ? player[playerID].koi_time+1 : 1);
+    if (data.seven_bonus && player[playerID].score >= 7)
+        player[playerID].money[game.month-1] = player[playerID].score * 2;
+    else if (data.koi_bouns)
+        player[playerID].money[game.month-1] = player[playerID].score * (player[PLR].koi_time + player[CPU].koi_time + 1);
+    else
+        player[playerID].money[game.month-1] = player[playerID].score;
     player[playerID].total_money += player[playerID].money[game.month-1];
 
     // update data
-    if (game.koi == playerID)
-        data.koiSucessTime[playerID]++;
+    if (player[playerID].score >= 7)
+        data.sevenUpTime[playerID] += 1;
     data.maxMoneyMonth[playerID] = Math.max(data.maxMoneyMonth[playerID], player[playerID].money[game.month-1]);
     data.totalMoney[playerID] += player[playerID].money[game.month-1];
-    data.totalWinMonth[playerID]++;
+    data.winMonth[playerID] += 1;
     // 連勝月
     if (data.lastWinMonth[playerID] > 0) {
-        data.lastWinMonth[playerID]++;
+        data.lastWinMonth[playerID] += 1;
         data.maxStreakMonth[playerID] = Math.max(data.lastWinMonth[playerID], data.maxStreakMonth[playerID]);
     } else {
         data.lastWinMonth[playerID] = 1;
@@ -461,7 +523,7 @@ function player_win_month(playerID) {
     // yaku
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[playerID].yaku[i] > 0)
-            data.yakuTime[playerID][i]++;
+            data.yakuTime[playerID][i] += 1;
 }
 
 function draw_decide_koi() {
@@ -484,9 +546,7 @@ function draw_decide_koi() {
 
 function koikoi(playerID) {
     // update data
-    data.totalKoiTime[playerID]++;
-    if (game.koi == playerID)
-        data.koiSucessTime[playerID]++;
+    data.totalKoiTime[playerID] += 1;
 
     game.state = gameState.koikoi_animation;
     game.koi = playerID;
@@ -494,7 +554,7 @@ function koikoi(playerID) {
 
     // animation
     startTime = performance.now();
-    time_func = banner_step();
+    time_func = banner_step;
     next_func = function (time) {
         endAnimation();
         // next round
@@ -504,42 +564,40 @@ function koikoi(playerID) {
 }
 
 // show banner UI
-function banner_step() {
-    return function (time) {
-        const duration = (7 * MOVE_TIME);
-        const deltaTime = (time - startTime) / duration;
-        const open_speed = 6;
-        if (deltaTime >= 1) {
-            // end
-            banner.fillColor = 'rgba(0,0,0,0)';
-            banner.borderColor = 'rgba(0,0,0,0)';
-            banner.textColor = 'rgba(0,0,0,0)';
-            startTime = null;
-            time_func = next_func;
-        } else if (deltaTime > 0.7) {
-            // fade
-            const alpha = easeInQuad(time-startTime, 1, -2*(deltaTime-0.6), duration*0.4);
-            banner.fillColor = `rgba(255,215,0,${alpha})`;
-            banner.borderColor = `rgba(255,255,255,${alpha})`;
-            banner.textColor = `rgba(255,0,0,${alpha})`;
-        } else if (deltaTime > 0.4) {
-            // show 0.2*duration ms
-            banner.fillColor = 'gold';
-            banner.borderColor = 'white';
-            banner.textColor = 'red';
-        } else {
-            // emerge
-            const alpha = easeOutQuad(time-startTime, 0, 4*deltaTime, duration*0.4);
-            //banner.fillColor = `rgba(255,215,0,${alpha})`;
-            //banner.borderColor = `rgba(255,255,255,${alpha})`;
-            banner.fillColor = 'gold';
-            banner.borderColor = 'white';
-            banner.textColor = `rgba(255,0,0,${alpha})`;
-            if (deltaTime <= 1/open_speed) {
-                const width = easeInOutQuad(time-startTime, 0, open_speed*(deltaTime), duration/open_speed) * 100;
-                banner.y = SCREEN_H/2 - width/2;
-                banner.h = width;
-            }
+function banner_step(time) {
+    const duration = (7 * MOVE_TIME);
+    const deltaTime = (time - startTime) / duration;
+    const open_speed = 6;
+    if (deltaTime >= 1) {
+        // end
+        banner.fillColor = 'rgba(0,0,0,0)';
+        banner.borderColor = 'rgba(0,0,0,0)';
+        banner.textColor = 'rgba(0,0,0,0)';
+        startTime = null;
+        time_func = next_func;
+    } else if (deltaTime > 0.7) {
+        // fade
+        const alpha = easeInQuad(time-startTime, 1, -2*(deltaTime-0.6), duration*0.4);
+        banner.fillColor = `rgba(255,215,0,${alpha})`;
+        banner.borderColor = `rgba(255,255,255,${alpha})`;
+        banner.textColor = `rgba(255,0,0,${alpha})`;
+    } else if (deltaTime > 0.4) {
+        // show 0.2*duration ms
+        banner.fillColor = 'gold';
+        banner.borderColor = 'white';
+        banner.textColor = 'red';
+    } else {
+        // emerge
+        const alpha = easeOutQuad(time-startTime, 0, 4*deltaTime, duration*0.4);
+        //banner.fillColor = `rgba(255,215,0,${alpha})`;
+        //banner.borderColor = `rgba(255,255,255,${alpha})`;
+        banner.fillColor = 'gold';
+        banner.borderColor = 'white';
+        banner.textColor = `rgba(255,0,0,${alpha})`;
+        if (deltaTime <= 1/open_speed) {
+            const width = easeInOutQuad(time-startTime, 0, open_speed*(deltaTime), duration/open_speed) * 100;
+            banner.y = SCREEN_H/2 - width/2;
+            banner.h = width;
         }
     }
 }
@@ -557,13 +615,13 @@ function draw_show_yaku() {
     // draw yaku
     context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     let count = 0;
-    const max_show = (data.koi_bouns) ? 8 : 9;
+    const max_show = (data.koi_bouns || (data.seven_bonus && player[game.winner].score >= 7)) ? 8 : 9;
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[game.winner].yaku[i] > 0) {
             count++;
             if (count <= max_show) {
                 context.fillText(yaku_name[i], (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
-                context.fillText(`${player[game.winner].yaku[i] * yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
+                context.fillText(`${player[game.winner].yaku[i] * data.yaku_score[i]}文`, (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
             } else if (count == max_show+1) {
                 context.fillText('···', (SCREEN_W/2 - w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
                 context.fillText('···', (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
@@ -571,11 +629,18 @@ function draw_show_yaku() {
         }
     if (data.koi_bouns) {
         // draw koi koi time
-        context.fillText(`こいこい${player[game.winner].koi_time}次`, (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
-        context.fillText(`x${player[game.winner].koi_time+1}`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        context.fillText(`こいこい${player[PLR].koi_time+player[CPU].koi_time}次`, (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        context.fillText(`x${player[PLR].koi_time+player[CPU].koi_time+1}`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
         // draw total score
         context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
-        context.fillText(`${player[game.winner].score * (player[game.winner].koi_time+1)}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+        context.fillText(`${player[game.winner].score * (player[PLR].koi_time+player[CPU].koi_time+1)}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+    } else if (data.seven_bonus && player[game.winner].score >= 7) {
+        // draw koi koi time
+        context.fillText('7点倍', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        context.fillText(`x2`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
+        // draw total score
+        context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
+        context.fillText(`${player[game.winner].score * 2}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
     } else {
         context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
         context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
@@ -593,21 +658,13 @@ function result_game() {
     game.state = gameState.game_result;
 
     // update data
-    data.maxTotalMoney[PLR][data.MAXMONTH-1] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR][data.MAXMONTH-1]);
-    data.maxTotalMoney[CPU][data.MAXMONTH-1] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU][data.MAXMONTH-1]);
-    data.totalWin[game.winner][data.MAXMONTH-1]++;
-    // data.maxStreak
+    data.maxTotalMoney[PLR] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR]);
+    data.maxTotalMoney[CPU] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU]);
+    data.totalWin[game.winner] += 1;
     // 對戰連勝
-    if (data.lastWin[game.winner][data.MAXMONTH-1] > 0) {
-        data.lastWin[game.winner][data.MAXMONTH-1]++;
-        data.maxStreak[game.winner][data.MAXMONTH-1] = Math.max(data.lastWin[game.winner][data.MAXMONTH-1], data.maxStreak[game.winner][data.MAXMONTH-1]);
-    } else {
-        data.lastWin[game.winner][data.MAXMONTH-1] = 1;
-        data.lastWin[Number(!game.winner)][data.MAXMONTH-1] = 0;
-    }
     if (data.totalLastWin[game.winner] > 0) {
-        data.totalLastWin[game.winner]++;
-        data.maxTotalStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.maxTotalStreak[game.winner]);
+        data.totalLastWin[game.winner] += 1;
+        data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
     } else {
         data.totalLastWin[game.winner] = 1;
         data.totalLastWin[Number(!game.winner)] = 0;
