@@ -537,7 +537,14 @@ function draw_decide_koi() {
     context.font = 32 * R + "px 'Yuji Syuku', sans-serif";
     context.fillText("こいこいしますか？", (SCREEN_W/2) * R, (SCREEN_H/2 - h/4) * R);
     context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
-    context.fillText(`現在の獲得文数：${player[PLR].score}文`, (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
+    let text;
+    if (data.koi_bouns)
+        text = `現在の獲得文数：${player[PLR].score}x${player[PLR].koi_time + player[CPU].koi_time + 1}文`;
+    else if (data.seven_bonus && player[PLR].score >= 7)
+        text = `現在の獲得文数：${player[PLR].score}x2文`;
+    else
+        text = `現在の獲得文数：${player[PLR].score}文`;
+    context.fillText(text, (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
 
     // draw buttons
     end_button.draw();
