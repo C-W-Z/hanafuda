@@ -146,9 +146,55 @@ function start_month() {
     data.battleMonth++;
 
     // shuffle
-    shuffle(deck);
+    shuffle_deck(deck);
     // 發牌
     deal_cards(game.first);
+}
+
+/* shuffle deck */
+function shuffle_deck(deck) {
+    while (true) {
+        // shuffle
+        shuffle(deck);
+        // 檢查場上(deck[0...7])會不會出現3張以上同月分的牌(會不會有牌永遠留在場上無法被吃掉)
+        let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let flag = true;
+        for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
+            month[Math.floor(deck[i] / 4)] += 1;
+            if (month[Math.floor(deck[i] / 4)] >= 3) {
+                flag = false;
+                break;
+            }
+        }
+        if (!flag) continue;
+        // 檢查手牌(deck[8...15,16...23])會不會出現4張同月分的牌(防止手四)或4組配對的月份牌(防止喰付)
+        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let count = 0;
+        for (let i = CARD_NUM - HAND_NUM - 1; i >= CARD_NUM - HAND_NUM * 2; i--)
+            month[Math.floor(deck[i] / 4)] += 1;
+        for (const m of month) {
+            if (m == 4) {
+                flag = false;
+                break;
+            } else if (m == 2)
+                count++;
+        }
+        if (!flag || count == 4) continue;
+        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        count = 0;
+        for (let i = CARD_NUM - HAND_NUM * 2 - 1; i >= CARD_NUM - HAND_NUM * 3; i--)
+            month[Math.floor(deck[i] / 4)] += 1;
+        for (const m of month) {
+            if (m == 4) {
+                flag = false;
+                break;
+            } else if (m == 2)
+                count++;
+        }
+        if (!flag || count == 4) continue;
+
+        break;
+    }
 }
 
 function pointedFieldIndex() {
@@ -294,6 +340,8 @@ function after_play(playerID, handCardID, fieldCardID, fieldID = -1) {
 }
 
 function draw_new_card(playerID) {
+    // shuffle
+    shuffle(deck);
     // draw card
     let new_card = deck.pop();
     player[playerID].draw_cardID = new_card;
@@ -614,13 +662,6 @@ function result_game() {
     data.maxTotalMoney[CPU] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU]);
     data.totalWin[game.winner] += 1;
     // 對戰連勝
-    if (data.totalLastWin[game.winner] > 0) {
-        data.totalLastWin[game.winner] += 1;
-        data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
-    } else {
-        data.totalLastWin[game.winner] = 1;
-        data.totalLastWin[Number(!game.winner)] = 0;
-    }
     if (data.totalLastWin[game.winner] > 0) {
         data.totalLastWin[game.winner] += 1;
         data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);

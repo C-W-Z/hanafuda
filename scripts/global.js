@@ -222,52 +222,11 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
     }
 }
 
-/* shuffle deck */
+/* pure shuffle */
 function shuffle(deck) {
-    while (true) {
-        // shuffle
-        for (let i = deck.length - 1; i > 0; i--) {
-            const r = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[r]] = [deck[r], deck[i]];
-        }
-        // 檢查場上(deck[0...7])會不會出現3張以上同月分的牌(會不會有牌永遠留在場上無法被吃掉)
-        let month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let flag = true;
-        for (let i = CARD_NUM - 1; i >= CARD_NUM - HAND_NUM; i--) {
-            month[Math.floor(deck[i] / 4)] += 1;
-            if (month[Math.floor(deck[i] / 4)] >= 3) {
-                flag = false;
-                break;
-            }
-        }
-        if (!flag) continue;
-        // 檢查手牌(deck[8...15,16...23])會不會出現4張同月分的牌(防止手四)或4組配對的月份牌(防止喰付)
-        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let count = 0;
-        for (let i = CARD_NUM - HAND_NUM - 1; i >= CARD_NUM - HAND_NUM * 2; i--)
-            month[Math.floor(deck[i] / 4)] += 1;
-        for (const m of month) {
-            if (m == 4) {
-                flag = false;
-                break;
-            } else if (m == 2)
-                count++;
-        }
-        if (!flag || count == 4) continue;
-        month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        count = 0;
-        for (let i = CARD_NUM - HAND_NUM * 2 - 1; i >= CARD_NUM - HAND_NUM * 3; i--)
-            month[Math.floor(deck[i] / 4)] += 1;
-        for (const m of month) {
-            if (m == 4) {
-                flag = false;
-                break;
-            } else if (m == 2)
-                count++;
-        }
-        if (!flag || count == 4) continue;
-
-        break;
+    for (let i = deck.length - 1; i > 0; i--) {
+        const r = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[r]] = [deck[r], deck[i]];
     }
 }
 

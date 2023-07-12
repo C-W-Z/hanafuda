@@ -47,8 +47,10 @@ function click_func(event) {
             devSource.check_press();
             break;
         case gameState.statistic:
-            statistic_button[0].check_press();
-            statistic_button[1].check_press();
+            if (statistic_page > 0)
+                statistic_button[0].check_press();
+            if (statistic_page < 1)
+                statistic_button[1].check_press();
             back_button.check_press();
             devSource.check_press();
             break;
@@ -107,11 +109,23 @@ function click_func(event) {
 
 function keydown_func(e) {
     const key = e.key;
+    console.log(key);
     switch (key) {
         case 'r':
             resize_canvas();
             break;
-
+        case 'ArrowLeft':
+            if (game.state == gameState.statistic && statistic_page > 0)
+                statistic_button[0].press_func();
+            break;
+        case 'ArrowRight':
+            if (game.state == gameState.statistic && statistic_page < 1)
+                statistic_button[1].press_func();
+            break;
+        case 'Escape':
+            if ((game.state > gameState.title && game.state < gameState.ingame) || game.state == gameState.game_result)
+                back_to_title();
+            break;
         default:
             break;
     }
