@@ -12,6 +12,12 @@
 
 `r` : resize the screen
 
+`esc` : back to title (invalid in game)
+
+`left arrow` : previous page
+
+`right arrow` : next page
+
 ## How to Play
 
 採用[Hanafuda](https://en.wikipedia.org/wiki/Hanafuda)中的[Koi-Koi](https://en.wikipedia.org/wiki/Koi-Koi)(來來)玩法。
