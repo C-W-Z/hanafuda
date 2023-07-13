@@ -223,7 +223,7 @@ function show_choose_rules() {
 }
 
 const rule_text = [
-    ['AI Level','ゲーム月','月札','親の交代','親権','Bonus'],
+    ['AI Level','ゲーム月','月札','親の変更','親権','文のBonus'],
     ['飲み(鉄砲)(花月見)','花見で一杯','月見で一杯','雨流れ','霧流れ','花見、月見で一杯はBonus','花見、月見で一杯、飲みの文の蓄積'],
     ['五光','四光','雨四光','三光','三、雨四、四、五光の文の蓄積'],
     ['松桐坊主','表菅原(梅松桜)','猪鹿蝶','五鳥(ごとり)','草(草短)','「菊に盃」は「カス」としても使えます'],
@@ -270,8 +270,12 @@ function rule_change(i) {
                     else if (data.MAXMONTH == 6) data.MAXMONTH = 12;
                     else data.MAXMONTH = 1;
                     rule_button[page][i].text = `${data.MAXMONTH}ヶ月`
-                    if (data.MAXMONTH != 12) data.month_yaku = false;
-                    rule_button[0][2].text = data.month_yaku ? `${data.yaku_score[18]}文` : '✘';
+                    if (data.MAXMONTH != 12) {
+                        data.month_yaku = false;
+                        rule_button[0][2].text = '✘';
+                    }
+                    if (data.MAXMONTH == 1) rule_button[0][3].text = '✘';
+                    else rule_button[0][3].text = data.first_change ? '順番' : '勝者';
                     break;
                 case 2:
                     if (!data.month_yaku && data.MAXMONTH == 12) data.month_yaku = true;
@@ -297,7 +301,7 @@ function rule_change(i) {
                         data.koi_bonus = true;
                         data.seven_bonus = false;
                     }
-                    rule_button[0][5].text = data.koi_bonus ? 'こいこい倍' : (data.seven_bonus ? '7点倍' : '無');
+                    rule_button[0][5].text = data.koi_bonus ? 'こいこい倍' : (data.seven_bonus ? '7点倍' : '✘');
             }
             break;
         case 1:
@@ -500,7 +504,7 @@ function set_rule_buttons() {
     rule_button[0][2].text = data.month_yaku ? `${data.yaku_score[18]}文` : '✘';
     rule_button[0][3].text = data.first_change ? '順番' : '勝者';
     rule_button[0][4].text = data.first_priority ? `${data.yaku_score[0]}文` : '✘';
-    rule_button[0][5].text = data.koi_bonus ? 'こいこい倍' : (data.seven_bonus ? '7点倍' : '無');
+    rule_button[0][5].text = data.koi_bonus ? 'こいこい倍' : (data.seven_bonus ? '7点倍' : '✘');
 
     rule_button[1][0].text = data.flower_moon_sake ? `${data.yaku_score[7]}文` : '✘';
     rule_button[1][1].text = data.flower_sake ? `${data.yaku_score[8]}文` : '✘';
