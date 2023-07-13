@@ -386,7 +386,7 @@ function draw_new_card(playerID) {
 }
 
 function cpu_decide_collect_card(pairFieldID) {
-    return pairFieldID[Math.floor(Math.random() * 2)];
+    return cpu_decide_collect_card_Lv2(pairFieldID);
 }
 
 function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
@@ -495,7 +495,9 @@ function cpu_decide_koi() {
     // update data
     data.canKoiTime[CPU] += 1;
 
-    if (Math.floor(Math.random() * 2) == 1)
+    const koi = cpu_decide_koi_Lv2();
+
+    if (koi)
         koikoi(CPU);
     else
         player_win_month(CPU);
@@ -728,39 +730,8 @@ function draw_game_result() {
 function cpu_play() {
     game.state = gameState.cpu_play;
 
-    // 找出所有可以出的牌與對應的場牌
-    // 找到價值最高的
-    player[CPU].selected_handID = -1;
-    player[CPU].selected_fieldID = -1;
-    for (let i = 0; i < player[CPU].hand.length; i++)
-        for (let j = 0; j < FIELD_SPACE; j++) {
-            if (field.card[j] < 0) continue;
-            if (Math.floor(player[CPU].hand[i]/4) == Math.floor(field.card[j]/4)) {
-                if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) {
-                    player[CPU].selected_handID = i;
-                    player[CPU].selected_fieldID = j;
-                }
-                else if (card_type[player[CPU].hand[i]] + card_type[field.card[j]] > 
-                    card_type[player[CPU].hand[player[CPU].selected_handID]] + card_type[field.card[player[CPU].selected_fieldID]]) {
-                    player[CPU].selected_handID = i;
-                    player[CPU].selected_fieldID = j;
-                }
-            }
-        }
+    cpu_play_Lv2();
 
-    // 如果沒找到可配對的 -> 棄牌
-    if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) {
-        player[CPU].selected_handID = 0;
-        for (let i = 1; i < player[CPU].hand.length; i++)
-            if (card_type[player[CPU].hand[i]] > card_type[player[CPU].hand[player[CPU].selected_handID]])
-                player[CPU].selected_handID = i;
-        for (let j = 0; j < FIELD_SPACE; j++)
-            if (field.card[j] == -1) {
-                player[CPU].selected_fieldID = j;
-                break;
-            }
-    }
-    
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
 }
 

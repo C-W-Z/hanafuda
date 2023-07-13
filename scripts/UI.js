@@ -36,6 +36,7 @@ function create_UI() {
     w = FONT_SIZE*6, h = FONT_SIZE * 2;
     devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '©C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda/','blank');}, '', '', 'black');
 
+    /* settings */
     w = 500, h = 450;
     setting_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
     w = 300, h = 50;
@@ -44,11 +45,12 @@ function create_UI() {
     settings_button[2] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*0.5, w, h, 10, settings_button_text[2], FONT_SIZE, downloadData, 'lightgray');
     settings_button[3] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*2.5, w, h, 10, settings_button_text[3], FONT_SIZE, deleteData, 'red','black','red');
 
+    w = 40, h = 50;
+    page_button[0] = new Button(0, 0, w, h, 5, '<', 32, ()=>{page--;});
+    page_button[1] = new Button(0, 0, w, h, 5, '>', 32, ()=>{page++;});
+
     w = 940, h = 500;
     statistic_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2-20, w, h, 10);
-    w = 40, h = 50;
-    page_button[0] = new Button(statistic_panel.x-w-20, statistic_panel.y+statistic_panel.h/2, w, h, 5, '<', 32, ()=>{page--;});
-    page_button[1] = new Button(statistic_panel.x+statistic_panel.w+20, statistic_panel.y+statistic_panel.h/2, w, h, 5, '>', 32, ()=>{page++;});
 
     /* choose rules */
     w = back_button.w, h = back_button.h;
@@ -126,6 +128,9 @@ function show_settings() {
 
 function show_statistics() {
     page = 0;
+    page_button[0].x = statistic_panel.x-page_button[0].w-20;
+    page_button[1].x = statistic_panel.x+statistic_panel.w+20;
+    page_button[0].y = page_button[1].y = statistic_panel.y+statistic_panel.h/2-page_button[0].h/2;
     game.state = gameState.statistic;
 }
 
@@ -219,6 +224,9 @@ function draw_statistics() {
 
 function show_choose_rules() {
     page = 0;
+    page_button[0].x = choose_rule_panel.x-page_button[0].w-20;
+    page_button[1].x = choose_rule_panel.x+choose_rule_panel.w+20;
+    page_button[0].y = page_button[1].y = choose_rule_panel.y+choose_rule_panel.h/2-page_button[0].h/2;
     game.state = gameState.choose_rules;
 }
 
@@ -502,7 +510,7 @@ function set_rule_buttons() {
     rule_button[0][0].text = `Lv${data.cpuLevel}`;
     rule_button[0][1].text = `${data.MAXMONTH}ヶ月`;
     rule_button[0][2].text = data.month_yaku ? `${data.yaku_score[18]}文` : '✘';
-    rule_button[0][3].text = data.first_change ? '順番' : '勝者';
+    rule_button[0][3].text = (data.MAXMONTH == 1) ? (data.first_change ? '順番' : '勝者') : '✘';
     rule_button[0][4].text = data.first_priority ? `${data.yaku_score[0]}文` : '✘';
     rule_button[0][5].text = data.koi_bonus ? 'こいこい倍' : (data.seven_bonus ? '7点倍' : '✘');
 
