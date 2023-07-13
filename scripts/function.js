@@ -434,15 +434,21 @@ async function check_win(playerID) {
         // end this month
         if (win)
             start_show_yaku(playerID, 0);
-        else if (game.koi != -1)
-            player_win_month(game.koi);
-        else {
+        else if (game.koi != -1) {
             // update data
-            data.koiSucessTime[game.first] += 1;
+            data.koiSucessTime[game.koi] += 1;
+            player_win_month(game.koi);
+        } else {
             // 親權
-            player[game.first].yaku[0] = 1;
-            player[game.first].score += data.yaku_score[0];
-            player_win_month(game.first);
+            if (data.first_priority) {
+                player[game.first].yaku[0] = 1;
+                player[game.first].score += data.yaku_score[0];
+                player_win_month(game.first);
+            } else {
+                // 平手
+                game.winner = -1;
+                game.state = gameState.month_end;
+            }
         }
     } else if (win) {
         // show yaku
@@ -500,7 +506,7 @@ function player_win_month(playerID) {
     game.state = gameState.month_end;
     if (data.seven_bonus && player[playerID].score >= 7)
         player[playerID].money[game.month-1] = player[playerID].score * 2;
-    else if (data.koi_bouns)
+    else if (data.koi_bonus)
         player[playerID].money[game.month-1] = player[playerID].score * (player[PLR].koi_time + player[CPU].koi_time + 1);
     else
         player[playerID].money[game.month-1] = player[playerID].score;
@@ -537,7 +543,14 @@ function draw_decide_koi() {
     context.font = 32 * R + "px 'Yuji Syuku', sans-serif";
     context.fillText("こいこいしますか？", (SCREEN_W/2) * R, (SCREEN_H/2 - h/4) * R);
     context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
-    context.fillText(`現在の獲得文数：${player[PLR].score}文`, (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
+    let text;
+    if (data.koi_bonus)
+        text = `現在の獲得文数：${player[PLR].score}x${player[PLR].koi_time + player[CPU].koi_time + 1}文`;
+    else if (data.seven_bonus && player[PLR].score >= 7)
+        text = `現在の獲得文数：${player[PLR].score}x2文`;
+    else
+        text = `現在の獲得文数：${player[PLR].score}文`;
+    context.fillText(text, (SCREEN_W/2) * R, (SCREEN_H/2 - h/24) * R);
 
     // draw buttons
     end_button.draw();
@@ -605,17 +618,26 @@ function banner_step(time) {
 function draw_show_yaku() {
     yaku_panel.draw();
     const w = yaku_panel.w, h = yaku_panel.h, py = yaku_panel.y;
+    // draw button
+    if (game.month < data.MAXMONTH)
+        next_month_button.draw();
+    else
+        to_result_button.draw();
     // draw who win
     context.fillStyle = 'white';
     const fontsize = 32;
-    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
-    const text = (game.winner == PLR) ? '勝利' : '敗北';
     const title_h = 100;
+    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
+    if (game.winner == -1) {
+        context.fillText('タイ', (SCREEN_W/2) * R, (py + title_h/2) * R);
+        return;
+    }
+    const text = (game.winner == PLR) ? '勝利' : '敗北';
     context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
     // draw yaku
     context.font = 20 * R + "px 'Yuji Syuku', sans-serif";
     let count = 0;
-    const max_show = (data.koi_bouns || (data.seven_bonus && player[game.winner].score >= 7)) ? 8 : 9;
+    const max_show = (data.koi_bonus || (data.seven_bonus && player[game.winner].score >= 7)) ? 8 : 9;
     for (let i = 0; i < YAKU_NUM; i++)
         if (player[game.winner].yaku[i] > 0) {
             count++;
@@ -627,7 +649,7 @@ function draw_show_yaku() {
                 context.fillText('···', (SCREEN_W/2 + w/4) * R, (py + title_h/2 + fontsize + count * 24) * R);
             }
         }
-    if (data.koi_bouns) {
+    if (data.koi_bonus) {
         // draw koi koi time
         context.fillText(`こいこい${player[PLR].koi_time+player[CPU].koi_time}次`, (SCREEN_W/2 - w/4) * R, (py + h - title_h/2 - fontsize) * R);
         context.fillText(`x${player[PLR].koi_time+player[CPU].koi_time+1}`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2 - fontsize) * R);
@@ -645,29 +667,26 @@ function draw_show_yaku() {
         context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
         context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
     }
-
-    // draw button
-    if (game.month < data.MAXMONTH)
-        next_month_button.draw();
-    else
-        to_result_button.draw();
 }
 
 function result_game() {
     game.winner = (player[PLR].total_money > player[CPU].total_money) ? PLR : CPU;
+    if (player[PLR].total_money == player[CPU].total_money) game.winner = -1;
     game.state = gameState.game_result;
 
     // update data
     data.maxTotalMoney[PLR] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR]);
     data.maxTotalMoney[CPU] = Math.max(player[CPU].total_money, data.maxTotalMoney[CPU]);
-    data.totalWin[game.winner] += 1;
-    // 對戰連勝
-    if (data.totalLastWin[game.winner] > 0) {
-        data.totalLastWin[game.winner] += 1;
-        data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
-    } else {
-        data.totalLastWin[game.winner] = 1;
-        data.totalLastWin[Number(!game.winner)] = 0;
+    if (game.winner != -1) {
+        data.totalWin[game.winner] += 1;
+        // 對戰連勝
+        if (data.totalLastWin[game.winner] > 0) {
+            data.totalLastWin[game.winner] += 1;
+            data.totalMaxStreak[game.winner] = Math.max(data.totalLastWin[game.winner], data.totalMaxStreak[game.winner]);
+        } else {
+            data.totalLastWin[game.winner] = 1;
+            data.totalLastWin[Number(!game.winner)] = 0;
+        }
     }
 
     // store data
@@ -677,13 +696,16 @@ function result_game() {
 function draw_game_result() {
     result_panel.draw();
     const w = result_panel.w, h = result_panel.h, py = result_panel.y;
+    // draw back to home button
+    home_button.draw();
 
     // draw who win
     context.fillStyle = 'white';
     const fontsize = 32;
-    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
-    const text = (game.winner == PLR) ? '勝利' : '敗北';
     const title_h = 100;
+    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
+    let text = (game.winner == PLR) ? '勝利' : '敗北';
+    if (game.winner == -1) text = 'タイ';
     context.fillText(text, (SCREEN_W/2) * R, (py + title_h/2) * R);
 
     // draw scores
@@ -700,9 +722,6 @@ function draw_game_result() {
     context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[PLR].total_money}文`, (SCREEN_W/2) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[CPU].total_money}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
-
-    // draw back to home button
-    home_button.draw();
 }
 
 /* AI的回合 */
@@ -814,6 +833,7 @@ function deleteData() {
     if (confirm("Are you sure to DELETE the Data?")) {
         data.init();
         data.store();
+        set_rule_buttons();
     }
 }
 
