@@ -80,7 +80,7 @@
 | 五鳥（ごとり） | <img src="imgs/4.webp" title="梅上鶯" height="75px"> <img src="imgs/12.webp" title="藤上杜鵑" height="75px"> <img src="imgs/29.webp" title="芒上雁" height="75px"> | 5 |
 | 七短 | 得到除「柳上短冊」以外的短冊7張 | 7 |
 | 六短 | 得到除「柳上短冊」以外的短冊6張 | 5 |
-| 赤短・青短<br>ぶっく | <img src="imgs/1.webp" title="松上赤短" height="75px"> <img src="imgs/5.webp" title="梅上赤短" height="75px"> <img src="imgs/9.webp" title="櫻上赤短" height="75px"><br><img src="imgs/21.webp" title="牡丹上青短" height="75px"> <img src="imgs/33.webp" title="菊上青短" height="75px"> <img src="imgs/37.webp" title="楓上青短" height="75px"> | 4/10 |
+| 赤短・青短<br>ぶっく | <img src="imgs/1.webp" title="松上赤短" height="75px"> <img src="imgs/5.webp" title="梅上赤短" height="75px"> <img src="imgs/9.webp" title="櫻上赤短" height="75px"> <img src="imgs/21.webp" title="牡丹上青短" height="75px"> <img src="imgs/33.webp" title="菊上青短" height="75px"> <img src="imgs/37.webp" title="楓上青短" height="75px"> | 4/10/15 |
 | 赤短 | <img src="imgs/1.webp" title="松上赤短" height="75px"> <img src="imgs/5.webp" title="梅上赤短" height="75px"> <img src="imgs/9.webp" title="櫻上赤短" height="75px"> | 5/6 |
 | 青短 | <img src="imgs/21.webp" title="牡丹上青短" height="75px"> <img src="imgs/33.webp" title="菊上青短" height="75px"> <img src="imgs/37.webp" title="楓上青短" height="75px"> | 5/6 |
 | 草<br>草短 | <img src="imgs/13.webp" title="藤上短冊" height="75px"> <img src="imgs/17.webp" title="蒲上短冊" height="75px"> <img src="imgs/25.webp" title="萩上短冊" height="75px"> | 3/5 |

@@ -420,6 +420,7 @@ function rule_change(i) {
                 case 0:
                     if (!data.akatan_aotan) data.akatan_aotan = true, data.yaku_score[14] = 4;
                     else if (data.yaku_score[14] == 4) data.yaku_score[14] = 10;
+                    else if (data.yaku_score[14] == 10) data.yaku_score[14] = 15;
                     else data.akatan_aotan = data.akatan_aotan_accumulate = false, rule_button[4][3].text = '✘';
                     rule_button[4][0].text = data.akatan_aotan ? `${data.yaku_score[14]}文` : '✘';
                     break;
