@@ -72,20 +72,20 @@
 | 雨四光 | 得到「柳間小野道風」加上另外3張光牌 | 7/8 |
 | 三光 | 得到不包含「柳間小野道風」之外得到其餘4張光牌裡面的3張 | 5/6 |
 | 松桐坊主 | <img src="imgs/0.webp" title="松上鶴" height="75px"> <img src="imgs/28.webp" title="芒上月" height="75px"> <img src="imgs/44.webp" title="桐上鳳凰" height="75px"> | 5 |
-| 表菅原 | <img src="imgs/0.webp" title="松上鶴" height="75px"> <img src="imgs/4.webp" title="梅上鶯" height="75px"> <img src="imgs/8.webp" title="櫻上幕簾" height="75px"> | 5 |
-| 飲み | <img src="imgs/8.webp" title="櫻上幕簾" height="75px"> <img src="imgs/28.webp" title="芒上月" height="75px"> <img src="imgs/32.webp" title="菊上盃" height="75px"> | 3/5/6 |
-| 花見で一杯 | <img src="imgs/8.webp" title="櫻上幕簾" height="75px"> <img src="imgs/32.webp" title="菊上盃" height="75px"> | 3/5 |
-| 月見で一杯 | <img src="imgs/28.webp" title="芒上月" height="75px"> <img src="imgs/32.webp" title="菊上盃" height="75px"> | 3/5 |
+| 表菅原<br>梅松桜<br>大三（おおざん） | <img src="imgs/0.webp" title="松上鶴" height="75px"> <img src="imgs/4.webp" title="梅上鶯" height="75px"> <img src="imgs/8.webp" title="櫻上幕簾" height="75px"> | 5 |
+| 飲み（鉄砲）<br>花月見<br>月花酒 | <img src="imgs/8.webp" title="櫻上幕簾" height="75px"> <img src="imgs/28.webp" title="芒上月" height="75px"> <img src="imgs/32.webp" title="菊上盃" height="75px"> | 3/5/6 |
+| 花見で一杯 | <img src="imgs/8.webp" title="櫻上幕簾" height="75px"> <img src="imgs/32.webp" title="菊上盃" height="75px"> | 2/3/5 |
+| 月見で一杯 | <img src="imgs/28.webp" title="芒上月" height="75px"> <img src="imgs/32.webp" title="菊上盃" height="75px"> | 2/3/5 |
 | 猪鹿蝶 | <img src="imgs/20.webp" title="牡丹蝶" height="75px"> <img src="imgs/24.webp" title="萩間野豬" height="75px"> <img src="imgs/36.webp" title="楓間鹿" height="75px"> | 5 |
-| ごとり | <img src="imgs/4.webp" title="梅上鶯" height="75px"> <img src="imgs/12.webp" title="藤上杜鵑" height="75px"> <img src="imgs/29.webp" title="芒上雁" height="75px"> | 5 |
+| 五鳥（ごとり） | <img src="imgs/4.webp" title="梅上鶯" height="75px"> <img src="imgs/12.webp" title="藤上杜鵑" height="75px"> <img src="imgs/29.webp" title="芒上雁" height="75px"> | 5 |
 | 七短 | 得到除「柳上短冊」以外的短冊7張 | 7 |
 | 六短 | 得到除「柳上短冊」以外的短冊6張 | 5 |
-| 赤短・青短の重複役 | <img src="imgs/1.webp" title="松上赤短" height="75px"> <img src="imgs/5.webp" title="梅上赤短" height="75px"> <img src="imgs/9.webp" title="櫻上赤短" height="75px"><br><img src="imgs/21.webp" title="牡丹上青短" height="75px"> <img src="imgs/33.webp" title="菊上青短" height="75px"> <img src="imgs/37.webp" title="楓上青短" height="75px"> | 10 |
+| 赤短・青短<br>ぶっく | <img src="imgs/1.webp" title="松上赤短" height="75px"> <img src="imgs/5.webp" title="梅上赤短" height="75px"> <img src="imgs/9.webp" title="櫻上赤短" height="75px"><br><img src="imgs/21.webp" title="牡丹上青短" height="75px"> <img src="imgs/33.webp" title="菊上青短" height="75px"> <img src="imgs/37.webp" title="楓上青短" height="75px"> | 4/10 |
 | 赤短 | <img src="imgs/1.webp" title="松上赤短" height="75px"> <img src="imgs/5.webp" title="梅上赤短" height="75px"> <img src="imgs/9.webp" title="櫻上赤短" height="75px"> | 5/6 |
 | 青短 | <img src="imgs/21.webp" title="牡丹上青短" height="75px"> <img src="imgs/33.webp" title="菊上青短" height="75px"> <img src="imgs/37.webp" title="楓上青短" height="75px"> | 5/6 |
-| 草 | <img src="imgs/13.webp" title="藤上短冊" height="75px"> <img src="imgs/17.webp" title="蒲上短冊" height="75px"> <img src="imgs/25.webp" title="萩上短冊" height="75px"> | 3/5 |
+| 草<br>草短 | <img src="imgs/13.webp" title="藤上短冊" height="75px"> <img src="imgs/17.webp" title="蒲上短冊" height="75px"> <img src="imgs/25.webp" title="萩上短冊" height="75px"> | 3/5 |
 | タネ | 得到5張任意種牌，每多獲得1張種牌結算時分數+1 | 1（+1） |
-| 短冊 | 得到5張短冊牌，每多獲得1張短冊牌結算時分數+1 | 1（+1） |
+| 短冊（たん） | 得到5張短冊牌，每多獲得1張短冊牌結算時分數+1 | 1（+1） |
 | カス | 得到10張粕（滓）牌，每多獲得1張粕牌結算時分數+1 | 1（+1） |
 | 月札 | 收集到當月的4張牌 | 4 |
 | 親権 | 雙方牌出完卻都沒有湊成役時，「親」得6文 | 6 |
