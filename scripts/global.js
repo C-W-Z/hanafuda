@@ -28,8 +28,8 @@ const DECK_P = {x: SCREEN_W / 2 - CARD_W / 2, y: SCREEN_H / 2 - CARD_H / 2};
 // 牌的種類（カス・短冊・タネ・五光）
 const card_type = [3,1,0,0, 2,1,0,0, 3,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 2,1,0,0, 3,2,0,0, 2,1,0,0, 2,1,0,0, 3,2,1,0, 3,0,0,0];
 // 役(yaku)
-// const yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 6, 10, 5, 5, 5., 4, 1, 1, 1];
-const yaku_name  = ["親権","五光","四光","雨四光","三光","松桐坊主","表菅原","飲み","花見で一杯","月見で一杯","猪鹿蝶","ごとり","七短","六短","赤短・青短","赤短","青短","草","月札","カス","短冊","タネ"];
+// const yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 5, 10, 5, 5, 5., 4, 1, 1, 1];
+const yaku_name  = ["親権","五光","四光","雨四光","三光","松桐坊主","表菅原","飲み","花見で一杯","月見で一杯","猪鹿蝶","五鳥","七短","六短","赤短・青短","赤短","青短","草","月札","タネ","短冊","カス"];
 const YAKU_NUM = yaku_name.length;
 const tuki_name  = ["松","梅","桜","藤","菖蒲","牡丹","萩","芒","菊","紅葉","雨","桐"];
 // 數字
@@ -52,10 +52,10 @@ const fieldNoticeColor = 'darkred';
 const gameState = {
     /* home page */
     title: 0,
-    choose_difficulty: 1,
-    settings: 2,
-    statistic: 3,
-    achievement: 4,
+    choose_rules: 1,
+    statistic: 2,
+    achievement: 3,
+    settings: 4,
     /* in game */
     ingame: 100, // > game.state > gameState.ingame means in game
     decide_first: 101,
@@ -122,9 +122,12 @@ let back_button;
 let setting_panel;
 let settings_button = new Array(4);
 const settings_button_text = ["画面調整","資料継承","資料下載","資料削除"];
-let statistic_page = 0;
+let page = 0;
+let page_button = new Array(2);
 let statistic_panel;
-let statistic_button = new Array(2);
+let start_button;
+let choose_rule_panel;
+let rule_button;
 // 月
 let month_panel;
 // 文

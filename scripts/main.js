@@ -40,6 +40,16 @@ function click_func(event) {
                 title_button[i].check_press();
             devSource.check_press();
             break;
+        case gameState.choose_rules:
+            start_button.check_press();
+            back_button.check_press();
+            if (page > 0)
+                page_button[0].check_press();
+            if (page < rule_text.length-1)
+                page_button[1].check_press();
+            for (let i = 0; i < rule_text[page].length; i++)
+            rule_button[page][i].check_press();
+            break;
         case gameState.settings:
             back_button.check_press();
             for (let i = 0; i < settings_button.length; i++)
@@ -47,10 +57,10 @@ function click_func(event) {
             devSource.check_press();
             break;
         case gameState.statistic:
-            if (statistic_page > 0)
-                statistic_button[0].check_press();
-            if (statistic_page < 1)
-                statistic_button[1].check_press();
+            if (page > 0)
+                page_button[0].check_press();
+            if (page < 1)
+                page_button[1].check_press();
             back_button.check_press();
             devSource.check_press();
             break;
@@ -102,31 +112,27 @@ function click_func(event) {
         case gameState.game_result:
             home_button.check_press();
             break;
-        default:
-            break;
     }
 }
 
 function keydown_func(e) {
     const key = e.key;
-    console.log(key);
+    //console.log(key);
     switch (key) {
         case 'r':
             resize_canvas();
             break;
         case 'ArrowLeft':
-            if (game.state == gameState.statistic && statistic_page > 0)
-                statistic_button[0].press_func();
+            if ((game.state == gameState.choose_rules || game.state == gameState.statistic) && page > 0)
+                page_button[0].press_func();
             break;
         case 'ArrowRight':
-            if (game.state == gameState.statistic && statistic_page < 1)
-                statistic_button[1].press_func();
+            if ((game.state == gameState.choose_rules && page < rule_text.length-1) || (game.state == gameState.statistic && page < statistic_text.length-1))
+                page_button[1].press_func();
             break;
         case 'Escape':
             if ((game.state > gameState.title && game.state < gameState.ingame) || game.state == gameState.game_result)
                 back_to_title();
-            break;
-        default:
             break;
     }
 }
@@ -184,6 +190,10 @@ function draw_home_page() {
             for (let i = 0; i < title_button.length; i++)
                 title_button[i].draw();
             break;
+
+        case gameState.choose_rules:
+            draw_choose_rules();
+            break;
     
         case gameState.settings:
             setting_panel.draw();
@@ -196,34 +206,8 @@ function draw_home_page() {
             draw_statistics();
             back_button.draw();
             break;
-
-        default:
-            break;
     }
     devSource.draw();
-}
-
-function drawTitle() {
-    // draw Card Images
-    const gap = 120, h = 225;
-    draw_rotate_card_large( 0, SCREEN_W/2 - gap * 1.8, h      , -Math.PI/ 8);
-    draw_rotate_card_large( 8, SCREEN_W/2 - gap      , h - 30 , -Math.PI/16);
-    draw_rotate_card_large(44, SCREEN_W/2 + gap * 1.8, h      ,  Math.PI/ 8);
-    draw_rotate_card_large(40, SCREEN_W/2 + gap      , h - 30 ,  Math.PI/16);
-    draw_rotate_card_large(28, SCREEN_W/2            , h - 45, 0);
-
-    // draw Title
-    const title_h = 200;
-    context.strokeStyle = 'gold';
-    context.lineWidth = 5 * R;
-    context.fillStyle = 'black';
-    context.font = 108 * R + "px 'Yuji Syuku', sans-serif";
-    context.strokeText("花札", SCREEN_W/2 * R, title_h * R);
-    context.fillText("花札", SCREEN_W/2 * R, title_h * R);
-    context.strokeStyle = 'pink';
-    context.font = 81 * R + "px 'Yuji Syuku', sans-serif";
-    context.strokeText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
-    context.fillText("こいこい", SCREEN_W/2 * R, (title_h+108/2+81/2) * R);
 }
 
 /* draw canvas when gaming */
@@ -305,8 +289,6 @@ function draw_gaming() {
         case gameState.game_result:
             draw_game_result();
             break;
-        default:
-            break;
     }
 }
 
@@ -325,78 +307,6 @@ function init_game() {
     create_UI();
 
     time_func = check_hover_home_buttons;
-}
-
-function create_UI() {
-    let w, h;
-    /* title */
-    w = 150, h = 50;
-    title_button[0] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*1, w, h, 0, title_button_text[0], 40, start_game, '', '', 'black');
-    title_button[1] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*2, w, h, 0, title_button_text[1], 40, show_statistics, '', '', 'black');
-    title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, null, '', '', 'black');
-    title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, show_settings, '', '', 'black');
-
-    back_button = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, '戻る', 40, back_to_title, '', '', 'black');
-
-    /* 開發者 */
-    w = FONT_SIZE*6, h = FONT_SIZE * 2;
-    devSource = new Button(SCREEN_W - w, SCREEN_H - h, w, h, 0, '©C-W-Z', FONT_SIZE, ()=>{window.open('https://github.com/C-W-Z/hanafuda/','blank');}, '', '', 'black');
-
-    w = 500, h = 450;
-    setting_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
-    w = 300, h = 50;
-    settings_button[0] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*3.5, w, h, 10, settings_button_text[0], FONT_SIZE, resize_canvas, 'lightgray');
-    settings_button[1] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*1.5, w, h, 10, settings_button_text[1], FONT_SIZE, uploadData, 'lightgray');
-    settings_button[2] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*0.5, w, h, 10, settings_button_text[2], FONT_SIZE, downloadData, 'lightgray');
-    settings_button[3] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*2.5, w, h, 10, settings_button_text[3], FONT_SIZE, deleteData, 'red','black','red');
-
-    w = 940, h = 500;
-    statistic_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2-20, w, h, 10);
-    w = 40, h = 50;
-    statistic_button[0] = new Button(statistic_panel.x-w-20, statistic_panel.y+statistic_panel.h/2, w, h, 5, '<', 32, ()=>{statistic_page--;});
-    statistic_button[1] = new Button(statistic_panel.x+statistic_panel.w+20, statistic_panel.y+statistic_panel.h/2, w, h, 5, '>', 32, ()=>{statistic_page++;});
-
-    /* in game */
-    // 文
-    w = 60, h = 35;
-    score_panel[CPU] = new Button(5, 5, w, h, 5, '0文', 20);
-    score_panel[PLR] = new Button(5, SCREEN_H-h-5, w, h, 5, '0文', 20);
-    // the size of panel of decide koi
-    w = 400, h = 200;
-    koi_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
-    end_button = new Button(SCREEN_W/2-w/2+w/8-w/24, SCREEN_H/2 + h/8, w/3, h/4, 10, "あがり", 24, ()=>{player_win_month(PLR);}, 'lightgray');
-    koi_button = new Button(SCREEN_W/2+w/2-w/8+w/24-w/3, SCREEN_H/2 + h/8, w/3, h/4, 10, "こいこい", 24, ()=>{koikoi(PLR);}, 'lightgray');
-    // the size of banner
-    w = SCREEN_W + 20, h = 100;
-    banner = new Button(-10, SCREEN_H/2-h/2, w, h, 0, '', 52, null);
-    // the size of the panel of showing yaku and score
-    w = 400, h = 400;
-    yaku_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2 - 50/2, w, h, 10);
-    // the size of restart button
-    w = 400, h = 50;
-    next_month_button = new Button(yaku_panel.x, yaku_panel.y+yaku_panel.h + 5, yaku_panel.w, h, 10, '次の対局へ', FONT_SIZE, start_month);
-    to_result_button = new Button(yaku_panel.x, yaku_panel.y+yaku_panel.h + 5, yaku_panel.w, h, 10, '対局結果へ', FONT_SIZE, result_game);
-    // the size of  result panel
-    w = 400, h = 480;
-    result_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
-    w = 400, h = 50;
-    home_button = new Button(result_panel.x, result_panel.y+result_panel.h + 5, result_panel.w, h, 10, '回首頁', FONT_SIZE, back_to_title);
-}
-
-function check_hover_home_buttons(time) {
-    switch (game.state) {
-        case gameState.title:
-            for (let i = 0; i < title_button.length; i++)
-                title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
-            break;
-        case gameState.settings:
-        case gameState.statistic:
-            back_button.text = back_button.include(mouse) ? ('>  戻る  <') : '戻る';
-            break;
-        default:
-            break;
-    }
-    devSource.textColor = devSource.include(mouse) ? 'gold' : 'black';
 }
 
 /* init new game */
@@ -446,105 +356,4 @@ function choose_first() {
 function after_choose_first() {
     game.first = guess_result;
     start_month();
-}
-
-function back_to_title() {
-    game.state = gameState.title;
-    time_func = check_hover_home_buttons;
-}
-
-function show_settings() {
-    game.state = gameState.settings;
-}
-
-function show_statistics() {
-    game.state = gameState.statistic;
-}
-
-const statistic_text = [
-    [['対戦回数','総月数','総獲得文数','最高獲得総文数','月最高獲得文数','月平均獲得文数','7文以上確率','被7文以上率','こいこい率','こいこい成功率','こいこい阻止率'],
-    ['勝利数','敗北数','勝率','勝利月数','敗北月数','月勝率','最大連勝数','最大連敗数','最大連勝月数','最大連敗月数']],
-    [["五光","四光","雨四光","三光","松桐坊主","表菅原","飲み","花見で一杯","月見で一杯","猪鹿蝶","ごとり"],
-    ["七短","六短","赤短・青短","赤短","青短","草","月札","カス","短冊","タネ","親権"]]
-]
-
-function draw_statistics() {
-    statistic_panel.draw();
-
-    context.fillStyle = 'white';
-    const fontsize = 30;
-    context.textAlign = 'left';
-    context.font = fontsize * R + "px 'Yuji Syuku', sans-serif";
-    const lx = SCREEN_W/4+SCREEN_W/16, rx = SCREEN_W*3/4-SCREEN_W/16, y = 120, xgap = 200, ygap = fontsize + 10;
-
-    for (let i = 0; i < statistic_text[statistic_page][0].length; i++)
-        context.fillText(statistic_text[statistic_page][0][i], (lx-xgap)*R, (y+ygap*i)*R);
-    for (let i = 0; i < statistic_text[statistic_page][1].length; i++)
-        context.fillText(statistic_text[statistic_page][1][i], (rx-xgap)*R, (y+ygap*i)*R);
-
-    context.textAlign = 'right';
-
-    const text = [
-        [[
-            `${data.battleTime}回`,
-            `${data.battleMonth}月`,
-            `${data.totalMoney[PLR]}文`,
-            `${data.maxTotalMoney[PLR]}文`,
-            `${data.maxMoneyMonth[PLR]}文`,
-            `${data.battleMonth > 0 ? (data.totalMoney[PLR] / data.battleMonth).toFixed(1) : 0}文`,
-            `${data.battleMonth > 0 ? (100 * data.sevenUpTime[PLR] / data.battleMonth).toFixed(1) : 0}%`,
-            `${data.battleMonth > 0 ? (100 * data.sevenUpTime[CPU] / data.battleMonth).toFixed(1) : 0}%`,
-            `${data.canKoiTime[PLR]   > 0 ? (100 * data.totalKoiTime[PLR] / data.canKoiTime[PLR]).toFixed(1) : 0}%`,
-            `${data.totalKoiTime[PLR] > 0 ? (100 * data.koiSucessTime[PLR] / data.totalKoiTime[PLR]).toFixed(1) : 0}%`,
-            `${data.totalKoiTime[CPU] > 0 ? (100 * (1 - data.koiSucessTime[CPU] / data.totalKoiTime[CPU])).toFixed(1) : 0}%`
-        ],[
-            `${data.totalWin[PLR]}回`,
-            `${data.totalWin[CPU]}回`,
-            `${data.battleTime > 0 ? (100 * data.totalWin[PLR] / data.battleTime).toFixed(1) : 0}%`,
-            `${data.winMonth[PLR]}月`,
-            `${data.winMonth[CPU]}月`,
-            `${data.battleMonth > 0 ? (100 * data.winMonth[PLR] / data.battleMonth).toFixed(1):0}%`,
-            `${data.totalMaxStreak[PLR]}回`,
-            `${data.totalMaxStreak[CPU]}回`,
-            `${data.maxStreakMonth[PLR]}月`,
-            `${data.maxStreakMonth[CPU]}月`
-        ]],
-        [[
-            `${data.yakuTime[PLR][1]}回`,
-            `${data.yakuTime[PLR][2]}回`,
-            `${data.yakuTime[PLR][3]}回`,
-            `${data.yakuTime[PLR][4]}回`,
-            `${data.yakuTime[PLR][5]}回`,
-            `${data.yakuTime[PLR][6]}回`,
-            `${data.yakuTime[PLR][7]}回`,
-            `${data.yakuTime[PLR][8]}回`,
-            `${data.yakuTime[PLR][9]}回`,
-            `${data.yakuTime[PLR][10]}回`,
-            `${data.yakuTime[PLR][11]}回`
-        ],[
-            `${data.yakuTime[PLR][12]}回`,
-            `${data.yakuTime[PLR][13]}回`,
-            `${data.yakuTime[PLR][14]}回`,
-            `${data.yakuTime[PLR][15]}回`,
-            `${data.yakuTime[PLR][16]}回`,
-            `${data.yakuTime[PLR][17]}回`,
-            `${data.yakuTime[PLR][18]}回`,
-            `${data.yakuTime[PLR][19]}回`,
-            `${data.yakuTime[PLR][20]}回`,
-            `${data.yakuTime[PLR][21]}回`,
-            `${data.yakuTime[PLR][0]}回`
-        ]]
-    ];
-
-    for (let i = 0; i < text[statistic_page][0].length; i++)
-        context.fillText(text[statistic_page][0][i], (lx+xgap)*R, (y+ygap*i)*R);
-    for (let i = 0; i < text[statistic_page][1].length; i++)
-        context.fillText(text[statistic_page][1][i], (rx+xgap)*R, (y+ygap*i)*R);
-
-    context.textAlign = 'center';
-
-    if (statistic_page > 0)
-        statistic_button[0].draw();
-    if (statistic_page < 1)
-    statistic_button[1].draw();
 }
