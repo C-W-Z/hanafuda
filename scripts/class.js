@@ -140,6 +140,9 @@ class Player {
         this.noticed = new Array();
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
+        this.has = new Array(CARD_NUM);
+        for (let i = 0; i < CARD_NUM; i++)
+            this.has[i] = 0;
         this.yaku = new Array(YAKU_NUM);
         for (let i = 0; i < YAKU_NUM; i++)
             this.yaku[i] = 0;
@@ -176,6 +179,7 @@ class Player {
         card[cardID].selected = false;
         card[cardID].place = (this.ID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
         this.collect[card_type[cardID]].push(cardID);
+        this.has[cardID] = 1;
     }
 
     update_noticed() {
@@ -244,10 +248,10 @@ class Player {
     /* 結算役 */
     // 回傳是否有新的役
     check_yaku() {
-        const light   = this.collect[3].length;
-        const seed    = this.collect[2].length;
-        const ribbon  = this.collect[1].length;
-        const dross   = this.collect[0].length;
+        const light  = this.collect[3].length;
+        const seed   = this.collect[2].length;
+        const ribbon = this.collect[1].length;
+        const dross  = this.collect[0].length;
 
         // see : yaku_name
         let now_yaku = new Array(YAKU_NUM);
@@ -327,7 +331,6 @@ class Player {
                 if (!(data.flower_moon_sake_bonus && (i == 8 || i == 9)))
                     get_new_yaku = true;
                 this.new_yaku.push(i);
-                //console.log(yaku_name[i]);
             }
             // copy now yaku to old yaku
             this.yaku[i] = now_yaku[i];

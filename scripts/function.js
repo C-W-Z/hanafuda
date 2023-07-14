@@ -282,6 +282,40 @@ function player_play() {
     game.state = gameState.player_select_hand;
 }
 
+/* AI的回合 */
+function cpu_play() {
+    game.state = gameState.cpu_play;
+
+    switch (data.cpuLevel) {
+        case 2: cpu_play_Lv2(); break;
+        case 3: cpu_play_Lv3(); break;
+        default: cpu_play_Lv1(); break;
+    }
+
+    player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
+}
+
+function cpu_decide_collect_card(pairFieldID) {
+    switch (data.cpuLevel) {
+        case 2: case 3: return cpu_decide_collect_card_Lv2(pairFieldID);
+        default: return cpu_decide_collect_card_Lv1(pairFieldID);
+    }
+}
+
+function cpu_decide_koi() {
+    // update data
+    data.canKoiTime[CPU] += 1;
+
+    let koi;
+    switch (data.cpuLevel) {
+        case 1: koi = cpu_decide_koi_Lv1(); break;
+        default: koi = cpu_decide_koi_Lv2(); break;
+    }
+
+    if (koi) koikoi(CPU);
+    else player_win_month(CPU);
+}
+
 /* 玩家出牌 */
 function player_play_card(playerID, handID, fieldID) {
     if (playerID == PLR)
@@ -382,7 +416,6 @@ function draw_new_card(playerID) {
             game.state = gameState.player_choose_card;
             field.update_noticed(Math.floor(new_card/4));
         } else /* CPU */ {
-            // 未完成
             fieldID = cpu_decide_collect_card(pairFieldID);
             draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
         }
@@ -393,24 +426,14 @@ function draw_new_card(playerID) {
     }
 }
 
-function cpu_decide_collect_card(pairFieldID) {
-    switch (data.cpuLevel) {
-        case 1:
-            return cpu_decide_collect_card_Lv1(pairFieldID);
-    
-        default:
-            return cpu_decide_collect_card_Lv2(pairFieldID);
-    }
-}
-
 function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
     if (playerID == PLR)
         game.state = gameState.player_end_round;
 
-    if (fieldCardID >= 0) {
+    if (fieldCardID >= 0)
         // remove the card from field
         field.removeCard(fieldID);
-    }
+
     // animation
     startTime = performance.now(); // reset startTime
     time_func = step_move(new_card, DECK_P.x, DECK_P.y, Field.X(fieldID), Field.Y(fieldID));
@@ -503,28 +526,6 @@ function start_ask_koikoi() {
     data.canKoiTime[PLR] += 1;
     // start draw UI
     game.state = gameState.player_decide_koi;
-}
-
-function cpu_decide_koi() {
-    // update data
-    data.canKoiTime[CPU] += 1;
-
-    let koi;
-    switch (data.cpuLevel) {
-        case 1:
-            koi = cpu_decide_koi_Lv1();
-            break;
-    
-        default:
-            koi = cpu_decide_koi_Lv2();
-            break;
-    }
-        
-
-    if (koi)
-        koikoi(CPU);
-    else
-        player_win_month(CPU);
 }
 
 function player_win_month(playerID) {
@@ -749,24 +750,6 @@ function draw_game_result() {
     context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[PLR].total_money}文`, (SCREEN_W/2) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[CPU].total_money}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
-}
-
-/* AI的回合 */
-function cpu_play() {
-    game.state = gameState.cpu_play;
-
-    switch (data.cpuLevel) {
-        case 1:
-            cpu_play_Lv1();
-            break;
-    
-        default:
-            cpu_play_Lv2();
-            break;
-    }
-    
-
-    player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
 }
 
 function player_select_hand(handID) {
