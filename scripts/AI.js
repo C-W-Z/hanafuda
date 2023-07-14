@@ -100,11 +100,20 @@ function cpu_decide_collect_card_Lv2(pairFieldID) {
 }
 
 function cpu_decide_koi_Lv2(cpuID) {
-    if (game.month == data.MAXMONTH && player[cpuID].total_money < player[Number(!cpuID)].total_money)
-        return true;
-	if (data.MAXMONTH == 1)
-		return (Math.floor(Math.random() * 3) == 0);
-    return (Math.floor(Math.random() * 2) == 0);
+    let get = 0;
+    if (data.koi_bonus)
+        get = player[cpuID].score * (player[cpuID].koi_time + player[cpuID].koi_time + 1);
+    else if (data.seven_bonus && player[cpuID].score >= 7)
+        get = player[cpuID].score * 2;
+    else
+        get = player[cpuID].score;
+
+    if (game.month == data.MAXMONTH)
+        return (player[cpuID].total_money + get < player[Number(!cpuID)].total_money);
+
+    if (player[cpuID].total_money + get < player[Number(!cpuID)].total_money)
+        return (Math.floor(Math.random() * 2) == 0);
+    return (Math.floor(Math.random() * 3) == 0);
 }
 
 function adjust_deck_Lv2(playerID, max_diff) {

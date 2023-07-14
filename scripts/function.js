@@ -569,6 +569,11 @@ function player_win_month(playerID) {
         for (let i = 0; i < YAKU_NUM; i++)
             if (player[j].yaku[i] > 0)
                 data.yakuTime[j][i] += 1;
+
+    if (game.month == data.MAXMONTH)
+        to_result_button.press_func();
+    else
+        next_month_button.press_func();
 }
 
 function draw_decide_koi() {
