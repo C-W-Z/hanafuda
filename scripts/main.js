@@ -344,7 +344,8 @@ function start_game() {
     data.battleTime++;
 
     // 決定親權 (0:player, 1:cpu)
-    choose_first();
+    game.first = Math.floor(Math.random() * 2);
+    start_month();
 }
 
 function choose_first() {

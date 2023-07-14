@@ -258,7 +258,7 @@ function deal_cards() {
 
     // animation
     startTime = performance.now(); // reset startTime
-    time_func = deal_step(new_card, 0);
+    time_func = after_deal(new_card);
 }
 
 function after_deal(new_card) {
@@ -310,8 +310,8 @@ function cpu_decide_collect_card(pairFieldID) {
     switch (data.cpuLevel) {
         case 0:
         case 1: return cpu_decide_collect_card_Lv1(pairFieldID);
-        case 2:
-        case 3: return cpu_decide_collect_card_Lv2(pairFieldID);
+        case 2: return cpu_decide_collect_card_Lv2(pairFieldID);
+        case 3: return cpu_decide_collect_card_Lv3(pairFieldID);
     }
 }
 
@@ -355,11 +355,9 @@ function player_play_card(playerID, handID, fieldID) {
     // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
     if (field.card[fieldID] == -1) {
         // 棄牌
-        time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID));
-        next_func = after_play(playerID, handCardID, -1, fieldID);
+        time_func = after_play(playerID, handCardID, -1, fieldID);
     } else {
-        time_func = step_move(handCardID, card[handCardID].px, card[handCardID].py, Field.X(fieldID), Field.Y(fieldID) + 10);
-        next_func = player_collect_animation(playerID, handCardID, fieldID);
+        time_func = player_collect_animation(playerID, handCardID, fieldID);
     }
 }
 
@@ -454,9 +452,7 @@ function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
 
     // animation
     startTime = performance.now(); // reset startTime
-    time_func = step_move(new_card, DECK_P.x, DECK_P.y, Field.X(fieldID), Field.Y(fieldID));
-    // 這裡還要加上collect的動畫
-    next_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
+    time_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
 }
 
 function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
@@ -531,8 +527,7 @@ function start_show_yaku(playerID, yakuID) {
     game.state = gameState.show_yaku_animation;
     // animation
     startTime = performance.now();
-    time_func = banner_step;
-    next_func = function (time) {
+    time_func = function (time) {
         endAnimation();
         // next yaku
         start_show_yaku(playerID, yakuID + 1)
@@ -618,8 +613,7 @@ function koikoi(playerID) {
 
     // animation
     startTime = performance.now();
-    time_func = banner_step;
-    next_func = function (time) {
+    time_func = function (time) {
         endAnimation();
         // next round
         game.round++;
@@ -742,6 +736,8 @@ function result_game() {
 
     // store data
     data.store();
+
+    start_button.press_func();
 }
 
 function draw_game_result() {

@@ -187,6 +187,10 @@ function cpu_decide_koi_Lv3(cpuID) {
     return (Math.floor(Math.random() * 2) == 0);
 }
 
+function cpu_decide_collect_card_Lv3(pairFieldID) {
+    return (card_val[pairFieldID[0]] > card_val[pairFieldID[1]]) ? pairFieldID[0] : pairFieldID[1];
+}
+
 //#endregion
 
 function reset_card_val() {
@@ -195,10 +199,10 @@ function reset_card_val() {
         card_val[i] = 1;
 
     if (data.month_yaku) {
-        card_val[game.month * 4] += 1;
-        card_val[game.month * 4 + 1] += 1;
-        card_val[game.month * 4 + 2] += 1;
-        card_val[game.month * 4 + 3] += 1;
+        card_val[game.month * 4 - 4] += 1;
+        card_val[game.month * 4 - 3] += 1;
+        card_val[game.month * 4 - 2] += 1;
+        card_val[game.month * 4 - 1] += 1;
     }
     card_val[8] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
     card_val[28] += Number(data.flower_moon_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
@@ -259,10 +263,9 @@ function reset_card_val() {
         card_val[i] *= 3;
 }
 
+const card_type_num = [3, 5, 5, 5];
+
 function update_card_val(cardID) {
-    for (let i = 0; i < CARD_NUM; i++)
-        if (card_type[i] == card_type[cardID])
-            card_val[i] += 1;
     if (data.month_yaku && Math.floor(cardID/4) == game.month) {
         card_val[game.month * 4] += 2;
         card_val[game.month * 4 + 1] += 2;
@@ -270,56 +273,38 @@ function update_card_val(cardID) {
         card_val[game.month * 4 + 3] += 2;
     }
     if (cardID == 8 || cardID == 28 || cardID == 32) {
-        const play = ((data.flower_moon_sake||data.flower_sake||data.moon_sake)&&player[CPU].has[8]+player[CPU].has[28]+player[CPU].has[32]==2&&player[CPU].hold[8]+player[CPU].hold[28]+player[CPU].hold[32]>0)
-        card_val[ 8] += play ? 100 : Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
-        card_val[28] += play ? 100 : Number(data.flower_moon_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
-        if (player[PLR].has[8]+player[PLR].has[28] > 0 && (data.flower_moon_sake||data.flower_sake||data.moon_sake))
-            card_val[32] += 150;
-        else
-            card_val[32] += play ? 100 : Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+        add_value(8, 28, 32, Number(data.flower_moon_sake) + Number(data.flower_sake || data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus));
     }
     if (data.matsukiribozu && (cardID == 0 || cardID == 28 || cardID == 44)) {
-        card_val[0] += 1;
-        card_val[28] += 1;
-        card_val[44] += 1;
+        add_value(0, 28, 44, 1);
     }
     if (data.sugawara && (cardID == 0 || cardID == 4 || cardID == 8)) {
-        card_val[0] += 1;
-        card_val[4] += 1;
-        card_val[8] += 1;
+        add_value(0, 4, 8, 1);
     }
     if (data.inoshikacho && (cardID == 20 || cardID == 24 || cardID == 36)) {
-        const both = (player[PLR].has[20]+player[PLR].has[24]+player[PLR].has[36]>0&&player[CPU].has[20]+player[CPU].has[24]+player[CPU].has[36]>0) ? -1 : 1;
-        const avoid = (player[PLR].has[20]+player[PLR].has[24]+player[PLR].has[36]>0&&player[CPU].hold[20]+player[CPU].hold[24]+player[CPU].hold[36]>0) ? 2 : 1;
-        const play = (player[CPU].has[20]+player[CPU].has[24]+player[CPU].has[36]==2&&player[CPU].hold[20]+player[CPU].hold[24]+player[CPU].hold[36]>0);
-        card_val[20] += play ? 100 : both * avoid * 1;
-        card_val[24] += play ? 100 : both * avoid * 1;
-        card_val[36] += play ? 100 : both * avoid * 1;
+        add_value(20, 24, 36, 1);
     }
     if (data.five_bird && (cardID == 4 || cardID == 12 || cardID == 29)) {
-        card_val[4] += 1;
-        card_val[12] += 1;
-        card_val[29] += 1;
+        add_value(4, 12, 29, 1);
     }
     if (data.grass && (cardID == 13 || cardID == 17 || cardID == 25)) {
-        card_val[13] += 1;
-        card_val[17] += 1;
-        card_val[25] += 1;
+        add_value(13, 17, 25, 1);
     }
     if (cardID == 1 || cardID == 5 || cardID == 9) {
-        const both = (player[PLR].has[1]+player[PLR].has[5]+player[PLR].has[9]>0&&player[CPU].has[1]+player[CPU].has[5]+player[CPU].has[9]>0) ? -1 : 1;
-        const avoid = (player[PLR].has[1]+player[PLR].has[5]+player[PLR].has[9]>0&&player[CPU].hold[1]+player[CPU].hold[5]+player[CPU].hold[9]>0) ? 2 : 1;
-        const play = (player[CPU].has[1]+player[CPU].has[5]+player[CPU].has[9]==2&&player[CPU].hold[1]+player[CPU].hold[5]+player[CPU].hold[9]>0)
-        card_val[ 1] += play ? 100 : both * avoid * Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[ 5] += play ? 100 : both * avoid * Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[ 9] += play ? 100 : both * avoid * Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+        add_value(1, 5, 9, Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate));
     }
     if (cardID == 21 || cardID == 33 || cardID == 37) {
-        const both = (player[PLR].has[21]+player[PLR].has[33]+player[PLR].has[37]>0&&player[CPU].has[21]+player[CPU].has[33]+player[CPU].has[37]>0) ? -1 : 1;
-        const avoid = (player[PLR].has[21]+player[PLR].has[33]+player[PLR].has[37]>0&&player[CPU].hold[21]+player[CPU].hold[33]+player[CPU].hold[37]>0) ? 2 : 1;
-        const play = (player[CPU].has[21]+player[CPU].has[33]+player[CPU].has[37]==2&&player[CPU].hold[21]+player[CPU].hold[33]+player[CPU].hold[37]>0)
-        card_val[21] += play ? 100 : both * avoid * Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[33] += play ? 100 : both * avoid * Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[37] += play ? 100 : both * avoid * Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+        add_value(21, 33, 37, Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate));
     }
+    for (let i = 0; i < CARD_NUM; i++)
+        if (card_type[i] == card_type[cardID])
+            card_val[i] += 1;
+}
+
+function add_value(a, b, c, val) {
+    const both = (player[PLR].has[a]+player[PLR].has[b]+player[PLR].has[44]>0&&player[CPU].has[a]+player[CPU].has[b]+player[CPU].has[c]>0) ? -1 : 1;
+    const avoid = (player[PLR].has[a]+player[PLR].has[b]+player[PLR].has[44]>0&&player[CPU].hold[a]+player[CPU].hold[b]+player[CPU].hold[c]>0) ? 2 : 1;
+    card_val[a] += both * avoid * val;
+    card_val[b] += both * avoid * val;
+    card_val[c] += both * avoid * val;
 }
