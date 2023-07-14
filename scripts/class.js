@@ -183,6 +183,7 @@ class Player {
         card[cardID].place = (this.ID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
         this.collect[card_type[cardID]].push(cardID);
         this.has[cardID] = 1;
+        update_card_val(cardID);
     }
 
     update_noticed() {

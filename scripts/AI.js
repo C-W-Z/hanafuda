@@ -137,17 +137,15 @@ function cpu_play_Lv3(cpuID) {
     // 找到價值最高的
     player[cpuID].selected_handID = -1;
     player[cpuID].selected_fieldID = -1;
-
     for (let i = 0; i < player[cpuID].hand.length; i++)
-        for (let j = 0; j < FIELD_SPACE; j++) {
+        for (let j = 0; j < FIELD_SPACE; j++)
             if (Math.floor(player[cpuID].hand[i]/4) == Math.floor(field.card[j]/4) &&
                ((player[cpuID].selected_handID < 0 || player[cpuID].selected_fieldID < 0) ||
                 (card_val[player[cpuID].hand[i]] + card_val[field.card[j]] > 
-                    card_val[player[cpuID].hand[player[cpuID].selected_handID]] + card_val[field.card[player[cpuID].selected_fieldID]]))) {
+                 card_val[player[cpuID].hand[player[cpuID].selected_handID]] + card_val[field.card[player[cpuID].selected_fieldID]]))) {
                     player[cpuID].selected_handID = i;
                     player[cpuID].selected_fieldID = j;
             }
-        }
 
     // 如果沒找到可配對的 -> 棄價值最低的牌
     if (player[cpuID].selected_handID < 0 || player[cpuID].selected_fieldID < 0) {
@@ -165,20 +163,150 @@ function cpu_play_Lv3(cpuID) {
 }
 
 function cpu_decide_koi_Lv3(cpuID) {
-    if (game.month == data.MAXMONTH && player[cpuID].total_money < player[Number(!cpuID)].total_money)
-        return true;
-	if (data.MAXMONTH == 1)
-		return (Math.floor(Math.random() * 3) == 0);
-    if (player[cpuID].total_money - player[Number(!cpuID)].total_money > 10 ||
-        player[Number(!cpuID)].collect[0] >= 8 ||
-        player[Number(!cpuID)].collect[1] >= 5 ||
-        player[Number(!cpuID)].collect[2] >= 5)
+    let get = 0;
+    if (data.koi_bonus) get = player[cpuID].score * (player[cpuID].koi_time + player[cpuID].koi_time + 1);
+    else if (data.seven_bonus && player[cpuID].score >= 7) get = player[cpuID].score * 2;
+    else get = player[cpuID].score;
+
+    if (game.month == data.MAXMONTH)
+        return (player[cpuID].total_money + get < player[Number(!cpuID)].total_money);
+
+    if (player[Number(!cpuID)].collect[0].length >= 8 ||
+        player[Number(!cpuID)].collect[1].length >= 4 ||
+        player[Number(!cpuID)].collect[2].length >= 4 ||
+       (player[Number(!cpuID)].collect[3].length >= 2 && player[cpuID].collect[3].length <= 1))
         return false;
+
     if (player[cpuID].collect[0] >= 9 &&
-        player[Number(!cpuID)].collect[0] <= 5 &&
-        player[Number(!cpuID)].collect[1] <= 2 &&
-        player[Number(!cpuID)].collect[2] >= 2 &&
-        player[Number(!cpuID)].collect[3] <= 1)
+        player[Number(!cpuID)].collect[0].length <= 7 &&
+        player[Number(!cpuID)].collect[1].length <= 2 &&
+        player[Number(!cpuID)].collect[2].length >= 2 &&
+        player[Number(!cpuID)].collect[3].length <= 1)
         return true;
+
     return (Math.floor(Math.random() * 2) == 0);
+}
+
+//#endregion
+
+function reset_card_val() {
+    card_val  = new Array(CARD_NUM);
+    for (let i = 0; i < CARD_NUM; i++)
+        card_val[i] = 1;
+
+    if (data.month_yaku) {
+        card_val[game.month * 4] += 1;
+        card_val[game.month * 4 + 1] += 1;
+        card_val[game.month * 4 + 2] += 1;
+        card_val[game.month * 4 + 3] += 1;
+    }
+    card_val[8] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+    card_val[28] += Number(data.flower_moon_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+    card_val[32] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus) + Number(data.kiku_dross);
+    if (data.rain_rule)
+        card_val[40] -= 1;
+    if (data.fog_rule)
+        card_val[44] -= 1;
+
+    card_val[ 0] += 2 + Number((data.light_accumulate));
+    card_val[ 8] += 2 + Number((data.light_accumulate));
+    card_val[28] += 2 + Number((data.light_accumulate));
+    card_val[40] += 1 + Number((data.light_accumulate));
+    card_val[44] += 2 + Number((data.light_accumulate));
+
+    if (data.matsukiribozu) {
+        card_val[0] += 1;
+        card_val[28] += 1;
+        card_val[44] += 1;
+    }
+    if (data.sugawara) {
+        card_val[0] += 1;
+        card_val[4] += 1;
+        card_val[8] += 1;
+    }
+    if (data.inoshikacho) {
+        card_val[20] += 1;
+        card_val[24] += 1;
+        card_val[36] += 1;
+    }
+    if (data.five_bird) {
+        card_val[4] += 1;
+        card_val[12] += 1;
+        card_val[29] += 1;
+    }
+    if (data.grass) {
+        card_val[13] += 1;
+        card_val[17] += 1;
+        card_val[25] += 1;
+    }
+    card_val[ 1] += Number(data.akatan_aotan) + Number(data.akatan) + Number(data.akatan_aotan_accumulate);
+    card_val[ 5] += Number(data.akatan_aotan) + Number(data.akatan) + Number(data.akatan_aotan_accumulate);
+    card_val[ 9] += Number(data.akatan_aotan) + Number(data.akatan) + Number(data.akatan_aotan_accumulate);
+    card_val[21] += Number(data.akatan_aotan) + Number(data.aotan ) + Number(data.akatan_aotan_accumulate);
+    card_val[33] += Number(data.akatan_aotan) + Number(data.aotan ) + Number(data.akatan_aotan_accumulate);
+    card_val[37] += Number(data.akatan_aotan) + Number(data.aotan ) + Number(data.akatan_aotan_accumulate);
+    card_val[ 1] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[ 5] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[ 9] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[13] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[17] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[21] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[25] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[33] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[37] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+
+    for (let i = 0; i < CARD_NUM; i++)
+        card_val[i] *= 3;
+}
+
+function update_card_val(cardID) {
+    for (let i = 0; i < CARD_NUM; i++)
+        if (card_type[i] == card_type[cardID])
+            card_val[i] += 1;
+    if (data.month_yaku && Math.floor(cardID/4) == game.month) {
+        card_val[game.month * 4] += 1;
+        card_val[game.month * 4 + 1] += 1;
+        card_val[game.month * 4 + 2] += 1;
+        card_val[game.month * 4 + 3] += 1;
+    }
+    if (cardID == 8 || cardID == 28 || cardID == 32) {
+        card_val[ 8] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+        card_val[28] += Number(data.flower_moon_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+        card_val[32] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+    }
+    if (data.matsukiribozu && (cardID == 0 || cardID == 28 || cardID == 44)) {
+        card_val[0] += 1;
+        card_val[28] += 1;
+        card_val[44] += 1;
+    }
+    if (data.sugawara && (cardID == 0 || cardID == 4 || cardID == 8)) {
+        card_val[0] += 1;
+        card_val[4] += 1;
+        card_val[8] += 1;
+    }
+    if (data.inoshikacho && (cardID == 20 || cardID == 24 || cardID == 36)) {
+        card_val[20] += 1;
+        card_val[24] += 1;
+        card_val[36] += 1;
+    }
+    if (data.five_bird && (cardID == 4 || cardID == 12 || cardID == 29)) {
+        card_val[4] += 1;
+        card_val[12] += 1;
+        card_val[29] += 1;
+    }
+    if (data.grass && (cardID == 13 || cardID == 17 || cardID == 25)) {
+        card_val[13] += 1;
+        card_val[17] += 1;
+        card_val[25] += 1;
+    }
+    if (cardID == 1 || cardID == 5 || cardID == 9) {
+        card_val[ 1] += Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+        card_val[ 5] += Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+        card_val[ 9] += Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+    }
+    if (cardID == 21 || cardID == 33 || cardID == 37) {
+        card_val[21] += Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+        card_val[33] += Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+        card_val[37] += Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
+    }
 }
