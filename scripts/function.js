@@ -283,7 +283,7 @@ function after_deal(new_card) {
 function player_play() {
     game.state = gameState.cpu_play;
 
-    cpu_play_Lv2(PLR);
+    cpu_play_Lv3(PLR);
 
     player_play_card(PLR, player[PLR].selected_handID, player[PLR].selected_fieldID);
 }
@@ -320,7 +320,7 @@ function player_decide_koi() {
     data.canKoiTime[PLR] += 1;
 
     let koi;
-    koi = cpu_decide_koi_Lv2(PLR);
+    koi = cpu_decide_koi_Lv3(PLR);
 
     if (koi) koikoi(PLR);
     else player_win_month(PLR);
