@@ -50,6 +50,7 @@ class Data {
         // 出現率 = yakuTime[i] / battleMonth
 
         // rules
+        this.adjust_deck = true;
         this.yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 5, 10, 5, 5, 5., 4, 1, 1, 1];
         this.cpuLevel = 1; // AI策略等級 (0:隨機出牌,1:會根據牌的類型判斷價值,2:會判斷能組成役的特定牌更有價值,3:根據當前情況判斷目標是組成什麼役)
         this.MAXMONTH = 12; // 預設12月玩法 1/3/6/12ヶ月

@@ -232,11 +232,11 @@ function show_choose_rules() {
 
 const rule_text = [
     ['AI Level','ゲーム月','月札','親の変更','親権','文のBonus'],
-    ['飲み(鉄砲)(花月見)','花見で一杯','月見で一杯','雨流れ','霧流れ','花見、月見で一杯はBonus','花見、月見で一杯、飲みの文の蓄積'],
-    ['五光','四光','雨四光','三光','三、雨四、四、五光の文の蓄積'],
-    ['松桐坊主','表菅原(梅松桜)','猪鹿蝶','五鳥(ごとり)','草(草短)','「菊に盃」は「カス」としても使えます'],
-    ['赤短・青短(ぶっく)','赤短','青短','赤短、青短、赤短・青短の文の蓄積','七短','六短','短冊、六短、七短の文の蓄積'],
-    ['タネ','短冊','カス','手四','喰付']
+    ['飲み(鉄砲)(花月見)','花見で一杯','月見で一杯','雨流れ','霧流れ','花見、月見で一杯はBonus','花見、月見、飲みの文数は累積できる'],
+    ['五光','四光','雨四光','三光','三、雨四、四、五光の文数は累積できる'],
+    ['松桐坊主','表菅原(梅松桜)','猪鹿蝶','五鳥(ごとり)','草(草短)','「菊に盃」は「カス」としても使える'],
+    ['赤短・青短(ぶっく)','赤短','青短','赤短、青短、ぶっくの文数は累積できる','七短','六短','短冊、六短、七短の文数は累積できる'],
+    ['タネ','短冊','カス','手四','喰付','札の獲得枚数の差を制限する']
 ];
 
 function draw_choose_rules() {
@@ -291,8 +291,10 @@ function rule_change(i) {
                     rule_button[page][i].text = data.month_yaku ? `${data.yaku_score[18]}文` : '✘';
                     break;
                 case 3:
-                    data.first_change = !data.first_change;
-                    rule_button[0][3].text = data.first_change ? '順番' : '勝者';
+                    if (data.MAXMONTH != 1) {
+                        data.first_change = !data.first_change;
+                        rule_button[0][3].text = data.first_change ? '順番' : '勝者';
+                    }
                     break;
                 case 4:
                     data.first_priority = !data.first_priority;
@@ -501,6 +503,10 @@ function rule_change(i) {
                     else data.yaku_score[21] = 1;
                     rule_button[5][2].text = `${data.yaku_score[21]}文`;
                     break;
+                case 5:
+                    data.adjust_deck = !data.adjust_deck;
+                    rule_button[5][5].text = data.adjust_deck ? '✔' : '✘';
+                    break;
             }
             break;
     }
@@ -546,4 +552,5 @@ function set_rule_buttons() {
     rule_button[5][0].text = `${data.yaku_score[19]}文`;
     rule_button[5][1].text = `${data.yaku_score[20]}文`;
     rule_button[5][2].text = `${data.yaku_score[21]}文`;
+    rule_button[5][5].text = data.adjust_deck ? '✔' : '✘';
 }

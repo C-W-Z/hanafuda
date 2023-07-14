@@ -340,10 +340,18 @@ function after_play(playerID, handCardID, fieldCardID, fieldID = -1) {
 }
 
 function draw_new_card(playerID) {
-    // shuffle
-    shuffle(deck);
+    // 調整牌差
+    if (data.adjust_deck) {
+        switch (data.cpuLevel) {
+            case 0: adjust_deck_Lv0(playerID, 0); break;
+            case 1: adjust_deck_Lv0(playerID, 2); break;
+            case 2: adjust_deck_Lv2(playerID, 4); break;
+            case 3: adjust_deck_Lv2(playerID, 6); break;
+        }
+    }
+
     // draw card
-    let new_card = deck.pop();
+    const new_card = deck.pop();
     player[playerID].draw_cardID = new_card;
 
     // show the new card
@@ -386,7 +394,13 @@ function draw_new_card(playerID) {
 }
 
 function cpu_decide_collect_card(pairFieldID) {
-    return cpu_decide_collect_card_Lv2(pairFieldID);
+    switch (data.cpuLevel) {
+        case 1:
+            return cpu_decide_collect_card_Lv1(pairFieldID);
+    
+        default:
+            return cpu_decide_collect_card_Lv2(pairFieldID);
+    }
 }
 
 function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
@@ -495,7 +509,17 @@ function cpu_decide_koi() {
     // update data
     data.canKoiTime[CPU] += 1;
 
-    const koi = cpu_decide_koi_Lv2();
+    let koi;
+    switch (data.cpuLevel) {
+        case 1:
+            koi = cpu_decide_koi_Lv1();
+            break;
+    
+        default:
+            koi = cpu_decide_koi_Lv2();
+            break;
+    }
+        
 
     if (koi)
         koikoi(CPU);
@@ -529,9 +553,10 @@ function player_win_month(playerID) {
         data.lastWinMonth[Number(!playerID)] = 0;
     }
     // yaku
-    for (let i = 0; i < YAKU_NUM; i++)
-        if (player[playerID].yaku[i] > 0)
-            data.yakuTime[playerID][i] += 1;
+    for (let j = 0; j < 2; j++)
+        for (let i = 0; i < YAKU_NUM; i++)
+            if (player[j].yaku[i] > 0)
+                data.yakuTime[j][i] += 1;
 }
 
 function draw_decide_koi() {
@@ -730,7 +755,16 @@ function draw_game_result() {
 function cpu_play() {
     game.state = gameState.cpu_play;
 
-    cpu_play_Lv2();
+    switch (data.cpuLevel) {
+        case 1:
+            cpu_play_Lv1();
+            break;
+    
+        default:
+            cpu_play_Lv2();
+            break;
+    }
+    
 
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
 }

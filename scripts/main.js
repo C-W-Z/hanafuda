@@ -165,11 +165,11 @@ function animate(time) {
     if (!startTime) // it's the first frame
         startTime = time || performance.now();
 
-    // 清除整個canvas畫面
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-
     if (time_func != null)
         time_func(time);
+
+    // 清除整個canvas畫面
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     // 重畫整個畫面
     if (guessing)
@@ -243,7 +243,7 @@ function draw_gaming() {
             card[movingCard[i]].draw();
 
     /* draw the information of this game */
-    
+
     context.font = FONT_SIZE * R + "px 'Yuji Syuku', sans-serif";
     // 幾月
     if (data.month_yaku)
