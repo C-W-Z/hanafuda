@@ -340,6 +340,8 @@ function start_game() {
 
     game.reset_game();
 
+    reset_card_val();
+
     // update data
     data.battleTime++;
 

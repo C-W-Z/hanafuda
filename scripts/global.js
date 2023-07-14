@@ -93,6 +93,8 @@ let player; // the player objs ()
 let field; // the field obj
 let game; // the game data obj
 
+let card_val;
+
 /* guess smaller card in two cards */
 let guess_card  = new Array(2);
 let guessing = false;

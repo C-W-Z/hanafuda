@@ -289,8 +289,8 @@ function cpu_play() {
     switch (data.cpuLevel) {
         case 0:
         case 1: cpu_play_Lv1(); break;
-        case 2:
-        case 3: cpu_play_Lv2(); break;
+        case 2: cpu_play_Lv2(); break;
+        case 3: cpu_play_Lv3(); break;
     }
 
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);

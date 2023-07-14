@@ -144,6 +144,36 @@ function adjust_deck_Lv2(playerID, max_diff) {
 
 //#region Lv3
 
+function cpu_play_Lv3() {
+    // 找出所有可以出的牌與對應的場牌
+    // 找到價值最高的
+    player[CPU].selected_handID = -1;
+    player[CPU].selected_fieldID = -1;
+    for (let i = 0; i < player[CPU].hand.length; i++)
+        for (let j = 0; j < FIELD_SPACE; j++)
+            if (Math.floor(player[CPU].hand[i]/4) == Math.floor(field.card[j]/4) &&
+               ((player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) ||
+                (card_val[player[CPU].hand[i]] + card_val[field.card[j]] > 
+                 card_val[player[CPU].hand[player[CPU].selected_handID]] + card_val[field.card[player[CPU].selected_fieldID]]))) {
+                    player[CPU].selected_handID = i;
+                    player[CPU].selected_fieldID = j;
+            }
+
+    // 如果沒找到可配對的 -> 棄價值最低的牌
+    if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) {
+        player[CPU].selected_handID = 0;
+        for (let i = 1; i < player[CPU].hand.length; i++)
+            if (card_val[player[CPU].hand[i]] < card_val[player[CPU].hand[player[CPU].selected_handID]])
+                player[CPU].selected_handID = i;
+        /* 找到場上空的位置 */
+        for (let j = 0; j < FIELD_SPACE; j++)
+            if (field.card[j] == -1) {
+                player[CPU].selected_fieldID = j;
+                break;
+            }
+    }
+}
+
 function cpu_decide_koi_Lv3() {
     let get = 0;
     if (data.koi_bonus) get = player[CPU].score * (player[CPU].koi_time + player[CPU].koi_time + 1);
@@ -170,3 +200,69 @@ function cpu_decide_koi_Lv3() {
 }
 
 //#endregion
+
+function reset_card_val() {
+    card_val  = [3,1,1,1, 1,1,1,1, 3,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1, 3,1,1,1, 1,1,1,1, 1,1,1,1, 2,1,1,1, 3,1,1,1];
+    if (data.month_yaku) {
+        card_val[game.month * 4] += 1;
+        card_val[game.month * 4 + 1] += 1;
+        card_val[game.month * 4 + 2] += 1;
+        card_val[game.month * 4 + 3] += 1;
+    }
+    card_val[8] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+    card_val[28] += Number(data.flower_moon_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
+    card_val[32] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus) + Number(data.kiku_dross);
+    if (data.rain_rule)
+        card_val[40] -= 1;
+    if (data.fog_rule)
+        card_val[44] -= 1;
+    if (data.light_accumulate) {
+        card_val[0] += 1;
+        card_val[8] += 1;
+        card_val[28] += 1;
+        card_val[40] += 1;
+        card_val[44] += 1;
+    }
+    if (data.matsukiribozu) {
+        card_val[0] += 1;
+        card_val[28] += 1;
+        card_val[44] += 1;
+    }
+    if (data.sugawara) {
+        card_val[0] += 1;
+        card_val[4] += 1;
+        card_val[8] += 1;
+    }
+    if (data.inoshikacho) {
+        card_val[20] += 1;
+        card_val[24] += 1;
+        card_val[36] += 1;
+    }
+    if (data.five_bird) {
+        card_val[4] += 1;
+        card_val[12] += 1;
+        card_val[29] += 1;
+    }
+    if (data.grass) {
+        card_val[13] += 1;
+        card_val[17] += 1;
+        card_val[25] += 1;
+    }
+    card_val[ 1] += Number(data.akatan_aotan) + Number(data.akatan) + Number(data.akatan_aotan_accumulate);
+    card_val[ 5] += Number(data.akatan_aotan) + Number(data.akatan) + Number(data.akatan_aotan_accumulate);
+    card_val[ 9] += Number(data.akatan_aotan) + Number(data.akatan) + Number(data.akatan_aotan_accumulate);
+    card_val[21] += Number(data.akatan_aotan) + Number(data.aotan ) + Number(data.akatan_aotan_accumulate);
+    card_val[33] += Number(data.akatan_aotan) + Number(data.aotan ) + Number(data.akatan_aotan_accumulate);
+    card_val[37] += Number(data.akatan_aotan) + Number(data.aotan ) + Number(data.akatan_aotan_accumulate);
+    card_val[ 1] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[ 5] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[ 9] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[13] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[17] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[21] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[25] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[33] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+    card_val[37] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
+
+    return true;
+}
