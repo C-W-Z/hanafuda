@@ -516,7 +516,7 @@ function set_rule_buttons() {
     rule_button[0][0].text = `Lv${data.cpuLevel}`;
     rule_button[0][1].text = `${data.MAXMONTH}ヶ月`;
     rule_button[0][2].text = data.month_yaku ? `${data.yaku_score[18]}文` : '✘';
-    rule_button[0][3].text = (data.MAXMONTH == 1) ? (data.first_change ? '順番' : '勝者') : '✘';
+    rule_button[0][3].text = (data.MAXMONTH != 1) ? (data.first_change ? '順番' : '勝者') : '✘';
     rule_button[0][4].text = data.first_priority ? `${data.yaku_score[0]}文` : '✘';
     rule_button[0][5].text = data.koi_bonus ? 'こいこい倍' : (data.seven_bonus ? '7点倍' : '✘');
 

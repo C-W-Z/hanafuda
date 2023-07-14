@@ -287,9 +287,10 @@ function cpu_play() {
     game.state = gameState.cpu_play;
 
     switch (data.cpuLevel) {
-        case 2: cpu_play_Lv2(); break;
-        case 3: cpu_play_Lv3(); break;
-        default: cpu_play_Lv1(); break;
+        case 0:
+        case 1: cpu_play_Lv1(); break;
+        case 2:
+        case 3: cpu_play_Lv2(); break;
     }
 
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
@@ -297,8 +298,10 @@ function cpu_play() {
 
 function cpu_decide_collect_card(pairFieldID) {
     switch (data.cpuLevel) {
-        case 2: case 3: return cpu_decide_collect_card_Lv2(pairFieldID);
-        default: return cpu_decide_collect_card_Lv1(pairFieldID);
+        case 0:
+        case 1: return cpu_decide_collect_card_Lv1(pairFieldID);
+        case 2:
+        case 3: return cpu_decide_collect_card_Lv2(pairFieldID);
     }
 }
 
@@ -308,8 +311,10 @@ function cpu_decide_koi() {
 
     let koi;
     switch (data.cpuLevel) {
+        case 0:
         case 1: koi = cpu_decide_koi_Lv1(); break;
-        default: koi = cpu_decide_koi_Lv2(); break;
+        case 2: koi = cpu_decide_koi_Lv2(); break;
+        case 3: koi = cpu_decide_koi_Lv3(); break;
     }
 
     if (koi) koikoi(CPU);

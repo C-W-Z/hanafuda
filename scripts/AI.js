@@ -85,8 +85,7 @@ function cpu_play_Lv2() {
     player[CPU].selected_handID = -1;
     player[CPU].selected_fieldID = -1;
     for (let i = 0; i < player[CPU].hand.length; i++)
-        for (let j = 0; j < FIELD_SPACE; j++) {
-            if (field.card[j] < 0) continue;
+        for (let j = 0; j < FIELD_SPACE; j++)
             if (Math.floor(player[CPU].hand[i]/4) == Math.floor(field.card[j]/4) &&
                ((player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) ||
                 (card_type[player[CPU].hand[i]] + card_type[field.card[j]] > 
@@ -94,7 +93,6 @@ function cpu_play_Lv2() {
                     player[CPU].selected_handID = i;
                     player[CPU].selected_fieldID = j;
             }
-        }
 
     // 如果沒找到可配對的 -> 棄價值最低的牌
     if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) {
@@ -116,11 +114,17 @@ function cpu_decide_collect_card_Lv2(pairFieldID) {
 }
 
 function cpu_decide_koi_Lv2() {
-    if (game.month == data.MAXMONTH && player[CPU].total_money < player[PLR].total_money)
-        return true;
-	if (data.MAXMONTH == 1)
-		return (Math.floor(Math.random() * 3) == 0);
-    return (Math.floor(Math.random() * 2) == 0);
+    let get = 0;
+    if (data.koi_bonus) get = player[CPU].score * (player[CPU].koi_time + player[CPU].koi_time + 1);
+    else if (data.seven_bonus && player[CPU].score >= 7) get = player[CPU].score * 2;
+    else get = player[CPU].score;
+
+    if (game.month == data.MAXMONTH)
+        return (player[CPU].total_money + get < player[PLR].total_money);
+
+    if (player[CPU].total_money + get < player[PLR].total_money)
+        return (Math.floor(Math.random() * 2) == 0);
+    return (Math.floor(Math.random() * 3) == 0);
 }
 
 function adjust_deck_Lv2(playerID, max_diff) {
@@ -140,75 +144,29 @@ function adjust_deck_Lv2(playerID, max_diff) {
 
 //#region Lv3
 
-function cpu_play_Lv3() {
-    // 找出所有可以出的牌與對應的場牌
-    // 找到價值最高的
-    player[CPU].selected_handID = -1;
-    player[CPU].selected_fieldID = -1;
-    let handCard = -1, fieldCard = -1;;
-    loop:
-    for (const h of player[CPU].hand)
-        for (const f of field.card) {
-            if (f < 0) continue;
-            if (Math.floor(h/4) == Math.floor(f/4)) {
-                /* 先拿酒 */
-                if ((data.kiku_dross && f==32) || (data.sugawara && data.five_bird && f==4) ||
-                    ((!data.flower_moon_sake_bonus && (data.flower_sake || data.moon_sake)) && (f==32||h==32||f==8||f==28||h==8||h==28)) ||
-                    (data.akatan && (f== 1||f== 5||f== 9||h== 1||h== 5||h== 9)) ||
-                    (data.aotan  && (f==21||f==33||f==37||h==21||h==33||h==37)) ||
-                    (data.grass  && (f==13||f==17||f==25||h==13||h==17||h==25)) ||
-                    (data.inoshikacho && (f==36||h==36||f==20||h==20||f==24||h==24)) ||
-                    (data.five_bird   && (f==29||h==29||f==4||f==12||h==4||h==12))) {
-                    handCard = h;
-                    fieldCard = f;
-                    break loop;
-                }
-                if ((player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) ||
-                    (card_type[h] + card_type[f] > 
-                     card_type[player[CPU].hand[player[CPU].selected_handID]] + card_type[field.card[player[CPU].selected_fieldID]])) {
-                    handCard = h;
-                    fieldCard = f;
-                }
-            }
-        }
-    if (handCard != -1 && fieldCard != -1) {
-        for (let i = 0; i < player[CPU].hand.length; i++)
-            if (player[CPU].hand[i] == handCard) {
-                player[CPU].selected_handID = i;
-                break;
-            }
-        for (let i = 0; i < FIELD_SPACE; i++)
-            if (field.card[i] == fieldCard) {
-                player[CPU].selected_fieldID = i;
-                break;
-            }
-    }
+function cpu_decide_koi_Lv3() {
+    let get = 0;
+    if (data.koi_bonus) get = player[CPU].score * (player[CPU].koi_time + player[CPU].koi_time + 1);
+    else if (data.seven_bonus && player[CPU].score >= 7) get = player[CPU].score * 2;
+    else get = player[CPU].score;
 
-    // 如果沒找到可配對的 -> 棄價值最低的牌
-    if (player[CPU].selected_handID < 0 || player[CPU].selected_fieldID < 0) {
-        player[CPU].selected_handID = 0;
-        if (player[CPU].hand.length > 1) {
-            let H = player[CPU].hand[0];
-            for (const h of player[CPU].hand) {
-                if (((data.flower_sake || data.moon_sake) && h==32) ||
-                    (data.inoshikacho && (h==36||h==20||h==24) && (player[PLR].has[20]+player[PLR].has[24]+player[PLR].has[36] > 0)) ||
-                    (data.akatan && (h== 1||h== 5||h== 9) && (player[PLR].has[ 1]+player[PLR].has[ 5]+player[PLR].has[ 9] > 0)) ||
-                    (data.aotan  && (h==21||h==33||h==37) && (player[PLR].has[21]+player[PLR].has[33]+player[PLR].has[37] > 0)))
-                    continue;
-                if (card_type[h] < card_type[player[CPU].hand[player[CPU].selected_handID]])
-                    H = h;
-            }
-            for (let i = 1; i < player[CPU].hand.length; i++)
-                if (H == player[CPU].hand[i]) {
-                    player[CPU].selected_handID = i;
-                    break;
-                }
-        }
-        /* 找到場上空的位置 */
-        for (let j = 0; j < FIELD_SPACE; j++)
-            if (field.card[j] == -1) {
-                player[CPU].selected_fieldID = j;
-                break;
-            }
-    }
+    if (game.month == data.MAXMONTH)
+        return (player[CPU].total_money + get < player[PLR].total_money);
+
+    if (player[PLR].collect[0].length >= 8 ||
+        player[PLR].collect[1].length >= 4 ||
+        player[PLR].collect[2].length >= 4 ||
+       (player[PLR].collect[3].length >= 2 && player[CPU].collect[3].length <= 1))
+        return false;
+
+    if (player[CPU].collect[0] >= 9 &&
+        player[PLR].collect[0].length <= 7 &&
+        player[PLR].collect[1].length <= 2 &&
+        player[PLR].collect[2].length >= 2 &&
+        player[PLR].collect[3].length <= 1)
+        return true;
+
+    return (Math.floor(Math.random() * 2) == 0);
 }
+
+//#endregion
