@@ -221,20 +221,27 @@ class Player {
             for (let j = 0; j < this.collect[i].length; j++) {
                 if (i < this.collect.length / 2)
                     card[this.collect[i][j]].px = SCREEN_W - (CARD_W+CARD_GAP*2) - (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
-                else
-                    card[this.collect[i][j]].px = (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
-                if (this.ID == PLR) {
-                    if (i % 2 == 0)
-                        card[this.collect[i][j]].py = SCREEN_H - (CARD_H+CARD_GAP*2) + CARD_GAP;
-                    else
-                        card[this.collect[i][j]].py = SCREEN_H - 2 * (CARD_H+CARD_GAP*2) + CARD_GAP;
-                } else { // ID == CPU
-                    if (i % 2 == 0)
-                        card[this.collect[i][j]].py = (CARD_H+CARD_GAP*2) + CARD_GAP;
-                    else
-                        card[this.collect[i][j]].py = CARD_GAP;
-                }
+                else card[this.collect[i][j]].px = (CARD_W+CARD_GAP*2) * (2 * j / this.collect[i].length) + CARD_GAP;
+                card[this.collect[i][j]].py = this.getNewColloectY(i);
             }
+    }
+
+    getNewColloectX(i) {
+        if (i < this.collect.length / 2)
+            return SCREEN_W - (CARD_W+CARD_GAP*2) - (CARD_W+CARD_GAP*2) * (2 * this.collect[i].length / (this.collect[i].length + 1)) + CARD_GAP;
+        return (CARD_W+CARD_GAP*2) * (2 * this.collect[i].length / (this.collect[i].length + 1)) + CARD_GAP;
+    }
+
+    getNewColloectY(i) {
+        if (this.ID == PLR) {
+            if (i % 2 == 0)
+                return SCREEN_H - (CARD_H+CARD_GAP*2) + CARD_GAP;
+            return SCREEN_H - 2 * (CARD_H+CARD_GAP*2) + CARD_GAP;
+        } else { // ID == CPU
+            if (i % 2 == 0)
+                return (CARD_H+CARD_GAP*2) + CARD_GAP;
+            return CARD_GAP;
+        }
     }
 
     pointedCollectIndex() {
