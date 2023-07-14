@@ -279,7 +279,11 @@ function after_deal(new_card) {
 
 /* 玩家的回合 */
 function player_play() {
-    game.state = gameState.player_select_hand;
+    game.state = gameState.cpu_play;
+
+    cpu_play_Lv3(PLR);
+
+    player_play_card(PLR, player[PLR].selected_handID, player[PLR].selected_fieldID);
 }
 
 /* AI的回合 */
@@ -287,12 +291,16 @@ function cpu_play() {
     game.state = gameState.cpu_play;
 
     switch (data.cpuLevel) {
-        case 2: cpu_play_Lv2(); break;
-        case 3: cpu_play_Lv3(); break;
-        default: cpu_play_Lv1(); break;
+        case 2: cpu_play_Lv2(CPU); break;
+        case 3: cpu_play_Lv3(CPU); break;
+        default: cpu_play_Lv1(CPU); break;
     }
 
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
+}
+
+function player_decide_collect_card(pairFieldID) {
+    return cpu_decide_collect_card_Lv2(pairFieldID);
 }
 
 function cpu_decide_collect_card(pairFieldID) {
@@ -302,14 +310,25 @@ function cpu_decide_collect_card(pairFieldID) {
     }
 }
 
+function player_decide_koi() {
+    // update data
+    data.canKoiTime[PLR] += 1;
+
+    let koi;
+    koi = cpu_decide_koi_Lv3(PLR);
+
+    if (koi) koikoi(PLR);
+    else player_win_month(PLR);
+}
+
 function cpu_decide_koi() {
     // update data
     data.canKoiTime[CPU] += 1;
 
     let koi;
     switch (data.cpuLevel) {
-        case 1: koi = cpu_decide_koi_Lv1(); break;
-        default: koi = cpu_decide_koi_Lv2(); break;
+        case 0: case 1: koi = cpu_decide_koi_Lv1(CPU); break;
+        default: koi = cpu_decide_koi_Lv2(CPU); break;
     }
 
     if (koi) koikoi(CPU);
@@ -318,8 +337,6 @@ function cpu_decide_koi() {
 
 /* 玩家出牌 */
 function player_play_card(playerID, handID, fieldID) {
-    if (playerID == PLR)
-        game.state = gameState.player_play_card;
 
     let handCardID = player[playerID].hand[handID];
     // 從手牌和場上移除handID和fieldID的2張牌
@@ -376,12 +393,7 @@ function after_play(playerID, handCardID, fieldCardID, fieldID = -1) {
 function draw_new_card(playerID) {
     // 調整牌差
     if (data.adjust_deck) {
-        switch (data.cpuLevel) {
-            case 0: adjust_deck_Lv0(playerID, 0); break;
-            case 1: adjust_deck_Lv0(playerID, 2); break;
-            case 2: adjust_deck_Lv2(playerID, 4); break;
-            case 3: adjust_deck_Lv2(playerID, 6); break;
-        }
+        adjust_deck_Lv2(playerID, 4);
     }
 
     // draw card
@@ -412,9 +424,8 @@ function draw_new_card(playerID) {
     }
     else if (pairFieldID.length >= 2) {
         if (playerID == PLR) {
-            // wait for player choose
-            game.state = gameState.player_choose_card;
-            field.update_noticed(Math.floor(new_card/4));
+            fieldID = player_decide_collect_card(pairFieldID);
+            draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
         } else /* CPU */ {
             fieldID = cpu_decide_collect_card(pairFieldID);
             draw_card_animation(playerID, new_card, fieldID, field.card[fieldID]);
@@ -504,7 +515,7 @@ function start_show_yaku(playerID, yakuID) {
             player_win_month(playerID);
         // ask koi koi or not
         else if (playerID == PLR)
-            start_ask_koikoi();
+            player_decide_koi();
         else // CPU
             cpu_decide_koi();
         return;
