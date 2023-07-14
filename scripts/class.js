@@ -140,9 +140,10 @@ class Player {
         this.noticed = new Array();
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
+        this.hold = new Array(CARD_NUM);
         this.has = new Array(CARD_NUM);
         for (let i = 0; i < CARD_NUM; i++)
-            this.has[i] = 0;
+            this.hold[i] = this.has[i] = 0;
         this.yaku = new Array(YAKU_NUM);
         for (let i = 0; i < YAKU_NUM; i++)
             this.yaku[i] = 0;
@@ -160,6 +161,7 @@ class Player {
         card[cardID].selected = false;
         card[cardID].place = (this.ID == PLR) ? cardPlace.player_hand : cardPlace.cpu_hand;
         this.hand.push(cardID);
+        this.hold[cardID] = 1;
     }
 
     removeHand(handID) {
@@ -171,6 +173,7 @@ class Player {
             this.hand[i] = this.hand[i + 1];
         this.hand.pop();
         this.selected_handID = -1;
+        this.hold[this.hand[handID]] = 0;
     }
 
     addCollect(cardID) {
@@ -345,12 +348,15 @@ class Player {
 class Field {
     constructor() {
         this.card = new Array(FIELD_SPACE);
+        this.has = new Array(CARD_NUM);
         this.reset_month();
     }
 
     reset_month() {
         for (let i = 0; i < FIELD_SPACE; i++)
             this.card[i] = -1;
+        for (let i = 0; i < CARD_NUM; i++)
+            this.has[i] = 0;
     }
 
     insertCard(fieldID, cardID) {
@@ -359,6 +365,7 @@ class Field {
         card[cardID].selected = false;
         card[cardID].place = cardPlace.field;
         this.card[fieldID] = cardID;
+        this.has[cardID] = 1;
     }
 
     removeCard(fieldID) {
@@ -369,6 +376,7 @@ class Field {
         movingCard.unshift(this.card[fieldID]); // push_front
         this.card[fieldID] = -1;
         this.update_noticed(-1);
+        this.has[this.card[fieldID]] = 0;
     }
 
     update_noticed(month) {
