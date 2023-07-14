@@ -139,6 +139,8 @@ function start_month() {
     else
         game.first = Number(!game.first);
 
+    reset_card_val();
+
     // reset animation
     endAnimation();
 
