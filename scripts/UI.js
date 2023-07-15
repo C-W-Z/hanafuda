@@ -1,3 +1,34 @@
+/* home page */
+const title_button_text = ['開始', '統計', '設定'];
+let title_button = new Array(title_button_text.length);
+let devSource;
+let back_button;
+let setting_panel;
+let settings_button = new Array(4);
+const settings_button_text = ["画面調整","資料継承","資料下載","資料削除"];
+let page = 0;
+let page_button = new Array(2);
+let statistic_panel;
+let start_button;
+let choose_rule_panel;
+let rule_button;
+// 月
+let month_panel;
+// 文
+let score_panel = new Array(2);
+// when ask player for koikoi
+let koi_panel;
+let end_button;
+let koi_button;
+let banner;
+// when game end -> show yaku and score
+let yaku_panel;
+let next_month_button;
+let to_result_button;
+let result_panel;
+let home_button;
+
+
 function drawTitle() {
     // draw Card Images
     const gap = 120, h = 225;
@@ -27,8 +58,7 @@ function create_UI() {
     w = 150, h = 50;
     title_button[0] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*1, w, h, 0, title_button_text[0], 40, show_choose_rules, '', '', 'black');
     title_button[1] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*2, w, h, 0, title_button_text[1], 40, show_statistics, '', '', 'black');
-    title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, null, '', '', 'black');
-    title_button[3] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, title_button_text[3], 40, show_settings, '', '', 'black');
+    title_button[2] = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, title_button_text[2], 40, show_settings, '', '', 'black');
 
     back_button = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*4, w, h, 0, '戻る', 40, back_to_title, '', '', 'black');
 

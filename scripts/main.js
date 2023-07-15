@@ -347,6 +347,9 @@ function start_game() {
 
     game.reset_game();
 
+    if (data.cpuLevel == 3)
+        reset_card_val();
+
     // update data
     data.battleTime++;
 

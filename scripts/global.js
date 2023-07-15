@@ -115,37 +115,6 @@ let next_func = new Function();
 next_func = null;
 let movingCard;
 
-/* UI */
-/* home page */
-let title_button = new Array(4);
-const title_button_text = ['開始', '統計', '成就', '設定'];
-let devSource;
-let back_button;
-let setting_panel;
-let settings_button = new Array(4);
-const settings_button_text = ["画面調整","資料継承","資料下載","資料削除"];
-let page = 0;
-let page_button = new Array(2);
-let statistic_panel;
-let start_button;
-let choose_rule_panel;
-let rule_button;
-// 月
-let month_panel;
-// 文
-let score_panel = new Array(2);
-// when ask player for koikoi
-let koi_panel;
-let end_button;
-let koi_button;
-let banner;
-// when game end -> show yaku and score
-let yaku_panel;
-let next_month_button;
-let to_result_button;
-let result_panel;
-let home_button;
-
 /* draw card */
 /**
  * @param {number} cardID 要畫哪張牌 (0 ~ 48) (48是牌背)
