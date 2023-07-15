@@ -278,17 +278,16 @@ function after_deal(new_card) {
         for (let i = 0; i < HAND_NUM; i++)
             player[CPU].addHand(new_card[CPU + 1][i]);
 
-        requestAnimationFrame(()=>{
-            // 第一回合開始
-            game.round = 0;
-            (game.round % 2 == game.first) ? player_play() : cpu_play();
-        });
+        need_draw = false;
+        redraw_canvas();
+        // 第一回合開始
+        game.round = 0;
+        (game.round % 2 == game.first) ? player_play() : cpu_play();
     }
 }
 
 /* 玩家的回合 */
 function player_play() {
-    need_draw = false;
     game.state = gameState.player_select_hand;
 }
 

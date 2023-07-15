@@ -598,4 +598,5 @@ function changeAnimationTime() {
 
     data.animationTime = MOVE_TIME;
     data.store();
+    need_draw = true;
 }

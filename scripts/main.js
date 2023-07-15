@@ -158,6 +158,8 @@ function resize_canvas() {
     // fix text position
     context.textAlign = "center";
     context.textBaseline = 'middle';
+    if (game != null)
+        redraw_canvas();
 }
 
 // get mouse coorfinates
