@@ -50,6 +50,7 @@ class Data {
         // 出現率 = yakuTime[i] / battleMonth
 
         // rules
+        this.animationTime = normalMoveTime;
         this.adjust_deck = true;
         this.yaku_score = [6, 10, 8, 7, 5, 5, 5, 5, 3, 3, 5, 5, 7, 5, 10, 5, 5, 5., 4, 1, 1, 1];
         this.cpuLevel = 1; // AI策略等級 (0:隨機出牌,1:會根據牌的類型判斷價值,2:會判斷能組成役的特定牌更有價值,3:根據當前情況判斷目標是組成什麼役)
@@ -140,9 +141,6 @@ class Player {
         this.noticed = new Array();
         this.score = 0; // 當回合分數
         this.collect = [[], [], [], []]; // 玩家獲得的牌
-        this.has = new Array(CARD_NUM);
-        for (let i = 0; i < CARD_NUM; i++)
-            this.has[i] = 0;
         this.yaku = new Array(YAKU_NUM);
         for (let i = 0; i < YAKU_NUM; i++)
             this.yaku[i] = 0;
@@ -179,8 +177,6 @@ class Player {
         card[cardID].selected = false;
         card[cardID].place = (this.ID == PLR) ? cardPlace.player_collect : cardPlace.cpu_collect;
         this.collect[card_type[cardID]].push(cardID);
-        this.has[cardID] = 1;
-        update_card_val(cardID);
     }
 
     update_noticed() {

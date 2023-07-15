@@ -40,9 +40,10 @@ function create_UI() {
     w = 500, h = 450;
     setting_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
     w = 300, h = 50;
-    settings_button[0] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*3.5, w, h, 10, settings_button_text[0], FONT_SIZE, resize_canvas, 'lightgray');
-    settings_button[1] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*1.5, w, h, 10, settings_button_text[1], FONT_SIZE, uploadData, 'lightgray');
-    settings_button[2] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*0.5, w, h, 10, settings_button_text[2], FONT_SIZE, downloadData, 'lightgray');
+    animation_button = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*3.5, w, h, 10, `動画速度：${(MOVE_TIME==normalMoveTime?'中':'快')}`, FONT_SIZE, changeAnimationTime, 'lightgray');
+    settings_button[0] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*2, w, h, 10, settings_button_text[0], FONT_SIZE, resize_canvas, 'lightgray');
+    settings_button[1] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*0.5, w, h, 10, settings_button_text[1], FONT_SIZE, uploadData, 'lightgray');
+    settings_button[2] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*1, w, h, 10, settings_button_text[2], FONT_SIZE, downloadData, 'lightgray');
     settings_button[3] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*2.5, w, h, 10, settings_button_text[3], FONT_SIZE, deleteData, 'red','black','red');
 
     w = 40, h = 50;
@@ -510,6 +511,7 @@ function rule_change(i) {
             }
             break;
     }
+    data.store();
 }
 
 function set_rule_buttons() {
@@ -553,4 +555,16 @@ function set_rule_buttons() {
     rule_button[5][1].text = `${data.yaku_score[20]}文`;
     rule_button[5][2].text = `${data.yaku_score[21]}文`;
     rule_button[5][5].text = data.adjust_deck ? '✔' : '✘';
+}
+
+function changeAnimationTime() {
+    if (MOVE_TIME == normalMoveTime)
+        MOVE_TIME = fastMoveTime;
+    else
+        MOVE_TIME = normalMoveTime;
+    FLIP_TIME = MOVE_TIME * 2;
+    animation_button.text = `動画速度：${(MOVE_TIME==normalMoveTime?'中':'快')}`;
+
+    data.animationTime = MOVE_TIME;
+    data.store();
 }

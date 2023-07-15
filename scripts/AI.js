@@ -25,6 +25,18 @@ function next_not_pair() {
 
 //#region Lv0 會幫玩家組成役
 
+function cpu_decide_collect_card_Lv0(pairFieldID) {
+    let a = pairFieldID[0], b = pairFieldID[1];
+    if (card_type[field.card[a]] > card_type[field.card[b]])
+        [a, b] = [b, a];
+    if ((card_type[field.card[a]] == 0 && player[CPU].collect[0].length <= 7) ||
+        (card_type[field.card[a]] == 1 && player[CPU].collect[1].length <= 3) ||
+        (card_type[field.card[a]] == 2 && player[CPU].collect[2].length <= 3) ||
+        (card_type[field.card[a]] == 3 && player[CPU].collect[3].length <= 1))
+        return a;
+    return b;
+}
+
 /* 再抽牌前調整牌差 */
 function adjust_deck_Lv0(playerID, max_diff) {
     let card_diff = 0;
@@ -110,7 +122,7 @@ function cpu_play_Lv2() {
 }
 
 function cpu_decide_collect_card_Lv2(pairFieldID) {
-    return (card_type[pairFieldID[0]] > card_type[pairFieldID[1]]) ? pairFieldID[0] : pairFieldID[1];
+    return (card_type[field.card[pairFieldID[0]]] > card_type[field.card[pairFieldID[1]]]) ? pairFieldID[0] : pairFieldID[1];
 }
 
 function cpu_decide_koi_Lv2() {
@@ -266,59 +278,4 @@ function reset_card_val() {
     card_val[25] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
     card_val[33] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
     card_val[37] += Number(data.seven_tan || data.six_tan) + Number(data.tan_accumulate);
-
-    for (let i = 0; i < CARD_NUM; i++)
-        card_val[i] *= 3;
-}
-
-function update_card_val(cardID) {
-    for (let i = 0; i < CARD_NUM; i++)
-        if (card_type[i] == card_type[cardID])
-            card_val[i] += 1;
-    if (data.month_yaku && Math.floor(cardID/4) == game.month) {
-        card_val[game.month * 4] += 1;
-        card_val[game.month * 4 + 1] += 1;
-        card_val[game.month * 4 + 2] += 1;
-        card_val[game.month * 4 + 3] += 1;
-    }
-    if (cardID == 8 || cardID == 28 || cardID == 32) {
-        card_val[ 8] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
-        card_val[28] += Number(data.flower_moon_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
-        card_val[32] += Number(data.flower_moon_sake) + Number(data.flower_sake) + Number(data.moon_sake) + Number(data.flower_moon_sake_accumulate) - Number(data.flower_moon_sake_bonus);
-    }
-    if (data.matsukiribozu && (cardID == 0 || cardID == 28 || cardID == 44)) {
-        card_val[0] += 1;
-        card_val[28] += 1;
-        card_val[44] += 1;
-    }
-    if (data.sugawara && (cardID == 0 || cardID == 4 || cardID == 8)) {
-        card_val[0] += 1;
-        card_val[4] += 1;
-        card_val[8] += 1;
-    }
-    if (data.inoshikacho && (cardID == 20 || cardID == 24 || cardID == 36)) {
-        card_val[20] += 1;
-        card_val[24] += 1;
-        card_val[36] += 1;
-    }
-    if (data.five_bird && (cardID == 4 || cardID == 12 || cardID == 29)) {
-        card_val[4] += 1;
-        card_val[12] += 1;
-        card_val[29] += 1;
-    }
-    if (data.grass && (cardID == 13 || cardID == 17 || cardID == 25)) {
-        card_val[13] += 1;
-        card_val[17] += 1;
-        card_val[25] += 1;
-    }
-    if (cardID == 1 || cardID == 5 || cardID == 9) {
-        card_val[ 1] += Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[ 5] += Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[ 9] += Number(data.akatan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-    }
-    if (cardID == 21 || cardID == 33 || cardID == 37) {
-        card_val[21] += Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[33] += Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-        card_val[37] += Number(data.aotan) + Number(data.akatan_aotan || data.akatan_aotan_accumulate);
-    }
 }

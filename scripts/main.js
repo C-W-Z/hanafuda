@@ -21,6 +21,8 @@ window.onload = function()
 
     /* load Data */
     data = new Data();
+    MOVE_TIME = data.animationTime;
+    FLIP_TIME = MOVE_TIME * 2;
 
     init_game();
     animate(startTime);
@@ -54,6 +56,7 @@ function click_func(event) {
             back_button.check_press();
             for (let i = 0; i < settings_button.length; i++)
                 settings_button[i].check_press();
+            animation_button.check_press();
             devSource.check_press();
             break;
         case gameState.statistic:
@@ -200,6 +203,7 @@ function draw_home_page() {
             setting_panel.draw();
             for (let i = 0; i < settings_button.length; i++)
                 settings_button[i].draw();
+            animation_button.draw();
             back_button.draw();
             break;
 
@@ -216,8 +220,10 @@ function draw_gaming() {
     // draw the deck at center
     draw_card(CARD_BACK_ID, DECK_P.x, DECK_P.y);
 
-    player[CPU].update_card_info();
-    player[PLR].update_card_info();
+    if (game.state != gameState.player_choose_card) {
+        player[CPU].update_card_info();
+        player[PLR].update_card_info();
+    }
 
     // draw the field cards
     field.update_card_info();

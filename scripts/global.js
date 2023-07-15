@@ -208,6 +208,7 @@ function step_move(cardID, sX, sY, dX, dY, flip = false) {
     return function(time) {
         const deltaTime = (time - startTime) / MOVE_TIME;
         if (deltaTime >= 1) {
+            if (flip) card[cardID].back = false;
             card[cardID].px = dX;
             card[cardID].py = dY;
             card[cardID].scaleX = 1;

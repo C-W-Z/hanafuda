@@ -93,6 +93,8 @@ function flip_guess_card(i) {
     return function(time) {
         const deltaTime = (time - startTime) / FLIP_TIME;
         if (deltaTime >= 1) {
+            guess_card[i].back = false;
+            guess_card[Number(!i)].back = false;
             guess_card[i].scaleX = 1;
             guess_card[Number(!i)].scaleX = 1;
             startTime = null;
@@ -102,6 +104,7 @@ function flip_guess_card(i) {
             guess_card[Number(!i)].scaleX = Math.abs(easeOutQuad(time-startTime-FLIP_TIME*0.5, 1, -4*(deltaTime-0.5), FLIP_TIME*0.5));
             if (deltaTime >= 0.75)
                 guess_card[Number(!i)].back = false;
+            guess_card[i].back = false;
         } else {
             guess_card[i].scaleX = Math.abs(easeOutQuad(time-startTime, 1, -4*deltaTime, FLIP_TIME*0.5));
             if (deltaTime >= 0.25)
@@ -300,7 +303,7 @@ function cpu_play() {
 
 function cpu_decide_collect_card(pairFieldID) {
     switch (data.cpuLevel) {
-        case 0:
+        case 0: return cpu_decide_collect_card_Lv0(pairFieldID);
         case 1: return cpu_decide_collect_card_Lv1(pairFieldID);
         case 2:
         case 3: return cpu_decide_collect_card_Lv2(pairFieldID);
@@ -429,6 +432,8 @@ function draw_new_card(playerID) {
         if (playerID == PLR) {
             // wait for player choose
             game.state = gameState.player_choose_card;
+            for (let i = 0; i < player[PLR].hand.length; i++)
+                card[player[PLR].hand[i]].noticed = false;
             field.update_noticed(Math.floor(new_card/4));
         } else /* CPU */ {
             fieldID = cpu_decide_collect_card(pairFieldID);
