@@ -11,6 +11,7 @@
 
 function start_guess() {
     guessing = true;
+    need_draw = true;
 
     let month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
     shuffle(month);
@@ -54,12 +55,14 @@ function guess_click_func(e) {
     {
         guess_result = (guess_card[i].ID < guess_card[Number(!i)].ID);
         startTime = performance.now();
+        need_draw = true;
         time_func = flip_guess_card(i);
         next_func = function (time) {
             guess_text = (guess_result ? 'あなた' : '相手') + 'が親になりました';
             
             next_func = function (time) {
                 endAnimation();
+                need_draw = false;
                 guessing = false;
                 after_guess();
             }
@@ -218,6 +221,25 @@ function pointedPlayerHandIndex() {
     return -1;
 }
 
+/* 發牌 */
+function deal_cards() {
+    game.state = gameState.deal;
+
+    // distribute cards
+    let new_card = [[], [], []]; // 0:field, 1:player, 2:cpu
+    for (let j = 0; j < 3; j++)
+        for (let i = 0; i < HAND_NUM; i++) {
+            new_card[j].push(deck.pop());
+            movingCard.push(new_card[j][i]);
+            card[new_card[j][i]].place = cardPlace.moving;
+        }
+
+    // animation
+    startTime = performance.now(); // reset startTime
+    need_draw = true;
+    time_func = deal_step(new_card, 0);
+}
+
 // 一幀的發牌動畫
 function deal_step(cards, i) {
     if (i < HAND_NUM)
@@ -244,24 +266,6 @@ function deal_step(cards, i) {
     }
 }
 
-/* 發牌 */
-function deal_cards() {
-    game.state = gameState.deal;
-
-    // distribute cards
-    let new_card = [[], [], []]; // 0:field, 1:player, 2:cpu
-    for (let j = 0; j < 3; j++)
-        for (let i = 0; i < HAND_NUM; i++) {
-            new_card[j].push(deck.pop());
-            movingCard.push(new_card[j][i]);
-            card[new_card[j][i]].place = cardPlace.moving;
-        }
-
-    // animation
-    startTime = performance.now(); // reset startTime
-    time_func = deal_step(new_card, 0);
-}
-
 function after_deal(new_card) {
     return function (time) {
         endAnimation();
@@ -274,14 +278,17 @@ function after_deal(new_card) {
         for (let i = 0; i < HAND_NUM; i++)
             player[CPU].addHand(new_card[CPU + 1][i]);
 
-        // 第一回合開始
-        game.round = 0;
-        (game.round % 2 == game.first) ? player_play() : cpu_play();
+        requestAnimationFrame(()=>{
+            // 第一回合開始
+            game.round = 0;
+            (game.round % 2 == game.first) ? player_play() : cpu_play();
+        });
     }
 }
 
 /* 玩家的回合 */
 function player_play() {
+    need_draw = false;
     game.state = gameState.player_select_hand;
 }
 
@@ -326,8 +333,10 @@ function cpu_decide_koi() {
 
 /* 玩家出牌 */
 function player_play_card(playerID, handID, fieldID) {
-    if (playerID == PLR)
+    if (playerID == PLR) {
         game.state = gameState.player_play_card;
+        field.update_noticed(-1);
+    }
 
     let handCardID = player[playerID].hand[handID];
     // 從手牌和場上移除handID和fieldID的2張牌
@@ -335,6 +344,7 @@ function player_play_card(playerID, handID, fieldID) {
 
     // animation
     startTime = performance.now(); // reset startTime
+    need_draw = true;
     movingCard.push(handCardID);
     // 分為(手牌與場牌)有可以配對的與無可配對的2種情況
     if (field.card[fieldID] == -1) {
@@ -355,6 +365,7 @@ function player_collect_animation(playerID, handCardID, fieldID) {
             let fieldCardID = field.card[fieldID];
             field.removeCard(fieldID);
             startTime = performance.now(); // reset startTime
+            need_draw = true;
             time_func = collect_step(playerID, handCardID, fieldCardID)
             next_func = after_play(playerID, handCardID, fieldCardID);
         }, 100);
@@ -450,18 +461,21 @@ function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
 
     // animation
     startTime = performance.now(); // reset startTime
+    need_draw = true;
     time_func = step_move(new_card, DECK_P.x, DECK_P.y, Field.X(fieldID), Field.Y(fieldID) + (fieldCardID >= 0 ? 20 : 0));
     // 這裡還要加上collect的動畫
     if (fieldCardID >= 0)
-        setTimeout(function () {
-            // remove the card from field
+        next_func = function (time) {
+            time_func = null;
+            next_func = null;
             field.removeCard(fieldID);
-            next_func = function (time) {
+            setTimeout(function () {
+                // remove the card from field
                 startTime = performance.now(); // reset startTime
                 time_func = collect_step(playerID, new_card, fieldCardID)
                 next_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
-            };
-        }, 100);
+            }, 100);
+        };
     else
         next_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
 }
@@ -478,7 +492,7 @@ function after_draw_new_card(playerID, new_cardID, fieldID, fieldCardID) {
             // put to field
             field.insertCard(fieldID, new_cardID);
         }
-
+        
         // round end
         // check yaku and check win or next round
         check_win(playerID);
@@ -510,6 +524,7 @@ async function check_win(playerID) {
                 // 平手
                 game.winner = -1;
                 game.state = gameState.month_end;
+                need_draw = true;
             }
         }
     } else if (win) {
@@ -538,6 +553,7 @@ function start_show_yaku(playerID, yakuID) {
     game.state = gameState.show_yaku_animation;
     // animation
     startTime = performance.now();
+    need_draw = true;
     time_func = banner_step;
     next_func = function (time) {
         endAnimation();
@@ -551,11 +567,13 @@ function start_ask_koikoi() {
     data.canKoiTime[PLR] += 1;
     // start draw UI
     game.state = gameState.player_decide_koi;
+    need_draw = true;
 }
 
 function player_win_month(playerID) {
     game.winner = playerID;
     game.state = gameState.month_end;
+    need_draw = true;
     if (data.seven_bonus && player[playerID].score >= 7)
         player[playerID].money[game.month-1] = player[playerID].score * 2;
     else if (data.koi_bonus)
@@ -608,6 +626,8 @@ function draw_decide_koi() {
     // draw buttons
     end_button.draw();
     koi_button.draw();
+
+    need_draw = false;
 }
 
 function koikoi(playerID) {
@@ -620,6 +640,7 @@ function koikoi(playerID) {
 
     // animation
     startTime = performance.now();
+    need_draw = true;
     time_func = banner_step;
     next_func = function (time) {
         endAnimation();
@@ -720,12 +741,15 @@ function draw_show_yaku() {
         context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
         context.fillText(`${player[game.winner].score}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
     }
+
+    need_draw = false;
 }
 
 function result_game() {
     game.winner = (player[PLR].total_money > player[CPU].total_money) ? PLR : CPU;
     if (player[PLR].total_money == player[CPU].total_money) game.winner = -1;
     game.state = gameState.game_result;
+    need_draw = true;
 
     // update data
     data.maxTotalMoney[PLR] = Math.max(player[PLR].total_money, data.maxTotalMoney[PLR]);
@@ -775,17 +799,47 @@ function draw_game_result() {
     context.fillText('合計', (SCREEN_W/2 - w/4) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[PLR].total_money}文`, (SCREEN_W/2) * R, (py + h - title_h/2) * R);
     context.fillText(`${player[CPU].total_money}文`, (SCREEN_W/2 + w/4) * R, (py + h - title_h/2) * R);
+
+    need_draw = false;
 }
 
 function player_select_hand(handID) {
     card[player[PLR].hand[handID]].selected = true;
     field.update_noticed(Math.floor(player[PLR].hand[handID] / 4));
     player[PLR].selected_handID = handID;
+
+    // redraw
+    context.clearRect((card[player[PLR].hand[handID]].px - context.lineWidth) * R, (card[player[PLR].hand[handID]].py - context.lineWidth) * R, (CARD_W + context.lineWidth * 2) * R, (CARD_H + context.lineWidth * 2) * R);
+    card[player[PLR].hand[handID]].draw();
+
+    redraw_field();
 }
 function player_unselect_hand(handID) {
     card[player[PLR].hand[handID]].selected = false;
     field.update_noticed(-1);
     player[PLR].selected_handID = -1;
+
+    // redraw
+    context.clearRect((card[player[PLR].hand[handID]].px - context.lineWidth) * R, (card[player[PLR].hand[handID]].py - 20 - context.lineWidth) * R, (CARD_W + context.lineWidth * 2) * R, (CARD_H + context.lineWidth * 2) * R);
+    card[player[PLR].hand[handID]].draw();
+
+    redraw_field();
+}
+
+function redraw_field() {
+    context.clearRect((Field.X(0) - context.lineWidth) * R, (Field.Y(0) - context.lineWidth) * R, (Field.X(FIELD_SPACE-1) - Field.X(0) + (CARD_W+CARD_GAP*2) + context.lineWidth*2) * R, (Field.Y(FIELD_SPACE-1) - Field.Y(0) + (CARD_H+CARD_GAP*2) + context.lineWidth*2) * R);
+
+    // draw the deck at center
+    draw_card(CARD_BACK_ID, DECK_P.x, DECK_P.y);
+
+    // draw the field cards
+    field.update_card_info();
+    for (let i = 0; i < FIELD_SPACE; i++) {
+        if (field.card[i] >= 0)
+            card[field.card[i]].draw();
+        else if (player[PLR].selected_handID >= 0 && player[PLR].noticed[player[PLR].selected_handID] == false)
+            draw_noticed(Field.X(i), Field.Y(i));
+    }
 }
 
 //#region Data Upload/Download

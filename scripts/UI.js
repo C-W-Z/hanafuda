@@ -77,8 +77,8 @@ function create_UI() {
     settings_button[3] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*2.5, w, h, 10, settings_button_text[3], FONT_SIZE, deleteData, 'red','black','red');
 
     w = 40, h = 50;
-    page_button[0] = new Button(0, 0, w, h, 5, '<', 32, ()=>{page--;});
-    page_button[1] = new Button(0, 0, w, h, 5, '>', 32, ()=>{page++;});
+    page_button[0] = new Button(0, 0, w, h, 5, '<', 32, ()=>{page--;need_draw=true;});
+    page_button[1] = new Button(0, 0, w, h, 5, '>', 32, ()=>{page++;need_draw=true;});
 
     w = 940, h = 500;
     statistic_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2-20, w, h, 10);
@@ -132,29 +132,27 @@ function create_UI() {
 //#endregion
 }
 
-function check_hover_home_buttons(time) {
-    switch (game.state) {
-        case gameState.title:
-            for (let i = 0; i < title_button.length; i++)
-                title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
-            break;
-        case gameState.choose_rules:
-            start_button.text = start_button.include(mouse) ? '>  開始  <' : '開始';
-        case gameState.settings:
-        case gameState.statistic:
-            back_button.text = back_button.include(mouse) ? '>  戻る  <' : '戻る';
-            break;
-    }
+function check_hover_home_buttons() {
+    for (let i = 0; i < title_button.length; i++)
+        title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
+    start_button.text = start_button.include(mouse) ? '>  開始  <' : '開始';
+    back_button.text = back_button.include(mouse) ? '>  戻る  <' : '戻る';
     devSource.textColor = devSource.include(mouse) ? 'gold' : 'black';
+    need_draw = true;
 }
 
 function back_to_title() {
     game.state = gameState.title;
-    time_func = check_hover_home_buttons;
+    canvas.onmousemove = function (e) {
+        updateMouseXY(e);
+        check_hover_home_buttons();
+    }
+    need_draw = true;
 }
 
 function show_settings() {
     game.state = gameState.settings;
+    need_draw = true;
 }
 
 function show_statistics() {
@@ -163,6 +161,7 @@ function show_statistics() {
     page_button[1].x = statistic_panel.x+statistic_panel.w+20;
     page_button[0].y = page_button[1].y = statistic_panel.y+statistic_panel.h/2-page_button[0].h/2;
     game.state = gameState.statistic;
+    need_draw = true;
 }
 
 const statistic_text = [
@@ -259,6 +258,7 @@ function show_choose_rules() {
     page_button[1].x = choose_rule_panel.x+choose_rule_panel.w+20;
     page_button[0].y = page_button[1].y = choose_rule_panel.y+choose_rule_panel.h/2-page_button[0].h/2;
     game.state = gameState.choose_rules;
+    need_draw = true;
 }
 
 const rule_text = [
@@ -542,6 +542,7 @@ function rule_change(i) {
             break;
     }
     data.store();
+    need_draw = true;
 }
 
 function set_rule_buttons() {

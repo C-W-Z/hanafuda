@@ -106,6 +106,7 @@ let after_guess = new Function();
 after_guess = null;
 
 /* animation */
+let need_draw = true;
 let MOVE_TIME = normalMoveTime; // 牌移動的時間
 let FLIP_TIME = normalMoveTime * 2;
 let startTime = null;

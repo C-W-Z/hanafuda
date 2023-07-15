@@ -16,7 +16,7 @@ window.onload = function()
     resize_canvas();
     // control settings
     canvas.onmousedown = click_func;
-    window.onmousemove  = updateMouseXY;
+    canvas.onmousemove = updateMouseXY;
     document.addEventListener('keydown', keydown_func);
 
     /* load Data */
@@ -25,6 +25,7 @@ window.onload = function()
     FLIP_TIME = MOVE_TIME * 2;
 
     init_game();
+    document.fonts.onloadingdone = redraw_canvas;
     animate(startTime);
 }
 
@@ -36,11 +37,16 @@ function click_func(event) {
     updateMouseXY(event);
 
     if (game == null) return;
+
+    if (game.state < gameState.ingame) {
+        //check_hover_home_buttons();
+        devSource.check_press();
+    }
+
     switch (game.state) {
         case gameState.title:
             for (let i = 0; i < title_button.length; i++)
                 title_button[i].check_press();
-            devSource.check_press();
             break;
         case gameState.choose_rules:
             start_button.check_press();
@@ -57,7 +63,6 @@ function click_func(event) {
             for (let i = 0; i < settings_button.length; i++)
                 settings_button[i].check_press();
             animation_button.check_press();
-            devSource.check_press();
             break;
         case gameState.statistic:
             if (page > 0)
@@ -65,7 +70,6 @@ function click_func(event) {
             if (page < 1)
                 page_button[1].check_press();
             back_button.check_press();
-            devSource.check_press();
             break;
         case gameState.player_select_hand:
             player[PLR].selected_handID = pointedPlayerHandIndex();
@@ -116,6 +120,7 @@ function click_func(event) {
             home_button.check_press();
             break;
     }
+    // need_draw = true;
 }
 
 function keydown_func(e) {
@@ -165,13 +170,7 @@ function updateMouseXY(event) {
     //console.log(mouse);
 }
 
-function animate(time) {
-    if (!startTime) // it's the first frame
-        startTime = time || performance.now();
-
-    if (time_func != null)
-        time_func(time);
-
+function redraw_canvas() {
     // 清除整個canvas畫面
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
@@ -182,6 +181,17 @@ function animate(time) {
         draw_gaming();
     else
         draw_home_page();
+}
+
+function animate(time) {
+    if (!startTime) // it's the first frame
+        startTime = time || performance.now();
+
+    if (time_func != null)
+        time_func(time);
+
+    if (need_draw)
+        redraw_canvas();
 
     requestAnimationFrame(animate);
 }
@@ -213,17 +223,18 @@ function draw_home_page() {
             break;
     }
     devSource.draw();
+    need_draw = false;
 }
 
 /* draw canvas when gaming */
 function draw_gaming() {
-    // draw the deck at center
-    draw_card(CARD_BACK_ID, DECK_P.x, DECK_P.y);
-
     if (game.state != gameState.player_choose_card) {
         player[CPU].update_card_info();
         player[PLR].update_card_info();
     }
+
+    // draw the deck at center
+    draw_card(CARD_BACK_ID, DECK_P.x, DECK_P.y);
 
     // draw the field cards
     field.update_card_info();
@@ -302,10 +313,6 @@ function draw_gaming() {
 function init_game() {
     guessing = false;
 
-    /* Card Imgs */
-    for (let i = 0; i < CARD_NUM+1; i++)
-        cardImg[i].src = `imgs/${i}.webp`;
-
     /* init game obj */
     game = new Game();
     game.state = gameState.title;
@@ -313,12 +320,21 @@ function init_game() {
     /* init UI in game */
     create_UI();
 
-    time_func = check_hover_home_buttons;
+    /* Card Imgs */
+    for (let i = 0; i < CARD_NUM+1; i++) {
+        cardImg[i].onload = redraw_canvas();
+        cardImg[i].src = `imgs/${i}.webp`;
+    }
+
+    canvas.onmousemove = function (e) {
+        updateMouseXY(e);
+        check_hover_home_buttons();
+    }
 }
 
 /* init new game */
 function start_game() {
-    time_func = null;
+    canvas.onmousemove = updateMouseXY;
     // store data
     data.store();
 

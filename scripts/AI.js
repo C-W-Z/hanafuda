@@ -44,7 +44,7 @@ function adjust_deck_Lv0(playerID, max_diff) {
         card_diff +=  player[CPU].collect[i].length - player[PLR].collect[i].length;
     if (card_diff <= max_diff)
         return;
-    console.log('adjust：', card_diff);
+    // console.log('adjust：', card_diff);
     /* 現在CPU的拿到的牌比玩家多 */
     if (playerID == PLR) /* 輪到玩家抽牌 -> 要抽到可配對的牌 */
         next_is_pair();
@@ -145,7 +145,7 @@ function adjust_deck_Lv2(playerID, max_diff) {
         card_diff += player[Number(!playerID)].collect[i].length - player[playerID].collect[i].length;
     if (Math.abs(card_diff) <= max_diff)
         return;
-    console.log('adjust：', playerID==PLR ? 'PLR':'CPU', (playerID==PLR) ? card_diff : -card_diff);
+    // console.log('adjust：', playerID==PLR ? 'PLR':'CPU', (playerID==PLR) ? card_diff : -card_diff);
     if (card_diff > 0) /* 對方牌比我多 -> 我要抽到可配對的牌 */
         next_is_pair();
     else /* 對方牌比我少 -> 我不能抽到可配對的牌 */
