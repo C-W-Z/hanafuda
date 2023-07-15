@@ -137,13 +137,14 @@ function keydown_func(e) {
     }
 }
 
+const margin = 1;
 /* resize canvas */
 function resize_canvas() {
     R = window.devicePixelRatio;
     canvas.width = SCREEN_W * R;
     canvas.height = SCREEN_H * R;
     // auto adaptive size by height
-    scaleRate = self.innerHeight / SCREEN_H;
+    scaleRate = Math.min((self.innerHeight - margin * 2) / SCREEN_H, (self.innerWidth - margin * 2) / SCREEN_W);
     canvas.style.width = SCREEN_W * scaleRate + 'px';
     canvas.style.height = SCREEN_H * scaleRate + 'px';
     // fix text position

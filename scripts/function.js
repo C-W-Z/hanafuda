@@ -348,18 +348,19 @@ function player_play_card(playerID, handID, fieldID) {
 
 function player_collect_animation(playerID, handCardID, fieldID) {
     return function (time) {
-        //endAnimation();
-        //console.log("f", field.card[fieldID]);
-        let fieldCardID = field.card[fieldID];
-        field.removeCard(fieldID);
+        time_func = null;
         // next animation
-        startTime = performance.now(); // reset startTime
-        time_func = collect_animation(playerID, handCardID, fieldCardID)
-        next_func = after_play(playerID, handCardID, fieldCardID);
+        setTimeout(function () {
+            let fieldCardID = field.card[fieldID];
+            field.removeCard(fieldID);
+            startTime = performance.now(); // reset startTime
+            time_func = collect_step(playerID, handCardID, fieldCardID)
+            next_func = after_play(playerID, handCardID, fieldCardID);
+        }, 100);
     }
 }
 
-function collect_animation(playerID, handCardID, fieldCardID) {
+function collect_step(playerID, handCardID, fieldCardID) {
     return function (time) {
         step_move(handCardID, card[handCardID].px, card[handCardID].py, player[playerID].getNewColloectX(card_type[handCardID]), player[playerID].getNewColloectY(card_type[handCardID]))(time);
         step_move(fieldCardID, card[fieldCardID].px, card[fieldCardID].py, player[playerID].getNewColloectX(card_type[fieldCardID]), player[playerID].getNewColloectY(card_type[fieldCardID]))(time);
@@ -444,20 +445,20 @@ function draw_card_animation(playerID, new_card, fieldID, fieldCardID) {
     if (playerID == PLR)
         game.state = gameState.player_end_round;
 
-    if (fieldCardID >= 0)
-        // remove the card from field
-        field.removeCard(fieldID);
-
     // animation
     startTime = performance.now(); // reset startTime
-    time_func = step_move(new_card, DECK_P.x, DECK_P.y, Field.X(fieldID), Field.Y(fieldID));
+    time_func = step_move(new_card, DECK_P.x, DECK_P.y, Field.X(fieldID), Field.Y(fieldID) + (fieldCardID >= 0 ? 20 : 0));
     // 這裡還要加上collect的動畫
     if (fieldCardID >= 0)
-        next_func = function (time) {
-            startTime = performance.now(); // reset startTime
-            time_func = collect_animation(playerID, new_card, fieldCardID)
-            next_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
-        };
+        setTimeout(function () {
+            // remove the card from field
+            field.removeCard(fieldID);
+            next_func = function (time) {
+                startTime = performance.now(); // reset startTime
+                time_func = collect_step(playerID, new_card, fieldCardID)
+                next_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
+            };
+        }, 100);
     else
         next_func = after_draw_new_card(playerID, new_card, fieldID, fieldCardID);
 }
