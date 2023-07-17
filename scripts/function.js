@@ -269,6 +269,7 @@ function deal_step(cards, i) {
 function after_deal(new_card) {
     return function (time) {
         endAnimation();
+        need_draw = false;
 
         // put to players' hand & field
         for (let i = 0; i < HAND_NUM; i++)
@@ -278,7 +279,6 @@ function after_deal(new_card) {
         for (let i = 0; i < HAND_NUM; i++)
             player[CPU].addHand(new_card[CPU + 1][i]);
 
-        need_draw = false;
         redraw_canvas();
         // 第一回合開始
         game.round = 0;

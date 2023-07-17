@@ -24,6 +24,11 @@ window.onload = function()
     MOVE_TIME = data.animationTime;
     FLIP_TIME = MOVE_TIME * 2;
 
+    /* Card Imgs */
+    for (let i = 0; i < CARD_NUM+1; i++) {
+        cardImg[i].onload = redraw_canvas;
+        cardImg[i].src = `imgs/${i}.webp`;
+    }
     init_game();
     document.fonts.onloadingdone = redraw_canvas;
     animate(startTime);
@@ -158,8 +163,7 @@ function resize_canvas() {
     // fix text position
     context.textAlign = "center";
     context.textBaseline = 'middle';
-    if (game != null)
-        redraw_canvas();
+    redraw_canvas();
 }
 
 // get mouse coorfinates
@@ -173,6 +177,8 @@ function updateMouseXY(event) {
 }
 
 function redraw_canvas() {
+    if (!UI_created) return;
+
     // 清除整個canvas畫面
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
@@ -321,12 +327,6 @@ function init_game() {
 
     /* init UI in game */
     create_UI();
-
-    /* Card Imgs */
-    for (let i = 0; i < CARD_NUM+1; i++) {
-        cardImg[i].onload = redraw_canvas();
-        cardImg[i].src = `imgs/${i}.webp`;
-    }
 
     canvas.onmousemove = function (e) {
         updateMouseXY(e);

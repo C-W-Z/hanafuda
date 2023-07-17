@@ -27,6 +27,7 @@ let next_month_button;
 let to_result_button;
 let result_panel;
 let home_button;
+let UI_created = false;
 
 
 function drawTitle() {
@@ -130,6 +131,7 @@ function create_UI() {
     w = 400, h = 50;
     home_button = new Button(result_panel.x, result_panel.y+result_panel.h + 5, result_panel.w, h, 10, '回首頁', FONT_SIZE, back_to_title);
 //#endregion
+    UI_created = true;
 }
 
 function check_hover_home_buttons() {
