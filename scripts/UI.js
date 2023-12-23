@@ -1,5 +1,5 @@
 /* home page */
-const title_button_text = ['開始', '統計', '設定'];
+const title_button_text = ['始まる', '統計', '設定'];
 let title_button = new Array(title_button_text.length);
 let devSource;
 let back_button;
@@ -71,7 +71,7 @@ function create_UI() {
     w = 500, h = 450;
     setting_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2, w, h, 10);
     w = 300, h = 50;
-    animation_button = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*3.5, w, h, 10, `動画速度：${(MOVE_TIME==normalMoveTime?'中':'快')}`, FONT_SIZE, changeAnimationTime, 'lightgray');
+    animation_button = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*3.5, w, h, 10, `動画速度：${(MOVE_TIME==normalMoveTime?'遅い':'速い')}`, FONT_SIZE, changeAnimationTime, 'lightgray');
     settings_button[0] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*2, w, h, 10, settings_button_text[0], FONT_SIZE, resize_canvas, 'lightgray');
     settings_button[1] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2-h*0.5, w, h, 10, settings_button_text[1], FONT_SIZE, uploadData, 'lightgray');
     settings_button[2] = new Button(SCREEN_W/2-w/2, setting_panel.y+setting_panel.h/2+h*1, w, h, 10, settings_button_text[2], FONT_SIZE, downloadData, 'lightgray');
@@ -86,7 +86,7 @@ function create_UI() {
 
     /* choose rules */
     w = back_button.w, h = back_button.h;
-    start_button = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, '開始', 40, start_game, '', '', 'black');
+    start_button = new Button(SCREEN_W/2-w/2, SCREEN_H/2+(h+10)*3, w, h, 0, '始まる', 40, start_game, '', '', 'black');
     w = 800, h = 450;
     choose_rule_panel = new Button(SCREEN_W/2-w/2, SCREEN_H/2-h/2-start_button.h-10, w, h, 10);
 
@@ -137,7 +137,7 @@ function create_UI() {
 function check_hover_home_buttons() {
     for (let i = 0; i < title_button.length; i++)
         title_button[i].text = title_button[i].include(mouse) ? ('>  ' + title_button_text[i] + '  <') : title_button_text[i];
-    start_button.text = start_button.include(mouse) ? '>  開始  <' : '開始';
+    start_button.text = start_button.include(mouse) ? '>  始まる  <' : '始まる';
     back_button.text = back_button.include(mouse) ? '>  戻る  <' : '戻る';
     devSource.textColor = devSource.include(mouse) ? 'gold' : 'black';
     need_draw = true;
@@ -596,7 +596,7 @@ function changeAnimationTime() {
     else
         MOVE_TIME = normalMoveTime;
     FLIP_TIME = MOVE_TIME * 2;
-    animation_button.text = `動画速度：${(MOVE_TIME==normalMoveTime?'中':'快')}`;
+    animation_button.text = `動画速度：${(MOVE_TIME==normalMoveTime?'遅い':'速い')}`;
 
     data.animationTime = MOVE_TIME;
     data.store();
