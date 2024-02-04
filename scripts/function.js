@@ -511,7 +511,7 @@ async function check_win(playerID) {
 
     if (player[CPU].hand.length == 0 && player[PLR].hand.length == 0) {
         // end this month
-        if (win)
+        if (win || (!data.koi_lower_2 && player[playerID].score > 0))
             start_show_yaku(playerID, 0);
         else if (game.koi != -1) {
             // update data
@@ -530,7 +530,7 @@ async function check_win(playerID) {
                 need_draw = true;
             }
         }
-    } else if (win) {
+    } else if (win || (!data.koi_lower_2 && player[playerID].score > 0)) {
         // show yaku
         start_show_yaku(playerID, 0);
     } else {
@@ -545,6 +545,12 @@ function start_show_yaku(playerID, yakuID) {
         // 若是最後一回合 => 強制結束
         if (player[playerID].hand.length == 0)
             player_win_month(playerID);
+        // 若2文以下無法koikoi則什麼都不做
+        else if (!data.koi_lower_2 && player[playerID].score <= 2) {
+            // next round
+            game.round++;
+            (game.round % 2 == game.first) ? player_play() : cpu_play();
+        }
         // ask koi koi or not
         else if (playerID == PLR)
             start_ask_koikoi();

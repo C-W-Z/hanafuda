@@ -60,6 +60,7 @@ class Data {
         this.first_priority = true; // 啟用親權
         this.koi_bonus = true; // こいこい加倍 (score * koikoi time)
         this.seven_bonus = false; // 7点倍
+        this.koi_lower_2 = true; // 可在2文以下koikoi或結束遊戲
         this.flower_sake = true; // 啟用花見酒
         this.moon_sake = true; // 啟用月見酒
         this.flower_moon_sake = false; // 啟用花月見

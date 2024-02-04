@@ -169,8 +169,8 @@ function show_statistics() {
 const statistic_text = [
     [['対戦回数','総月数','総獲得文数','最高獲得総文数','月最高獲得文数','月平均獲得文数','7文以上確率','被7文以上率','こいこい率','こいこい成功率','こいこい阻止率'],
     ['勝利数','敗北数','勝率','勝利月数','敗北月数','月勝率','最大連勝数','最大連敗数','最大連勝月数','最大連敗月数']],
-    [["五光","四光","雨四光","三光","松桐坊主","表菅原","飲み","花見で一杯","月見で一杯","猪鹿蝶","五鳥"],
-    ["七短","六短","赤短・青短","赤短","青短","草","月札","タネ","短冊","カス","親権"]]
+    [["五光","四光","雨四光","三光","松桐坊主","表菅原(梅松桜)","飲み(鉄砲)(花月見)","花見で一杯","月見で一杯","猪鹿蝶","五鳥(ごとり)"],
+    ["七短","六短","赤短・青短(ぶっく)","赤短","青短","草(草短)","月札","タネ","短冊","カス","親権"]]
 ];
 
 function draw_statistics() {
@@ -269,7 +269,7 @@ const rule_text = [
     ['五光','四光','雨四光','三光','三、雨四、四、五光の文数は累積できる'],
     ['松桐坊主','表菅原(梅松桜)','猪鹿蝶','五鳥(ごとり)','草(草短)','「菊に盃」は「カス」としても使える'],
     ['赤短・青短(ぶっく)','赤短','青短','赤短、青短、ぶっくの文数は累積できる','七短','六短','短冊、六短、七短の文数は累積できる'],
-    ['タネ','短冊','カス','手四','喰付','札の獲得枚数の差を制限する']
+    ['タネ','短冊','カス','手四','喰付','「こいこい」「あがり」は2文以内禁止','札の獲得枚数の差を制限する']
 ];
 
 function draw_choose_rules() {
@@ -537,8 +537,12 @@ function rule_change(i) {
                     rule_button[5][2].text = `${data.yaku_score[21]}文`;
                     break;
                 case 5:
+                    data.koi_lower_2 = !data.koi_lower_2;
+                    rule_button[5][5].text = data.koi_lower_2 ? '✘' : '✔';
+                    break;
+                case 6:
                     data.adjust_deck = !data.adjust_deck;
-                    rule_button[5][5].text = data.adjust_deck ? '✔' : '✘';
+                    rule_button[5][6].text = data.adjust_deck ? '✔' : '✘';
                     break;
             }
             break;
@@ -587,7 +591,8 @@ function set_rule_buttons() {
     rule_button[5][0].text = `${data.yaku_score[19]}文`;
     rule_button[5][1].text = `${data.yaku_score[20]}文`;
     rule_button[5][2].text = `${data.yaku_score[21]}文`;
-    rule_button[5][5].text = data.adjust_deck ? '✔' : '✘';
+    rule_button[5][5].text = data.koi_lower_2 ? '✘' : '✔';
+    rule_button[5][6].text = data.adjust_deck ? '✔' : '✘';
 }
 
 function changeAnimationTime() {

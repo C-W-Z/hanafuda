@@ -256,6 +256,8 @@ var Player = /** @class */ (function () {
             // calculate new score
             this.score += data.yaku_score[i] * now_yaku[i];
         }
+        if (!data.koi_lower_2 && this.score <= 2)
+            return false;
         return get_new_yaku;
     };
     return Player;
