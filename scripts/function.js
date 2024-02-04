@@ -296,10 +296,11 @@ function cpu_play() {
     game.state = gameState.cpu_play;
 
     switch (data.cpuLevel) {
-        case 0:
+        case 0: cpu_play_Lv0(); break;
         case 1: cpu_play_Lv1(); break;
         case 2: cpu_play_Lv2(); break;
         case 3: cpu_play_Lv3(); break;
+        case 4: cpu_play_Lv4(); break;
     }
 
     player_play_card(CPU, player[CPU].selected_handID, player[CPU].selected_fieldID);
@@ -310,7 +311,8 @@ function cpu_decide_collect_card(pairFieldID) {
         case 0: return cpu_decide_collect_card_Lv0(pairFieldID);
         case 1: return cpu_decide_collect_card_Lv1(pairFieldID);
         case 2:
-        case 3: return cpu_decide_collect_card_Lv2(pairFieldID);
+        case 3:
+        case 4: return cpu_decide_collect_card_Lv2(pairFieldID);
     }
 }
 
@@ -323,7 +325,8 @@ function cpu_decide_koi() {
         case 0:
         case 1: koi = cpu_decide_koi_Lv1(); break;
         case 2: koi = cpu_decide_koi_Lv2(); break;
-        case 3: koi = cpu_decide_koi_Lv3(); break;
+        case 3:
+        case 4: koi = cpu_decide_koi_Lv3(); break;
     }
 
     if (koi) koikoi(CPU);
@@ -406,7 +409,8 @@ function draw_new_card(playerID) {
             case 0: adjust_deck_Lv0(playerID, 0); break;
             case 1: adjust_deck_Lv0(playerID, 2); break;
             case 2: adjust_deck_Lv2(playerID, 4); break;
-            case 3: adjust_deck_Lv2(playerID, 6); break;
+            case 3: adjust_deck_Lv2(playerID, 4); break;
+            case 4: adjust_deck_Lv2(playerID, 4); break;
         }
     }
 

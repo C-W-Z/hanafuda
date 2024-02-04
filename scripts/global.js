@@ -252,3 +252,21 @@ function equalObjFormat(o1, o2) {
             return false;
     return compareArrFormat(a, b)
 }
+
+function arr_remove(arr, item) {
+    const index = arr.indexOf(item);
+    if (index > -1)
+        arr.splice(index, 1);
+    else
+        throw new Error(item + " not found in " + arr);
+}
+
+function randomInt(minInclusive, maxInclusive) {
+    if (minInclusive > maxInclusive)
+        throw new Error("min > max");
+    minInclusive = Math.ceil(minInclusive);
+    maxInclusive = Math.floor(maxInclusive);
+    if (minInclusive == maxInclusive)
+        return minInclusive;
+    return Math.floor(Math.random() * (maxInclusive - minInclusive + 1)) + minInclusive;
+}

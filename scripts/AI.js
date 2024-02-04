@@ -25,6 +25,12 @@ function next_not_pair() {
 
 //#region Lv0 會幫玩家組成役
 
+function cpu_play_Lv0() {
+    const move = MCTS_search(1000, Math.SQRT2, MCTSTarget.Lose);
+    player[CPU].selected_handID = player[CPU].hand.indexOf(move.hand);
+    player[CPU].selected_fieldID = field.card.indexOf(move.field);
+}
+
 function cpu_decide_collect_card_Lv0(pairFieldID) {
     let a = pairFieldID[0], b = pairFieldID[1];
     if (card_type[field.card[a]] > card_type[field.card[b]])
@@ -209,6 +215,16 @@ function cpu_decide_koi_Lv3() {
         return true;
 
     return (Math.floor(Math.random() * 2) == 0);
+}
+
+//#endregion
+
+//#region Lv4
+
+function cpu_play_Lv4() {
+    const move = MCTS_search(1000, Math.SQRT2);
+    player[CPU].selected_handID = player[CPU].hand.indexOf(move.hand);
+    player[CPU].selected_fieldID = field.card.indexOf(move.field);
 }
 
 //#endregion

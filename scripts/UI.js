@@ -301,7 +301,7 @@ function rule_change(i) {
         case 0:
             switch (i) {
                 case 0:
-                    if (data.cpuLevel < 3) data.cpuLevel++;
+                    if (data.cpuLevel < 4) data.cpuLevel++;
                     else data.cpuLevel = 0;
                     rule_button[page][i].text = `Lv${data.cpuLevel}`;
                     break;
